@@ -4,7 +4,6 @@ package Daemonise::Plugin::CouchDB;
 
 use Moose::Role;
 use Store::CouchDB;
-use Data::Dumper;
 
 has 'couch_host' => (
     is      => 'rw',
@@ -45,7 +44,6 @@ around 'lookup' => sub {
             opts   => { key => '"' . $platform . '"' },
         };
         my $config = $db->get_view($view);
-        print STDERR Dumper($config);
         while(my $part = shift(@path)){
             return undef unless $config->{$part};
             $config = $config->{$part};
