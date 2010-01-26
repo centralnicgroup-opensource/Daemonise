@@ -1,11 +1,11 @@
 package Daemonise;
 
 use Moose;
-use POSIX qw(SIGINT SIG_BLOCK SIG_UNBLOCK);
+use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '0.01';
+our $VERSION = '0.2';
 
 has 'user' => (
     is      => 'rw',
@@ -22,14 +22,19 @@ has 'group' => (
 has 'gid' => ( is => 'rw', );
 
 has 'name' => (
-    is      => 'rw',
-    default => sub { 'daemon' },
+    is        => 'rw',
+    default   => sub { 'daemon' },
     predicate => 'has_name',
 );
 
 has 'pid_file' => (
     is        => 'rw',
     predicate => 'has_pid_file',
+);
+
+has 'running' => (
+    is        => 'rw',
+    predicate => 'is_running',
 );
 
 has 'config_file' => (
@@ -41,6 +46,18 @@ has 'config' => (
     is      => 'rw',
     default => sub { },
 );
+
+has 'phase' => (
+    is      => 'rw',
+    default => sub { 'starting' },
+);
+
+has 'logfile' => (
+    is        => 'rw',
+    predicate => 'has_logfile',
+);
+
+with 'MooseX::Object::Pluggable';
 
 sub configure {
     my $self = shift;
@@ -60,7 +77,26 @@ sub configure {
     return $conf;
 }
 
-sub _check_pid_file {
+sub lookup {
+    my ($self, $key) = @_;
+    return $key;
+}
+
+sub log {
+    my $self = shift;
+    my $msg = shift;
+    if($self->has_logfile){
+        open( LOG, '>>', $self->logfile ) 
+            or confess "Could not open File (".$self->logfile."): $@";
+        my $now = strftime "[%F %T]", localtime;
+        print LOG "$now\t$$\t$msg\n";
+        close LOG;
+    } else {
+        Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), $msg);
+    }
+}
+
+sub check_pid_file {
     my $self = shift;
 
     ### no pid_file = return success
@@ -105,19 +141,26 @@ sub _check_pid_file {
             return 1;
         }
         else {
-            die
+            if ( $self->phase eq 'status' ) {
+                $self->running($current_pid);
+                return;
+            }
+            else {
+                die
 "Pid_file already exists for running process ($current_pid)... aborting\n";
+            }
         }
 
         ### remove the pid_file
     }
     else {
 
-        warn "Pid_file \"$self->pid_file\" already exists.  Overwriting!\n";
+        warn "Pid_file \""
+          . $self->pid_file
+          . "\" already exists.  Overwriting!\n";
         unlink $self->pid_file
           || die "Couldn't remove pid_file \"" . $self->pid_file . "\" [$!]\n";
         return 1;
-
     }
 }
 
@@ -184,7 +227,7 @@ sub _create_pid_file {
     my $self = shift;
 
     ### see if the pid_file is already there
-    $self->_check_pid_file;
+    $self->check_pid_file;
 
     if ( !open( PID, '>', $self->pid_file ) ) {
         die "Couldn't open pid file \"" . $self->pid_file . "\" [$!].\n";
@@ -240,7 +283,8 @@ sub _set_gid {
 sub daemonise {
     my $self = shift;
 
-    $self->_check_pid_file if $self->has_pid_file;
+    $self->phase('starting');
+    $self->check_pid_file if $self->has_pid_file;
 
     $self->uid( $self->_get_uid );
     $self->gid( $self->_get_gid );    # returns list of groups
@@ -282,10 +326,13 @@ sub daemonise {
         ### Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
 
-        if($self->has_name){
-            Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), "Daemon started (".$self->name.") with $$");
-        } else {
-            Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), "Daemon started with $$");
+        if ( $self->has_name ) {
+            Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(),
+                "Daemon started (" . $self->name . ") with $$" );
+        }
+        else {
+            Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(),
+                "Daemon started with $$" );
         }
         ### install a signal handler to make sure
         ### SIGINT's remove our pid_file
@@ -294,6 +341,53 @@ sub daemonise {
         return 1;
 
     }
+}
+
+sub status {
+    my $self = shift;
+    $self->phase('status');
+    $self->check_pid_file();
+    if ( $self->is_running ) {
+        return $self->running . ' with PID file ' . $self->pid_file . "\n";
+    }
+    return;
+}
+
+sub restart {
+    my $self = shift;
+    $self->stop;
+    $self->start;
+    return "Restarted Daemon\n";
+}
+
+sub stop {
+    my $self = shift;
+    my $msg;
+    $self->phase('status');
+    $self->check_pid_file();
+    if ( $self->is_running ) {
+        my $pid = $self->running;
+        qx{kill $pid};
+        unlink $self->pid_file;
+        if ( $self->has_name ) {
+            $msg = "Daemon stopped (" . $self->name . ") with $$";
+            Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), $msg );
+        }
+        else {
+            $msg = "Daemon stopped with $$";
+            Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), $msg );
+        }
+        return $msg;
+    }
+    else {
+        die "Could not PID!\n";
+    }
+}
+
+sub start {
+    my $self = shift;
+    $self->daemonise;
+    return;
 }
 
 sub HUNTSMAN {
@@ -314,7 +408,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 0.01
+Version 0.2
 
 =head1 SYNOPSIS
 

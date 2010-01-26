@@ -16,6 +16,11 @@ print Dumper($d->config);
 
 print "User: ".$d->user."\n";
 
+$d->load_plugin("CouchDB");
+$d->couch_port(5985);
+
+print Dumper $d->lookup('iwmn/defaults/url');
+
 $d->daemonise;
 
 while(1){
