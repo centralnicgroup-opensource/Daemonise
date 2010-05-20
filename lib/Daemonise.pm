@@ -1,11 +1,11 @@
 package Daemonise;
 
-use Moose;
+use Mouse;
 use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 has 'user' => (
     is      => 'rw',
@@ -57,7 +57,7 @@ has 'logfile' => (
     predicate => 'has_logfile',
 );
 
-with 'MooseX::Object::Pluggable';
+with 'MouseX::Object::Pluggable';
 
 sub configure {
     my $self = shift;
@@ -408,7 +408,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 0.2
+Version 0.3
 
 =head1 SYNOPSIS
 

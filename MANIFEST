@@ -12,6 +12,7 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/Daemonise.pm
+lib/Daemonise/Plugin/CouchDB.pm
 Makefile.PL
 MANIFEST
 META.yml

@@ -5,7 +5,8 @@ all_from 'lib/Daemonise.pm';
 author   q{Lenz Gschwendtner <norbu09@cpan.org>};
 license  'perl';
 
-requires 'Moose';
+requires 'Mouse';
+requires 'MouseX::Object::Pluggable';
 requires 'Config::Any';
 requires 'Unix::Syslog';
 

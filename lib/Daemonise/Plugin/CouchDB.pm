@@ -2,7 +2,7 @@
 
 package Daemonise::Plugin::CouchDB;
 
-use Moose::Role;
+use Mouse::Role;
 use Store::CouchDB;
 
 has 'couch_host' => (

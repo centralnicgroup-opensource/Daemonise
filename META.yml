@@ -20,8 +20,9 @@ no_index:
     - t
 requires:
   Config::Any: 0
-  Moose: 0
+  Mouse: 0
+  MouseX::Object::Pluggable: 0
   Unix::Syslog: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.2
+version: 0.3
