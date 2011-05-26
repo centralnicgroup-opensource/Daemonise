@@ -13,13 +13,14 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/Daemonise.pm
 lib/Daemonise/Plugin/CouchDB.pm
+lib/Daemonise/Plugin/RabbitMQ.pm
 Makefile.PL
 MANIFEST
+MANIFEST.SKIP
 META.yml
 README
 t/00-load.t
 t/boilerplate.t
-t/pod-coverage.t
 t/pod.t
 t/test.conf
 t/test.pl

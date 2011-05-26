@@ -6,9 +6,11 @@ author   q{Lenz Gschwendtner <norbu09@cpan.org>};
 license  'perl';
 
 requires 'Mouse';
-requires 'MouseX::Object::Pluggable';
+requires 'Mouse::Role';
 requires 'Config::Any';
 requires 'Unix::Syslog';
+requires 'Store::CouchDB';
+requires 'Net::RabbitMQ';
 
 
 build_requires 'Test::More';
