@@ -26,9 +26,7 @@ has 'couch_view' => (
 );
 
 around 'lookup' => sub {
-    my $orig = shift;
-    my ( $self, @args ) = @_;
-    my $key = $self->$orig(@args);
+    my ( $self, $key ) = @_;
     if ($key) {
         my @path = split(/\//, $key);
         my $db = Store::CouchDB->new(

@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 has 'user' => (
     is      => 'rw',
@@ -57,7 +57,18 @@ has 'logfile' => (
     predicate => 'has_logfile',
 );
 
-with 'MouseX::Object::Pluggable';
+has 'debug' => (is => 'rw', isa => 'Bool', default => 0, predicate => 'is_debug');
+
+
+sub load_plugin {
+    my ( $self, $plugin ) = @_;
+
+    my $plug = 'Daemonise::Plugin::' . $plugin;
+    print STDERR "Loading $plugin Plugin\n"
+      if $self->is_debug;
+    with($plug);
+    return;
+}
 
 sub configure {
     my $self = shift;
@@ -77,22 +88,57 @@ sub configure {
     return $conf;
 }
 
+sub msg_pub {
+    my ( $self, $queue, $msg ) = @_;
+    $self->rabbit_user($self->config->{rabbit}->{user})
+        if $self->config->{rabbit}->{user};
+    $self->rabbit_pass($self->config->{rabbit}->{pass})
+        if $self->config->{rabbit}->{pass};
+    $self->rabbit_host($self->config->{rabbit}->{host})
+        if $self->config->{rabbit}->{host};
+    $self->rabbit_port($self->config->{rabbit}->{port})
+        if $self->config->{rabbit}->{port};
+    $self->rabbit_vhost($self->config->{rabbit}->{vhost})
+        if $self->config->{rabbit}->{vhost};
+    $self->rabbit_exchange($self->config->{rabbit}->{exchange})
+        if $self->config->{rabbit}->{exchange};
+    return;
+}
+
+sub queue_bind {
+    my ( $self, $queue ) = @_;
+    $self->rabbit_user($self->config->{rabbit}->{user})
+        if $self->config->{rabbit}->{user};
+    $self->rabbit_pass($self->config->{rabbit}->{pass})
+        if $self->config->{rabbit}->{pass};
+    $self->rabbit_host($self->config->{rabbit}->{host})
+        if $self->config->{rabbit}->{host};
+    $self->rabbit_port($self->config->{rabbit}->{port})
+        if $self->config->{rabbit}->{port};
+    $self->rabbit_vhost($self->config->{rabbit}->{vhost})
+        if $self->config->{rabbit}->{vhost};
+    $self->rabbit_exchange($self->config->{rabbit}->{exchange})
+        if $self->config->{rabbit}->{exchange};
+    return;
+}
+
 sub lookup {
-    my ($self, $key) = @_;
+    my ( $self, $key ) = @_;
     return $key;
 }
 
 sub log {
     my $self = shift;
-    my $msg = shift;
-    if($self->has_logfile){
-        open( LOG, '>>', $self->logfile ) 
-            or confess "Could not open File (".$self->logfile."): $@";
+    my $msg  = shift;
+    if ( $self->has_logfile ) {
+        open( LOG, '>>', $self->logfile )
+          or confess "Could not open File (" . $self->logfile . "): $@";
         my $now = strftime "[%F %T]", localtime;
         print LOG "$now\t$$\t$msg\n";
         close LOG;
-    } else {
-        Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), $msg);
+    }
+    else {
+        Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), $msg );
     }
 }
 
@@ -408,7 +454,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 0.3
+Version 0.4
 
 =head1 SYNOPSIS
 
