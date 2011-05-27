@@ -119,7 +119,7 @@ sub msg_rpc {
         if $self->config->{rabbit}->{vhost};
     $self->rabbit_exchange($self->config->{rabbit}->{exchange})
         if $self->config->{rabbit}->{exchange};
-    return $msg;
+    return $self->rabbit_last_response;
 }
 
 sub queue_bind {

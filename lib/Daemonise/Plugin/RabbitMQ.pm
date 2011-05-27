@@ -8,7 +8,7 @@ use Net::RabbitMQ;
 has 'rabbit_host' => (
     is      => 'rw',
     isa     => 'Str',
-    default => sub { 'localhost' },
+    default => 'localhost',
 );
 
 has 'rabbit_port' => (
@@ -45,6 +45,11 @@ has 'rabbit_channel' => (
     is      => 'rw',
     isa     => 'Int',
     default =>  1,
+);
+
+has 'rabbit_last_response' => (
+    is      => 'rw',
+    default =>  '',
 );
 
 has 'mq' => (
@@ -108,13 +113,13 @@ after 'msg_rpc' => sub {
         my $reply = $self->mq->recv();
         #$self->mq->channel_close($rep_chan);
         print STDERR "Got reply on queue $reply_queue\n";
-        return $reply->{body};
+        $self->rabbit_last_response($reply->{body});
     }
     else {
         confess "You have to provide a message to send!";
     }
     print STDERR "Sent message to queue '$queue' with channel ".$self->rabbit_channel." ($rep)\n";
-    return;
+    return $self->rabbit_last_response;
 };
 
 sub _amqp {
