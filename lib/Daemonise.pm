@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 has 'user' => (
     is      => 'rw',
@@ -103,6 +103,23 @@ sub msg_pub {
     $self->rabbit_exchange($self->config->{rabbit}->{exchange})
         if $self->config->{rabbit}->{exchange};
     return;
+}
+
+sub msg_rpc {
+    my ( $self, $msg, $queue, $reply_queue ) = @_;
+    $self->rabbit_user($self->config->{rabbit}->{user})
+        if $self->config->{rabbit}->{user};
+    $self->rabbit_pass($self->config->{rabbit}->{pass})
+        if $self->config->{rabbit}->{pass};
+    $self->rabbit_host($self->config->{rabbit}->{host})
+        if $self->config->{rabbit}->{host};
+    $self->rabbit_port($self->config->{rabbit}->{port})
+        if $self->config->{rabbit}->{port};
+    $self->rabbit_vhost($self->config->{rabbit}->{vhost})
+        if $self->config->{rabbit}->{vhost};
+    $self->rabbit_exchange($self->config->{rabbit}->{exchange})
+        if $self->config->{rabbit}->{exchange};
+    return $msg;
 }
 
 sub queue_bind {
@@ -454,7 +471,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 0.6.6.5.5.5.5.5.5.4
+Version 0.7.6.6.5.5.5.5.5.5.4
 
 =head1 SYNOPSIS
 

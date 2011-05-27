@@ -60,15 +60,7 @@ after 'queue_bind' => sub {
         $self->_amqp();
         eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
         if ($@) {
-            $self->rabbit_channel($self->rabbit_channel + 1);
-            eval { $self->mq->channel_open( $self->rabbit_channel ); };
-            eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 1, auto_delete => 0 } ); };
-            eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
-            eval { $self->mq->queue_bind( $self->rabbit_channel, $queue, $self->rabbit_exchange, $queue ); };
-            eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
-            if ($@) {
-                confess "Could not setup the listening queue: $@\n";
-            }
+            $self->_consume_queue($queue);
         }
         print STDERR "Bound to queue '$queue' using channel ".$self->rabbit_channel."\n";
         return $self->rabbit_channel;
@@ -101,6 +93,30 @@ after 'msg_pub' => sub {
     return;
 };
 
+after 'msg_rpc' => sub {
+    my ( $self, $msg, $queue, $reply_queue ) = @_;
+    my $rep;
+    if ($msg) {
+        $self->_consume_queue($reply_queue, 'temp');
+        my $rep_chan = $self->_get_channel;
+        eval{$self->mq->channel_open($self->rabbit_channel);};
+        eval{$rep = $self->mq->publish( $self->rabbit_channel, $queue, $msg);};
+        if($@){
+            confess "Could not send message: $@\n";
+        }
+        $self->mq->channel_close($self->rabbit_channel);
+        my $reply = $self->mq->recv();
+        $self->mq->channel_close($rep_chan);
+        print STDERR "Got reply on queue $reply_queue\n";
+        return $reply->{body};
+    }
+    else {
+        confess "You have to provide a message to send!";
+    }
+    print STDERR "Sent message to queue '$queue' with channel ".$self->rabbit_channel." ($rep)\n";
+    return;
+};
+
 sub _amqp {
     my $self = shift;
 
@@ -119,6 +135,7 @@ sub _amqp {
     if ($@) {
         confess "Could not connect to the RabbitMQ server! $@\n";
     }
+    $self->_get_channel;
     print STDERR "Trying to open channel: ".$self->rabbit_channel."\n";
     $amqp->channel_open( $self->rabbit_channel );
     print STDERR "Declaring exchange: ".$self->rabbit_exchange."\n";
@@ -129,6 +146,28 @@ sub _amqp {
     print STDERR "Initialized connection successfully\n";
     $self->mq($amqp);
     return $amqp;
+}
+
+sub _consume_queue {
+    my ($self, $queue, $temp) = @_;
+    $self->_get_channel;
+    eval { $self->mq->channel_open( $self->rabbit_channel ); };
+    if($@){
+        $self->_amqp();
+    }
+    if($temp){
+        eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 0, auto_delete => 1 } ); };
+        eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
+    } else {
+        eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 1, auto_delete => 0 } ); };
+        eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
+        eval { $self->mq->queue_bind( $self->rabbit_channel, $queue, $self->rabbit_exchange, $queue ); };
+        eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
+    }
+    if ($@) {
+        confess "Could not setup the listening queue: $@\n";
+    }
+    return;
 }
 
 sub _get_channel {
