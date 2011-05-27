@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+0.9     2011-05-27T18:16:45
+        store RPC responses in the class
+
 0.8     2011-05-27T17:34:12
         fixed a too early channel_close
 
