@@ -89,7 +89,7 @@ sub configure {
 }
 
 sub msg_pub {
-    my ( $self, $queue, $msg ) = @_;
+    my ( $self, $msg, $queue ) = @_;
     $self->rabbit_user($self->config->{rabbit}->{user})
         if $self->config->{rabbit}->{user};
     $self->rabbit_pass($self->config->{rabbit}->{pass})
