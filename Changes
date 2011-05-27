@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+0.6     2011-05-27T12:38:01
+        fixed message publication
+
 0.5     2011-05-26T17:42:18
         added a RabbitMQ Plugin
 
