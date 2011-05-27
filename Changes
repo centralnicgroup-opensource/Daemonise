@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+0.8     2011-05-27T17:34:12
+        fixed a too early channel_close
+
 0.7     2011-05-27T14:01:26
         added a msg_rpc command for rpc calls
 
