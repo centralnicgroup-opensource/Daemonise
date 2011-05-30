@@ -4,6 +4,7 @@ package Daemonise::Plugin::RabbitMQ;
 
 use Mouse::Role;
 use Net::RabbitMQ;
+use Data::UUID;
 
 has 'rabbit_host' => (
     is      => 'rw',
@@ -101,6 +102,12 @@ after 'msg_pub' => sub {
 after 'msg_rpc' => sub {
     my ( $self, $msg, $queue, $reply_queue ) = @_;
     my $rep;
+
+    if(! $reply_queue){
+        my $uu = Data::UUID->new;
+        $reply_queue = $uu->create_str();
+    }
+
     if ($msg) {
         $self->_consume_queue($reply_queue, 'temp');
         my $rep_chan = $self->_get_channel;

@@ -11,11 +11,10 @@ requires 'Config::Any';
 requires 'Unix::Syslog';
 requires 'Store::CouchDB';
 requires 'Net::RabbitMQ';
+requires 'Data::UUID';
 
 
 build_requires 'Test::More';
-
-auto_install;
 
 WriteAll;
 
