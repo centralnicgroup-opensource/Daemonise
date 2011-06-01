@@ -118,9 +118,9 @@ after 'msg_rpc' => sub {
         }
         $self->mq->channel_close($self->rabbit_channel);
         my $reply = $self->mq->recv();
-        #$self->mq->channel_close($rep_chan);
         print STDERR "Got reply on queue $reply_queue\n";
         $self->rabbit_last_response($reply->{body});
+        $self->mq->channel_close($rep_chan);
     }
     else {
         confess "You have to provide a message to send!";
