@@ -120,7 +120,7 @@ after 'msg_rpc' => sub {
         my $reply = $self->mq->recv();
         print STDERR "Got reply on queue $reply_queue\n";
         $self->rabbit_last_response($reply->{body});
-        $self->mq->channel_close($rep_chan);
+        #$self->mq->channel_close($rep_chan);
     }
     else {
         confess "You have to provide a message to send!";
@@ -168,7 +168,7 @@ sub _consume_queue {
         $self->_amqp();
     }
     if($temp){
-        eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 0, auto_delete => 1 } ); };
+        eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 0, auto_delete => 1, exclusive => 1 } ); };
         eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
     } else {
         eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 1, auto_delete => 0 } ); };
