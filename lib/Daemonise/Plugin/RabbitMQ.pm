@@ -102,6 +102,7 @@ after 'msg_pub' => sub {
 after 'msg_rpc' => sub {
     my ( $self, $msg, $queue, $reply_queue ) = @_;
     my $rep;
+    my @channels;
 
     if(! $reply_queue){
         my $uu = Data::UUID->new;
@@ -110,17 +111,18 @@ after 'msg_rpc' => sub {
 
     if ($msg) {
         $self->_consume_queue($reply_queue, 'temp');
-        my $rep_chan = $self->_get_channel;
-        eval{$self->mq->channel_open($self->rabbit_channel);};
-        eval{$rep = $self->mq->publish( $self->rabbit_channel, $queue, $msg);};
+        my $rep_chan = $self->rabbit_channel;
+        my $fwd_chan = $self->_get_channel;
+        eval{$self->mq->channel_open($fwd_chan);};
+        eval{$rep = $self->mq->publish( $fwd_chan, $queue, $msg);};
         if($@){
             confess "Could not send message: $@\n";
         }
-        $self->mq->channel_close($self->rabbit_channel);
+        $self->mq->channel_close($fwd_chan);
         my $reply = $self->mq->recv();
         print STDERR "Got reply on queue $reply_queue\n";
         $self->rabbit_last_response($reply->{body});
-        #$self->mq->channel_close($rep_chan);
+        $self->mq->channel_close($rep_chan);
     }
     else {
         confess "You have to provide a message to send!";
