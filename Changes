@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+0.14    2011-06-02T20:36:34
+        re-added Module::Install bits
+
 0.13    2011-06-02T19:26:59
         removed redundant exchange definitions
 
