@@ -152,11 +152,11 @@ sub _amqp {
     $self->_get_channel;
     print STDERR "Trying to open channel: ".$self->rabbit_channel."\n";
     $amqp->channel_open( $self->rabbit_channel );
-    print STDERR "Declaring exchange: ".$self->rabbit_exchange."\n";
-    eval { $amqp->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
-    if ($@) {
-        print "Exchange " . $self->rabbit_exchange . " already defined: $@\n";
-    }
+    #print STDERR "Declaring exchange: ".$self->rabbit_exchange."\n";
+    #eval { $amqp->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
+    #if ($@) {
+    #    print "Exchange " . $self->rabbit_exchange . " already defined: $@\n";
+    #}
     print STDERR "Initialized connection successfully\n";
     $self->mq($amqp);
     return $amqp;
@@ -174,7 +174,7 @@ sub _consume_queue {
         eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
     } else {
         eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 1, auto_delete => 0 } ); };
-        eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
+        #eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
         eval { $self->mq->queue_bind( $self->rabbit_channel, $queue, $self->rabbit_exchange, $queue ); };
         eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
     }

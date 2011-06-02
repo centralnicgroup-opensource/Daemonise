@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+0.13    2011-06-02T19:26:59
+        removed redundant exchange definitions
+
 0.12    2011-06-02T12:34:00
         new channel handling for RPC again
 
