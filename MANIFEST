@@ -15,7 +15,6 @@ Makefile.PL
 MANIFEST
 MANIFEST.SKIP
 META.yml
-pm_to_blib
 README
 t/00-load.t
 t/boilerplate.t
