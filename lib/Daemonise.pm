@@ -375,9 +375,10 @@ sub daemonise {
 
         ### close all input/output and separate
         ### from the parent process group
+        my $logfile = $self->logfile;
         open STDIN, '</dev/null'
           or die "Can't open STDIN from /dev/null: [$!]\n";
-        open STDOUT, '>/dev/null'
+        open STDOUT, ">$logfile"
           or die "Can't open STDOUT to /dev/null: [$!]\n";
         open STDERR, '>&STDOUT'
           or die "Can't open STDERR to STDOUT: [$!]\n";
@@ -471,7 +472,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 0.14.13
+Version 0.14
 
 =head1 SYNOPSIS
 
