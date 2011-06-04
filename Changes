@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+0.15    2011-06-04T20:32:55
+        re-enabled STDOUT redirection to logfile
+
 0.14    2011-06-02T20:36:34
         re-added Module::Install bits
 
