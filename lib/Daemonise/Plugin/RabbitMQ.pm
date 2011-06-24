@@ -118,10 +118,10 @@ after 'msg_rpc' => sub {
         if($@){
             confess "Could not send message: $@\n";
         }
-        $self->mq->channel_close($fwd_chan);
         my $reply = $self->mq->recv();
         print STDERR "Got reply on queue $reply_queue\n";
         $self->rabbit_last_response($reply->{body});
+        $self->mq->channel_close($fwd_chan);
         $self->mq->channel_close($rep_chan);
     }
     else {
