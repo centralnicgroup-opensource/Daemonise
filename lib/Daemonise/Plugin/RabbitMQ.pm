@@ -67,12 +67,14 @@ has 'mq' => (
 after 'queue_bind' => sub {
     my ( $self, $queue ) = @_;
 
+    my $tag;
     if ($queue) {
         $self->_amqp();
-        eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
+        eval { $tag = $self->mq->consume( $self->rabbit_channel, $queue ); };
         if ($@) {
-            $self->_consume_queue($queue);
+            $tag = $self->_consume_queue($queue);
         }
+        $self->rabbit_last_consumer_tag($tag);
         print STDERR "Bound to queue '$queue' using channel ".$self->rabbit_channel."\n";
         return $self->rabbit_channel;
     }
