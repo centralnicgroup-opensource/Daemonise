@@ -53,6 +53,11 @@ has 'rabbit_last_response' => (
     default =>  '',
 );
 
+has 'rabbit_last_consumer_tag' => (
+    is      => 'rw',
+    default =>  '',
+);
+
 has 'mq' => (
     is      => 'rw',
     isa     => 'Net::RabbitMQ',
@@ -62,12 +67,14 @@ has 'mq' => (
 after 'queue_bind' => sub {
     my ( $self, $queue ) = @_;
 
+    my $tag;
     if ($queue) {
         $self->_amqp();
-        eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
+        eval { $tag = $self->mq->consume( $self->rabbit_channel, $queue ); };
         if ($@) {
-            $self->_consume_queue($queue);
+            $tag = $self->_consume_queue($queue);
         }
+        $self->rabbit_last_consumer_tag($tag);
         print STDERR "Bound to queue '$queue' using channel ".$self->rabbit_channel."\n";
         return $self->rabbit_channel;
     }
@@ -110,7 +117,7 @@ after 'msg_rpc' => sub {
     }
 
     if ($msg) {
-        $self->_consume_queue($reply_queue, 'temp');
+        my $tag = $self->_consume_queue($reply_queue, 'temp');
         my $rep_chan = $self->rabbit_channel;
         my $fwd_chan = $self->_get_channel;
         eval{$self->mq->channel_open($fwd_chan);};
@@ -118,10 +125,14 @@ after 'msg_rpc' => sub {
         if($@){
             confess "Could not send message: $@\n";
         }
-        $self->mq->channel_close($fwd_chan);
-        my $reply = $self->mq->recv();
+        my $reply;
+        while(1){
+            $reply = $self->mq->recv();
+            last if($reply->{consumer_tag} eq $tag);
+        }
         print STDERR "Got reply on queue $reply_queue\n";
         $self->rabbit_last_response($reply->{body});
+        $self->mq->channel_close($fwd_chan);
         $self->mq->channel_close($rep_chan);
     }
     else {
@@ -166,22 +177,24 @@ sub _consume_queue {
     my ($self, $queue, $temp) = @_;
     $self->_get_channel;
     eval { $self->mq->channel_open( $self->rabbit_channel ); };
+    my $tag;
     if($@){
         $self->_amqp();
     }
     if($temp){
         eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 0, auto_delete => 1, exclusive => 1 } ); };
-        eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
+        eval { $tag = $self->mq->consume( $self->rabbit_channel, $queue ); };
     } else {
         eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 1, auto_delete => 0 } ); };
         #eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
         eval { $self->mq->queue_bind( $self->rabbit_channel, $queue, $self->rabbit_exchange, $queue ); };
-        eval { $self->mq->consume( $self->rabbit_channel, $queue ); };
+        eval { $tag = $self->mq->consume( $self->rabbit_channel, $queue ); };
     }
     if ($@) {
         confess "Could not setup the listening queue: $@\n";
     }
-    return;
+    $self->rabbit_last_consumer_tag($tag);
+    return $tag;
 }
 
 sub _get_channel {
