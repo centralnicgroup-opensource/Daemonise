@@ -1,5 +1,9 @@
 Revision history for Daemonise
 
+1.0.1   2011-06-24T13:52:19
+        bugfix release
+        - more connection handling fixes in RabbitMQ plugin
+
 1.0     2011-06-24T12:29:13
         This version ran in production for a while now and is considered
         stable
