@@ -120,14 +120,17 @@ after 'msg_rpc' => sub {
         my $rep_chan = $self->rabbit_channel;
         my $fwd_chan = $self->_get_channel;
         eval{$self->mq->channel_open($fwd_chan);};
+        sleep 1;
         eval{$rep = $self->mq->publish( $fwd_chan, $queue, $msg);};
         if($@){
             confess "Could not send message: $@\n";
         }
         my $reply;
+        my $now = time;
         while(1){
             $reply = $self->mq->recv();
             last if($reply->{consumer_tag} eq $tag);
+            last if (time - $now) > 180;
         }
         print STDERR "Got reply on queue $reply_queue\n";
         $self->rabbit_last_response($reply->{body});
