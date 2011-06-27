@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.0.6   2011-06-27T14:38:05
+        timeout RPC calls after 3 min
+
 1.0.5   2011-06-27T12:55:34
         new reply channel handling in RPC mode
 
