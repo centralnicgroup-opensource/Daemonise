@@ -378,8 +378,8 @@ sub daemonise {
         my $logfile = $self->logfile;
         open STDIN, '</dev/null'
           or die "Can't open STDIN from /dev/null: [$!]\n";
-        open STDOUT, ">$logfile"
-          or die "Can't open STDOUT to /dev/null: [$!]\n";
+        open (STDOUT, '>', $logfile)
+          or die "Can't open STDOUT to $logfile: [$!]\n";
         open STDERR, '>&STDOUT'
           or die "Can't open STDERR to STDOUT: [$!]\n";
 
