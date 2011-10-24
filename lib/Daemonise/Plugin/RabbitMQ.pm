@@ -85,16 +85,17 @@ after 'queue_bind' => sub {
 };
 
 after 'msg_pub' => sub {
-    my ( $self, $msg, $queue ) = @_;
+    my ($self, $msg, $queue) = @_;
+
     my $rep;
     if ($msg) {
         $self->_get_channel;
         eval{$self->mq->channel_open($self->rabbit_channel);};
-        if($@){
+        if ($@) {
             $self->_amqp();
         }
         eval{$rep = $self->mq->publish( $self->rabbit_channel, $queue, $msg);};
-        if($@){
+        if ($@) {
             confess "Could not send message: $@\n";
         }
         $self->mq->channel_close($self->rabbit_channel);
@@ -107,7 +108,8 @@ after 'msg_pub' => sub {
 };
 
 after 'msg_rpc' => sub {
-    my ( $self, $msg, $queue, $reply_queue, $_tag ) = @_;
+    my ($self, $msg, $queue, $reply_queue, $_tag) = @_;
+
     my $rep;
     my @channels;
     my $tag = $_tag;
@@ -150,8 +152,7 @@ sub _amqp {
     my $amqp = Net::RabbitMQ->new();
     eval {
         $amqp->connect(
-            $self->rabbit_host,
-            {
+            $self->rabbit_host, {
                 user     => $self->rabbit_user,
                 password => $self->rabbit_pass,
                 port     => $self->rabbit_port,
@@ -177,16 +178,18 @@ sub _amqp {
 
 sub _consume_queue {
     my ($self, $queue, $temp) = @_;
+
     $self->_get_channel;
     eval { $self->mq->channel_open( $self->rabbit_channel ); };
     my $tag;
-    if($@){
+    if ($@) {
         $self->_amqp();
     }
-    if($temp){
+    if ($temp) {
         eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 0, auto_delete => 1, exclusive => 1 } ); };
         eval { $tag = $self->mq->consume( $self->rabbit_channel, $queue ); };
-    } else {
+    }
+    else {
         eval { $self->mq->queue_declare( $self->rabbit_channel, $queue, { durable => 1, auto_delete => 0 } ); };
         #eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
         eval { $self->mq->queue_bind( $self->rabbit_channel, $queue, $self->rabbit_exchange, $queue ); };
@@ -201,10 +204,12 @@ sub _consume_queue {
 
 sub _get_channel {
     my $self = shift;
+
     my $num = $self->rabbit_channel;
     $num++;
     $num = 1 if($num > 64000);
     $self->rabbit_channel($num);
+
     return $num;
 }
 

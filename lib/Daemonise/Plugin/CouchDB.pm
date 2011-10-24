@@ -25,24 +25,47 @@ has 'couch_view' => (
     default => sub { 'config/backend' },
 );
 
+has 'couch_user' => (
+    is => 'rw',
+);
+
+has 'couch_pass' => (
+    is => 'rw',
+);
+
+after 'load_plugin' => sub {
+    my ($self, $key) = @_;
+
+    my $db = Store::CouchDB->new({
+        host => $self->couch_host,
+        port => $self->couch_port,
+        db   => $self->couch_db,
+    });
+    if ($self->couch_user && $self->couch_pass) {
+        $db->user($self->couch_user);
+        $db->pass($self->couch_pass);
+    }
+    $self->{couchdb} = $db;
+    return;
+};
+
+sub couchdb {
+    my ($self, $key) = @_;
+    return $self->{couchdb};
+}
+
 around 'lookup' => sub {
-    my ( $self, $key ) = @_;
+    my ($self, $key) = @_;
+
     if ($key) {
         my @path = split(/\//, $key);
-        my $db = Store::CouchDB->new(
-            {
-                host => $self->couch_host,
-                port => $self->couch_port,
-                db   => $self->couch_db
-            }
-        );
         my $platform = $path[0];
         my $view = {
             view   => $self->couch_view,
             opts   => { key => '"' . $platform . '"' },
         };
-        my $config = $db->get_view($view);
-        while(my $part = shift(@path)){
+        my $config = $self->couchdb->get_view($view);
+        while (my $part = shift(@path)) {
             return undef unless $config->{$part};
             $config = $config->{$part};
         }

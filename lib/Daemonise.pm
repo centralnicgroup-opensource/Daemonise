@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.0.6';
+our $VERSION = '1.1.0';
 
 has 'user' => (
     is      => 'rw',
@@ -57,15 +57,20 @@ has 'logfile' => (
     predicate => 'has_logfile',
 );
 
-has 'debug' => (is => 'rw', isa => 'Bool', default => 0, predicate => 'is_debug');
+has 'debug' => (
+    is        => 'rw',
+    isa       => 'Bool',
+    default   => 0,
+    predicate => 'is_debug'
+);
 
 
 sub load_plugin {
-    my ( $self, $plugin ) = @_;
+    my ($self, $plugin) = @_;
 
     my $plug = 'Daemonise::Plugin::' . $plugin;
     print STDERR "Loading $plugin Plugin\n"
-      if $self->is_debug;
+        if $self->is_debug;
     with($plug);
     return;
 }
@@ -76,11 +81,13 @@ sub configure {
     warn "No config file defined!" unless $self->has_config_file;
     return unless $self->has_config_file;
 
-    my $_conf = Config::Any->load_files(
-        { files => [ $self->config_file ], use_ext => 1 } );
+    my $_conf = Config::Any->load_files({
+        files   => [ $self->config_file ],
+        use_ext => 1,
+    });
     my $conf = $_conf->[0]->{ $self->config_file } if $_conf;
 
-    foreach my $key ( keys %{ $conf->{main} } ) {
+    foreach my $key (keys %{ $conf->{main} }) {
         my $val = $conf->{main}->{$key};
         $self->$key($val) or warn "$key not defined as property!";
     }
@@ -89,7 +96,7 @@ sub configure {
 }
 
 sub msg_pub {
-    my ( $self, $msg, $queue ) = @_;
+    my ($self, $msg, $queue) = @_;
     $self->rabbit_user($self->config->{rabbit}->{user})
         if $self->config->{rabbit}->{user};
     $self->rabbit_pass($self->config->{rabbit}->{pass})
@@ -106,7 +113,7 @@ sub msg_pub {
 }
 
 sub msg_rpc {
-    my ( $self, $msg, $queue, $reply_queue ) = @_;
+    my ($self, $msg, $queue, $reply_queue) = @_;
     $self->rabbit_user($self->config->{rabbit}->{user})
         if $self->config->{rabbit}->{user};
     $self->rabbit_pass($self->config->{rabbit}->{pass})
@@ -123,7 +130,7 @@ sub msg_rpc {
 }
 
 sub queue_bind {
-    my ( $self, $queue ) = @_;
+    my ($self, $queue) = @_;
     $self->rabbit_user($self->config->{rabbit}->{user})
         if $self->config->{rabbit}->{user};
     $self->rabbit_pass($self->config->{rabbit}->{pass})
@@ -140,15 +147,15 @@ sub queue_bind {
 }
 
 sub lookup {
-    my ( $self, $key ) = @_;
+    my ($self, $key) = @_;
     return $key;
 }
 
 sub log {
     my $self = shift;
     my $msg  = shift;
-    if ( $self->has_logfile ) {
-        open( LOG, '>>', $self->logfile )
+    if ($self->has_logfile) {
+        open(LOG, '>>', $self->logfile)
           or confess "Could not open File (" . $self->logfile . "): $@";
         my $now = strftime "[%F %T]", localtime;
         print LOG "$now\t$$\t$msg\n";
@@ -166,7 +173,7 @@ sub check_pid_file {
     return 1 unless -e $self->pid_file;
 
     ### get the currently listed pid
-    if ( !open( _PID, $self->pid_file ) ) {
+    if (!open(_PID, $self->pid_file)) {
         die "Couldn't open existant pid_file \""
           . $self->pid_file
           . "\" [$!]\n";
@@ -181,7 +188,7 @@ sub check_pid_file {
     my $exists = undef;
 
     ### try a proc file system
-    if ( -d '/proc' ) {
+    if (-d '/proc') {
         $exists = -e "/proc/$current_pid";
 
         ### try ps
@@ -190,8 +197,8 @@ sub check_pid_file {
         # this follows BSD syntax ps (BSD's and linux)
         # this will fail on Unix98 syntax ps (Solaris, etc)
     }
-    elsif ( `ps p $$ | grep -v 'PID'` =~ /^\s*$$\s+.*$/ )
-    {    # can I play ps on myself ?
+    elsif (`ps p $$ | grep -v 'PID'` =~ /^\s*$$\s+.*$/) {
+        # can I play ps on myself ?
         $exists = `ps p $current_pid | grep -v 'PID'`;
 
     }
@@ -231,11 +238,11 @@ sub _get_uid {
     my $self = shift;
     my $uid  = undef;
 
-    if ( $self->user =~ /^\d+$/ ) {
+    if ($self->user =~ /^\d+$/) {
         $uid = $self->user;
     }
     else {
-        $uid = getpwnam( $self->user );
+        $uid = getpwnam($self->user);
     }
 
     die "No such user \"" . $self->user . "\"\n" unless defined $uid;
@@ -247,8 +254,8 @@ sub _get_gid {
     my $self = shift;
     my @gid  = ();
 
-    foreach my $group ( split( /[, ]+/, join( " ", $self->group ) ) ) {
-        if ( $group =~ /^\d+$/ ) {
+    foreach my $group (split( /[, ]+/, join( " ", $self->group))) {
+        if ($group =~ /^\d+$/) {
             push @gid, $group;
         }
         else {
@@ -260,19 +267,20 @@ sub _get_gid {
 
     die "No group found in arguments.\n" unless @gid;
 
-    return join( " ", $gid[0], @gid );
+    return join(" ", $gid[0], @gid);
 }
 
 sub _safe_fork {
     my $self = shift;
+
     ### block signal for fork
     my $sigset = POSIX::SigSet->new(SIGINT);
-    POSIX::sigprocmask( SIG_BLOCK, $sigset )
+    POSIX::sigprocmask(SIG_BLOCK, $sigset)
       or die "Can't block SIGINT for fork: [$!]\n";
 
     ### fork off a child
     my $pid = fork;
-    unless ( defined $pid ) {
+    unless (defined $pid) {
         die "Couldn't fork: [$!]\n";
     }
 
@@ -280,8 +288,8 @@ sub _safe_fork {
     $SIG{INT} = 'DEFAULT';
 
     ### put back to normal
-    POSIX::sigprocmask( SIG_UNBLOCK, $sigset )
-      or die "Can't unblock SIGINT for fork: [$!]\n";
+    POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
+        or die "Can't unblock SIGINT for fork: [$!]\n";
 
     return $pid;
 }
@@ -292,7 +300,7 @@ sub _create_pid_file {
     ### see if the pid_file is already there
     $self->check_pid_file;
 
-    if ( !open( PID, '>', $self->pid_file ) ) {
+    if (!open( PID, '>', $self->pid_file)) {
         die "Couldn't open pid file \"" . $self->pid_file . "\" [$!].\n";
     }
 
@@ -301,14 +309,16 @@ sub _create_pid_file {
     close PID;
 
     die "Pid_file \"" . $self->pid_file . "\" not created.\n"
-      unless -e $self->pid_file;
+        unless -e $self->pid_file;
     return 1;
 }
 
 sub _set_user {
     my $self = shift;
+
     $self->_set_gid || return undef;
     $self->_set_uid || return undef;
+
     return 1;
 }
 
@@ -317,10 +327,10 @@ sub _set_uid {
     my $uid  = $self->_get_uid;
 
     POSIX::setuid($uid);
-    if ( $< != $uid || $> != $uid ) {    # check $> also (rt #21262)
+    if ($< != $uid || $> != $uid) {    # check $> also (rt #21262)
         $< = $> =
           $uid;    # try again - needed by some 5.8.0 linux systems (rt #13450)
-        if ( $< != $uid ) {
+        if ($< != $uid) {
             die "Couldn't become uid \"$uid\": $!\n";
         }
     }
@@ -349,21 +359,18 @@ sub daemonise {
     $self->phase('starting');
     $self->check_pid_file if $self->has_pid_file;
 
-    $self->uid( $self->_get_uid );
-    $self->gid( $self->_get_gid );    # returns list of groups
-    $self->gid( ( split /\s+/, $self->gid )[0] );
+    $self->uid($self->_get_uid);
+    $self->gid($self->_get_gid);
+    $self->gid((split /\s+/, $self->gid )[0]);
 
     my $pid = $self->_safe_fork;
 
     ### parent process should do the pid file and exit
     if ($pid) {
-
         $pid && exit(0);
-
         ### child process will continue on
     }
     else {
-
         $self->_create_pid_file if $self->has_pid_file;
 
         ### make sure we can remove the file later
@@ -377,11 +384,11 @@ sub daemonise {
         ### from the parent process group
         my $logfile = $self->logfile;
         open STDIN, '</dev/null'
-          or die "Can't open STDIN from /dev/null: [$!]\n";
+            or die "Can't open STDIN from /dev/null: [$!]\n";
         open STDOUT, ">$logfile"
-          or die "Can't open STDOUT to /dev/null: [$!]\n";
+            or die "Can't open STDOUT to $logfile: [$!]\n";
         open STDERR, '>&STDOUT'
-          or die "Can't open STDERR to STDOUT: [$!]\n";
+            or die "Can't open STDERR to STDOUT: [$!]\n";
 
         ### Change to root dir to avoid locking a mounted file system
         ### does this mean to be chroot ?
@@ -401,9 +408,8 @@ sub daemonise {
         ### install a signal handler to make sure
         ### SIGINT's remove our pid_file
         $SIG{INT} = sub { $self->HUNTSMAN }
-          if $self->has_pid_file;
+            if $self->has_pid_file;
         return 1;
-
     }
 }
 
@@ -411,7 +417,7 @@ sub status {
     my $self = shift;
     $self->phase('status');
     $self->check_pid_file();
-    if ( $self->is_running ) {
+    if ($self->is_running) {
         return $self->running . ' with PID file ' . $self->pid_file . "\n";
     }
     return;
@@ -429,11 +435,11 @@ sub stop {
     my $msg;
     $self->phase('status');
     $self->check_pid_file();
-    if ( $self->is_running ) {
+    if ($self->is_running) {
         my $pid = $self->running;
         qx{kill $pid};
         unlink $self->pid_file;
-        if ( $self->has_name ) {
+        if ($self->has_name) {
             $msg = "Daemon stopped (" . $self->name . ") with $$";
             Unix::Syslog::syslog( Unix::Syslog::LOG_NOTICE(), $msg );
         }
