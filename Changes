@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.1.1   2011-11-22T18:02:03
+        return generic pre configured couchdb object via $d->couchdb
+
 1.0.6   2011-06-27T14:38:05
         timeout RPC calls after 3 min
 
