@@ -16,8 +16,8 @@ has 'couch_port' => (
 );
 
 has 'couch_db' => (
-    is      => 'rw',
-    default => sub { 'settings' },
+    is        => 'rw',
+    predicate => 'has_db',
 );
 
 has 'couch_view' => (
@@ -26,43 +26,45 @@ has 'couch_view' => (
 );
 
 has 'couch_user' => (
-    is => 'rw',
+    is  => 'rw',
+    isa => 'Str',
 );
 
 has 'couch_pass' => (
-    is => 'rw',
+    is  => 'rw',
+    isa => 'Str',
 );
 
 after 'load_plugin' => sub {
     my ($self, $key) = @_;
 
-    my $db = Store::CouchDB->new({
-        host => $self->couch_host,
-        port => $self->couch_port,
-        db   => $self->couch_db,
+    my $sc = Store::CouchDB->new({
+            host => $self->couch_host,
+            port => $self->couch_port,
     });
+    $sc->db($self->couch_db) if ($self->has_db);
     if ($self->couch_user && $self->couch_pass) {
-        $db->user($self->couch_user);
-        $db->pass($self->couch_pass);
+        $sc->user($self->couch_user);
+        $sc->pass($self->couch_pass);
     }
-    $self->{couchdb} = $db;
+    $self->{couchdb} = $sc;
     return;
 };
 
-sub couchdb {
-    my ($self, $key) = @_;
+override 'couchdb' => sub {
+    my ($self) = @_;
     return $self->{couchdb};
-}
+};
 
 around 'lookup' => sub {
     my ($self, $key) = @_;
 
     if ($key) {
-        my @path = split(/\//, $key);
+        my @path     = split(/\//, $key);
         my $platform = $path[0];
-        my $view = {
-            view   => $self->couch_view,
-            opts   => { key => '"' . $platform . '"' },
+        my $view     = {
+            view => $self->couch_view,
+            opts => { key => '"' . $platform . '"' },
         };
         my $config = $self->couchdb->get_view($view);
         while (my $part = shift(@path)) {
