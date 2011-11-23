@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.1.2   2011-11-23T15:12:45
+        bugfix: gid is not an integer
+
 1.1.1   2011-11-22T18:02:03
         return generic pre configured couchdb object via $d->couchdb
 
