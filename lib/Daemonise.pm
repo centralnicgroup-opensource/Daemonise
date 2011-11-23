@@ -22,9 +22,7 @@ has 'group' => (
     default => sub { 'root' },
 );
 
-has 'gid' => (
-    is  => 'rw',
-);
+has 'gid' => (is => 'rw',);
 
 has 'name' => (
     is        => 'rw',
@@ -93,8 +91,13 @@ sub configure {
 
     foreach my $key (keys %{ $conf->{main} }) {
         my $val = $conf->{main}->{$key};
-        $self->$key($val) or warn "$key not defined as property!";
+
+        # set properties if they exist but don't die if they don't
+        eval { $self->$key($val) };
+        warn "$key not defined as property! $@"
+            if ($@ && $self->is_debug);
     }
+
     $self->config($conf);
     return $conf;
 }
