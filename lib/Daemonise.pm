@@ -24,7 +24,6 @@ has 'group' => (
 
 has 'gid' => (
     is  => 'rw',
-    isa => 'Int',
 );
 
 has 'name' => (
@@ -357,8 +356,9 @@ sub _set_gid {
     eval { $) = $gids };  # store all the gids - this is really sort of optional
 
     POSIX::setgid($gid);
-    if (!grep { $gid == $_ } split /\s+/, $()
-    {                     # look for any valid id in the list
+
+    # look for any valid gid in the list
+    if (!grep { $gid == $_ } split /\s+/, $() {
         die "Couldn't become gid \"$gid\": $!\n";
     }
 
