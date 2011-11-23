@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.1.4   2011-11-23T16:05:28
+        ignore non-existent config properties if the related module is not used
+
 1.1.3   2011-11-23T15:33:13
         bugfix release
 
