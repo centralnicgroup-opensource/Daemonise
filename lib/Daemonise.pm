@@ -61,18 +61,17 @@ has 'logfile' => (
 );
 
 has 'debug' => (
-    is        => 'rw',
-    isa       => 'Bool',
-    default   => 0,
-    predicate => 'is_debug'
+    is      => 'rw',
+    isa     => 'Bool',
+    default => 0,
 );
 
 sub load_plugin {
     my ($self, $plugin) = @_;
 
     my $plug = 'Daemonise::Plugin::' . $plugin;
-    print STDERR "Loading $plugin Plugin\n"
-        if $self->is_debug;
+    print STDERR "loading $plugin plugin\n"
+        if $self->debug;
     with($plug);
     return;
 }
@@ -82,6 +81,8 @@ sub configure {
 
     warn "No config file defined!" unless $self->has_config_file;
     return unless $self->has_config_file;
+
+    print STDERR "configuring Daemonise\n" if $self->debug;
 
     my $_conf = Config::Any->load_files({
             files   => [ $self->config_file ],
@@ -95,71 +96,11 @@ sub configure {
         # set properties if they exist but don't die if they don't
         eval { $self->$key($val) };
         warn "$key not defined as property! $@"
-            if ($@ && $self->is_debug);
+            if ($@ && $self->debug);
     }
 
     $self->config($conf);
     return $conf;
-}
-
-sub msg_pub {
-    my ($self, $msg, $queue) = @_;
-    $self->rabbit_user($self->config->{rabbit}->{user})
-        if $self->config->{rabbit}->{user};
-    $self->rabbit_pass($self->config->{rabbit}->{pass})
-        if $self->config->{rabbit}->{pass};
-    $self->rabbit_host($self->config->{rabbit}->{host})
-        if $self->config->{rabbit}->{host};
-    $self->rabbit_port($self->config->{rabbit}->{port})
-        if $self->config->{rabbit}->{port};
-    $self->rabbit_vhost($self->config->{rabbit}->{vhost})
-        if $self->config->{rabbit}->{vhost};
-    $self->rabbit_exchange($self->config->{rabbit}->{exchange})
-        if $self->config->{rabbit}->{exchange};
-    return;
-}
-
-sub msg_rpc {
-    my ($self, $msg, $queue, $reply_queue) = @_;
-    $self->rabbit_user($self->config->{rabbit}->{user})
-        if $self->config->{rabbit}->{user};
-    $self->rabbit_pass($self->config->{rabbit}->{pass})
-        if $self->config->{rabbit}->{pass};
-    $self->rabbit_host($self->config->{rabbit}->{host})
-        if $self->config->{rabbit}->{host};
-    $self->rabbit_port($self->config->{rabbit}->{port})
-        if $self->config->{rabbit}->{port};
-    $self->rabbit_vhost($self->config->{rabbit}->{vhost})
-        if $self->config->{rabbit}->{vhost};
-    $self->rabbit_exchange($self->config->{rabbit}->{exchange})
-        if $self->config->{rabbit}->{exchange};
-    return $self->rabbit_last_response;
-}
-
-sub queue_bind {
-    my ($self, $queue) = @_;
-    $self->rabbit_user($self->config->{rabbit}->{user})
-        if $self->config->{rabbit}->{user};
-    $self->rabbit_pass($self->config->{rabbit}->{pass})
-        if $self->config->{rabbit}->{pass};
-    $self->rabbit_host($self->config->{rabbit}->{host})
-        if $self->config->{rabbit}->{host};
-    $self->rabbit_port($self->config->{rabbit}->{port})
-        if $self->config->{rabbit}->{port};
-    $self->rabbit_vhost($self->config->{rabbit}->{vhost})
-        if $self->config->{rabbit}->{vhost};
-    $self->rabbit_exchange($self->config->{rabbit}->{exchange})
-        if $self->config->{rabbit}->{exchange};
-    return;
-}
-
-sub couchdb {
-    warn 'plugin "CouchDB" not loaded';
-}
-
-sub lookup {
-    my ($self, $key) = @_;
-    return $key;
 }
 
 sub log {

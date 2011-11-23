@@ -9,62 +9,91 @@ use Data::UUID;
 has 'rabbit_host' => (
     is      => 'rw',
     isa     => 'Str',
+    lazy    => 1,
     default => 'localhost',
 );
 
 has 'rabbit_port' => (
     is      => 'rw',
     isa     => 'Int',
+    lazy    => 1,
     default => 5672,
 );
 
 has 'rabbit_user' => (
     is      => 'rw',
     isa     => 'Str',
+    lazy    => 1,
     default => 'guest',
 );
 
 has 'rabbit_pass' => (
     is      => 'rw',
     isa     => 'Str',
+    lazy    => 1,
     default => 'guest',
 );
 
 has 'rabbit_vhost' => (
     is      => 'rw',
     isa     => 'Str',
+    lazy    => 1,
     default => '/',
 );
 
 has 'rabbit_exchange' => (
     is      => 'rw',
     isa     => 'Str',
+    lazy    => 1,
     default => 'amq.direct',
 );
 
 has 'rabbit_channel' => (
     is      => 'rw',
     isa     => 'Int',
+    lazy    => 1,
     default => 1,
 );
 
 has 'rabbit_last_response' => (
     is      => 'rw',
+    lazy    => 1,
     default => '',
 );
 
 has 'rabbit_last_consumer_tag' => (
     is      => 'rw',
+    lazy    => 1,
     default => '',
 );
 
 has 'mq' => (
     is      => 'rw',
     isa     => 'Net::RabbitMQ',
-    default => sub { },
 );
 
-after 'queue_bind' => sub {
+after 'configure' => sub {
+    my ($self) = @_;
+
+    print STDERR "configuring RabbitMQ plugin\n" if $self->debug;
+
+    $self->rabbit_user($self->config->{rabbitmq}->{user})
+        if $self->config->{rabbitmq}->{user};
+    $self->rabbit_pass($self->config->{rabbitmq}->{pass})
+        if $self->config->{rabbitmq}->{pass};
+    $self->rabbit_host($self->config->{rabbitmq}->{host})
+        if $self->config->{rabbitmq}->{host};
+    $self->rabbit_port($self->config->{rabbitmq}->{port})
+        if $self->config->{rabbitmq}->{port};
+    $self->rabbit_vhost($self->config->{rabbitmq}->{vhost})
+        if $self->config->{rabbitmq}->{vhost};
+    $self->rabbit_exchange($self->config->{rabbitmq}->{exchange})
+        if $self->config->{rabbitmq}->{exchange};
+
+    return;
+};
+
+sub queue_bind {
     my ($self, $queue) = @_;
 
     my $tag;
@@ -83,9 +112,9 @@ after 'queue_bind' => sub {
         confess "You have to provide a queue to bind to!";
     }
     return;
-};
+}
 
-after 'msg_pub' => sub {
+sub msg_pub {
     my ($self, $msg, $queue) = @_;
 
     my $rep;
@@ -108,9 +137,9 @@ after 'msg_pub' => sub {
         . $self->rabbit_channel
         . " ($rep)\n";
     return;
-};
+}
 
-after 'msg_rpc' => sub {
+sub msg_rpc {
     my ($self, $msg, $queue, $reply_queue, $_tag) = @_;
 
     my $rep;
@@ -149,7 +178,7 @@ after 'msg_rpc' => sub {
         . $self->rabbit_channel
         . " ($rep)\n";
     return $self->rabbit_last_response;
-};
+}
 
 sub _amqp {
     my $self = shift;
