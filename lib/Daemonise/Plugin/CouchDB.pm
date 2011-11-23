@@ -51,7 +51,7 @@ after 'load_plugin' => sub {
     return;
 };
 
-override 'couchdb' => sub {
+around 'couchdb' => sub {
     my ($self) = @_;
     return $self->{couchdb};
 };
