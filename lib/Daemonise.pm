@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 
 has 'user' => (
     is      => 'rw',
@@ -22,7 +22,7 @@ has 'group' => (
     default => sub { 'root' },
 );
 
-has 'gid' => (is => 'rw',);
+has 'gid' => (is => 'rw');
 
 has 'name' => (
     is        => 'rw',
@@ -338,7 +338,7 @@ sub daemonise {
 
         ### close all input/output and separate
         ### from the parent process group
-        my $logfile = $self->logfile;
+        my $logfile = $self->logfile || '/dev/null';
         open STDIN, '</dev/null'
             or die "Can't open STDIN from /dev/null: [$!]\n";
         open STDOUT, ">$logfile"
