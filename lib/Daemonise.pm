@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 has 'user' => (
     is      => 'rw',
@@ -114,7 +114,8 @@ sub log {
         close LOG;
     }
     else {
-        Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), 'queue=%s %s', $self->name, $msg);
+        Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
+            'queue=%s %s', $self->name, $msg);
     }
 }
 
@@ -338,13 +339,29 @@ sub daemonise {
 
         ### close all input/output and separate
         ### from the parent process group
-        my $logfile = $self->logfile || '/dev/null';
         open STDIN, '</dev/null'
-            or die "Can't open STDIN from /dev/null: [$!]\n";
-        open STDOUT, ">$logfile"
-            or die "Can't open STDOUT to $logfile: [$!]\n";
-        open STDERR, '>&STDOUT'
-            or die "Can't open STDERR to STDOUT: [$!]\n";
+            or die "Can't open STDIN from /dev/null: [$!]";
+
+        if ($self->logfile) {
+            my $logfile = $self->logfile;
+            open(STDOUT, ">$logfile")
+                or die "Can't redirect STDOUT to $logfile: [$!]";
+            open(STDERR, '>&STDOUT')
+                or die "Can't redirect STDERR to STDOUT: [$!]";
+        }
+        elsif (-x '/usr/bin/logger') {
+            my $name = $self->name;
+            open(STDOUT, "|/usr/bin/logger -t 'perl[$$]: queue=$name STDOUT '")
+                or die "Can't redirect STDOUT to /usr/bin/logger: [$!]";
+            open(STDOUT, "|/usr/bin/logger -t 'perl[$$]: queue=$name STDERR '")
+                or die "Can't redirect STDERR to /usr/bin/logger: [$!]";
+        }
+        else {
+            open STDOUT, ">/dev/null"
+                or die "Can't redirect STDOUT to /dev/null: [$!]";
+            open(STDERR, '>&STDOUT')
+                or die "Can't redirect STDERR to STDOUT: [$!]";
+        }
 
         ### Change to root dir to avoid locking a mounted file system
         ### does this mean to be chroot ?
