@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 has 'user' => (
     is      => 'rw',
@@ -104,8 +104,8 @@ sub configure {
 }
 
 sub log {
-    my $self = shift;
-    my $msg  = shift;
+    my ($self, $msg) = @_;
+
     if ($self->has_logfile) {
         open(LOG, '>>', $self->logfile)
             or confess "Could not open File (" . $self->logfile . "): $@";
@@ -114,7 +114,7 @@ sub log {
         close LOG;
     }
     else {
-        Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
+        Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), 'queue=%s %s', $self->name, $msg);
     }
 }
 
