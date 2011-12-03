@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 has 'user' => (
     is      => 'rw',
@@ -342,6 +342,10 @@ sub daemonise {
         open STDIN, '</dev/null'
             or die "Can't open STDIN from /dev/null: [$!]";
 
+        # check for Tie::Syslog for later
+        my $tie_syslog;
+        eval { require Tie::Syslog; } and do { $tie_syslog = 1 unless $@ };
+
         if ($self->logfile) {
             my $logfile = $self->logfile;
             open(STDOUT, ">$logfile")
@@ -349,12 +353,13 @@ sub daemonise {
             open(STDERR, '>&STDOUT')
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
-        elsif (-x '/usr/bin/logger') {
+        elsif ($tie_syslog) {
             my $name = $self->name;
-            open(STDOUT, "|/usr/bin/logger -t 'perl[$$]: queue=$name STDOUT '")
-                or die "Can't redirect STDOUT to /usr/bin/logger: [$!]";
-            open(STDOUT, "|/usr/bin/logger -t 'perl[$$]: queue=$name STDERR '")
-                or die "Can't redirect STDERR to /usr/bin/logger: [$!]";
+            my $y = tie *STDOUT, 'Tie::Syslog', 'local0.info',
+                "perl[$$]: queue=$name STDOUT ", 'pid', 'unix';
+            my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
+                "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
+            $x->ExtendedSTDERR();
         }
         else {
             open STDOUT, ">/dev/null"
@@ -372,11 +377,11 @@ sub daemonise {
 
         if ($self->has_name) {
             Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started (" . $self->name . ") with $$");
+                "Daemon started (" . $self->name . ") with pid: $$");
         }
         else {
             Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started with $$");
+                "Daemon started with pid: $$");
         }
         ### install a signal handler to make sure
         ### SIGINT's remove our pid_file
