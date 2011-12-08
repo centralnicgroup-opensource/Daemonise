@@ -362,7 +362,7 @@ sub daemonise {
             $x->ExtendedSTDERR();
         }
         else {
-            open STDOUT, ">/dev/null"
+            open(STDOUT, ">/dev/null")
                 or die "Can't redirect STDOUT to /dev/null: [$!]";
             open(STDERR, '>&STDOUT')
                 or die "Can't redirect STDERR to STDOUT: [$!]";
