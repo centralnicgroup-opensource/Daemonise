@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.7     2011-12-20T18:25:25
+        chomp $msg before sending it to syslog
+
 1.6     2011-12-03T18:57:25
         use Tie::Syslog to bind STDOUT/STDERR instead
 
