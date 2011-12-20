@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 has 'user' => (
     is      => 'rw',
@@ -114,6 +114,7 @@ sub log {
         close LOG;
     }
     else {
+        chomp($msg);
         Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
             'queue=%s %s', $self->name, $msg);
     }
