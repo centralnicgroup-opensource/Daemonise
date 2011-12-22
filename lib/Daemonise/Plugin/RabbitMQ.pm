@@ -1,5 +1,3 @@
-#!/usr/bin/perl -Ilib
-
 package Daemonise::Plugin::RabbitMQ;
 
 use Mouse::Role;
@@ -10,49 +8,49 @@ has 'rabbit_host' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => 'localhost',
+    default => sub { 'localhost' },
 );
 
 has 'rabbit_port' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
-    default => 5672,
+    default => sub { 5672 },
 );
 
 has 'rabbit_user' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => 'guest',
+    default => sub { 'guest' },
 );
 
 has 'rabbit_pass' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => 'guest',
+    default => sub { 'guest' },
 );
 
 has 'rabbit_vhost' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => '/',
+    default => sub { '/' },
 );
 
 has 'rabbit_exchange' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => 'amq.direct',
+    default => sub { 'amq.direct' },
 );
 
 has 'rabbit_channel' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
-    default => 1,
+    default => sub { 1 },
 );
 
 has 'rabbit_last_response' => (
@@ -68,14 +66,14 @@ has 'rabbit_last_consumer_tag' => (
 );
 
 has 'mq' => (
-    is      => 'rw',
-    isa     => 'Net::RabbitMQ',
+    is  => 'rw',
+    isa => 'Net::RabbitMQ',
 );
 
 after 'configure' => sub {
     my ($self) = @_;
 
-    print STDERR "configuring RabbitMQ plugin\n" if $self->debug;
+    $self->log("configuring RabbitMQ plugin") if $self->debug;
 
     $self->rabbit_user($self->config->{rabbitmq}->{user})
         if $self->config->{rabbitmq}->{user};
@@ -104,8 +102,8 @@ sub queue_bind {
             $tag = $self->_consume_queue($queue);
         }
         $self->rabbit_last_consumer_tag($tag);
-        print STDERR "Bound to queue '$queue' using channel "
-            . $self->rabbit_channel . "\n";
+        $self->log(
+            "Bound to queue '$queue' using channel " . $self->rabbit_channel);
         return $self->rabbit_channel;
     }
     else {
@@ -133,9 +131,9 @@ sub msg_pub {
     else {
         confess "You have to provide a message to send!";
     }
-    print STDERR "Sent message to queue '$queue' with channel "
-        . $self->rabbit_channel
-        . " ($rep)\n";
+    $self->log("Sent message to queue '$queue' with channel "
+            . $self->rabbit_channel
+            . " ($rep)");
     return;
 }
 
@@ -166,7 +164,7 @@ sub msg_rpc {
             last if ($reply->{consumer_tag} eq $tag);
             last if (time - $now) > 180;
         }
-        print STDERR "Got reply on queue $reply_queue\n";
+        $self->log("Got reply on queue $reply_queue");
         $self->rabbit_last_response($reply->{body});
         $self->mq->channel_close($fwd_chan);
         $self->mq->channel_close($rep_chan) unless $_tag;
@@ -174,9 +172,9 @@ sub msg_rpc {
     else {
         confess "You have to provide a message to send!";
     }
-    print STDERR "Sent message to queue '$queue' with channel "
-        . $self->rabbit_channel
-        . " ($rep)\n";
+    $self->log("Sent message to queue '$queue' with channel "
+            . $self->rabbit_channel
+            . " ($rep)");
     return $self->rabbit_last_response;
 }
 
@@ -197,15 +195,15 @@ sub _amqp {
         confess "Could not connect to the RabbitMQ server! $@\n";
     }
     $self->_get_channel;
-    print STDERR "Trying to open channel: " . $self->rabbit_channel . "\n";
+    $self->log("Trying to open channel: " . $self->rabbit_channel);
     $amqp->channel_open($self->rabbit_channel);
 
-    #print STDERR "Declaring exchange: ".$self->rabbit_exchange."\n";
+    #$d->log("Declaring exchange: " . $self->rabbit_exchange);
     #eval { $amqp->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
     #if ($@) {
-    #    print "Exchange " . $self->rabbit_exchange . " already defined: $@\n";
+    #    $d->log("Exchange " . $self->rabbit_exchange . " already defined: $@");
     #}
-    print STDERR "Initialized connection successfully\n";
+    $self->log("Initialized connection successfully");
     $self->mq($amqp);
     return $amqp;
 }
