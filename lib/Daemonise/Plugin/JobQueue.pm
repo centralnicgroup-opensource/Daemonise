@@ -83,7 +83,8 @@ sub update_job {
     return unless $job;
 
     $job->{last_update} = time;
-    $job->{status} = $status || $job->{status};
+    $job->{status}      = $status || $job->{status};
+    $job->{message}     = $msg;
 
     $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
