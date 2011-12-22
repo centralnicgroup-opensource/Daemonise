@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.7';
+our $VERSION = '1.8';
 
 has 'user' => (
     is      => 'rw',
@@ -63,15 +63,21 @@ has 'logfile' => (
 has 'debug' => (
     is      => 'rw',
     isa     => 'Bool',
-    default => 0,
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+has 'foreground' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => sub { 0 },
 );
 
 sub load_plugin {
     my ($self, $plugin) = @_;
 
     my $plug = 'Daemonise::Plugin::' . $plugin;
-    print STDERR "loading $plugin plugin\n"
-        if $self->debug;
+    $self->log("loading $plugin plugin") if $self->debug;
     with($plug);
     return;
 }
@@ -82,7 +88,7 @@ sub configure {
     warn "No config file defined!" unless $self->has_config_file;
     return unless $self->has_config_file;
 
-    print STDERR "configuring Daemonise\n" if $self->debug;
+    $self->log("configuring Daemonise") if $self->debug;
 
     my $_conf = Config::Any->load_files({
             files   => [ $self->config_file ],
@@ -106,7 +112,10 @@ sub configure {
 sub log {
     my ($self, $msg) = @_;
 
-    if ($self->has_logfile) {
+    if ($self->foreground) {
+        print $msg . $/;
+    }
+    elsif ($self->has_logfile) {
         open(LOG, '>>', $self->logfile)
             or confess "Could not open File (" . $self->logfile . "): $@";
         my $now = strftime "[%F %T]", localtime;
@@ -189,6 +198,150 @@ sub check_pid_file {
             . "\" [$!]\n";
         return 1;
     }
+}
+
+sub daemonise {
+    my $self = shift;
+
+    if ($self->foreground) {
+        $self->log('forground() is set, not daemonise()ing');
+        return;
+    }
+
+    $self->phase('starting');
+    $self->check_pid_file if $self->has_pid_file;
+
+    $self->uid($self->_get_uid);
+    $self->gid($self->_get_gid);
+    $self->gid((split /\s+/, $self->gid)[0]);
+
+    my $pid = $self->_safe_fork;
+
+    ### parent process should do the pid file and exit
+    if ($pid) {
+        $pid && exit(0);
+        ### child process will continue on
+    }
+    else {
+        $self->_create_pid_file if $self->has_pid_file;
+
+        ### make sure we can remove the file later
+        chown($self->uid, $self->gid, $self->pid_file)
+            if $self->has_pid_file;
+
+        ### become another user and group
+        $self->_set_user;
+
+        ### close all input/output and separate
+        ### from the parent process group
+        open STDIN, '</dev/null'
+            or die "Can't open STDIN from /dev/null: [$!]";
+
+        # check for Tie::Syslog for later
+        my $tie_syslog;
+        eval { require Tie::Syslog; } and do { $tie_syslog = 1 unless $@ };
+
+        if ($self->logfile) {
+            my $logfile = $self->logfile;
+            open(STDOUT, ">$logfile")
+                or die "Can't redirect STDOUT to $logfile: [$!]";
+            open(STDERR, '>&STDOUT')
+                or die "Can't redirect STDERR to STDOUT: [$!]";
+        }
+        elsif ($tie_syslog) {
+            my $name = $self->name;
+            my $y = tie *STDOUT, 'Tie::Syslog', 'local0.info',
+                "perl[$$]: queue=$name STDOUT ", 'pid', 'unix';
+            my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
+                "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
+            $x->ExtendedSTDERR();
+        }
+        else {
+            open(STDOUT, ">/dev/null")
+                or die "Can't redirect STDOUT to /dev/null: [$!]";
+            open(STDERR, '>&STDOUT')
+                or die "Can't redirect STDERR to STDOUT: [$!]";
+        }
+
+        ### Change to root dir to avoid locking a mounted file system
+        ### does this mean to be chroot ?
+        chdir '/' or die "Can't chdir to \"/\": [$!]";
+
+        ### Turn process into session leader, and ensure no controlling terminal
+        POSIX::setsid();
+
+        if ($self->has_name) {
+            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
+                "Daemon started (" . $self->name . ") with pid: $$");
+        }
+        else {
+            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
+                "Daemon started with pid: $$");
+        }
+        ### install a signal handler to make sure
+        ### SIGINT's remove our pid_file
+        $SIG{INT} = sub { $self->HUNTSMAN }
+            if $self->has_pid_file;
+        return 1;
+    }
+}
+
+sub status {
+    my $self = shift;
+    $self->phase('status');
+    $self->check_pid_file();
+    if ($self->is_running) {
+        return $self->running . ' with PID file ' . $self->pid_file . "\n";
+    }
+    return;
+}
+
+sub restart {
+    my $self = shift;
+    $self->stop;
+    $self->start;
+    return "Restarted Daemon\n";
+}
+
+sub stop {
+    my $self = shift;
+    my $msg;
+    $self->phase('status');
+    $self->check_pid_file();
+    if ($self->is_running) {
+        my $pid = $self->running;
+        system("kill $pid");
+        unlink $self->pid_file;
+        if ($self->has_name) {
+            $msg = "Daemon stopped (" . $self->name . ") with $$";
+            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
+        }
+        else {
+            $msg = "Daemon stopped with $$";
+            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
+        }
+        return $msg;
+    }
+    else {
+        die "Could not PID!\n";
+    }
+}
+
+sub start {
+    my $self = shift;
+    $self->daemonise;
+    return;
+}
+
+sub HUNTSMAN {
+    my $self = shift;
+    unlink $self->pid_file;
+
+    eval {
+        Unix::Syslog::syslog(Unix::Syslog::LOG_ERR(), "Exiting on INT signal.");
+    };
+
+    exit;
 }
 
 sub _get_uid {
@@ -309,145 +462,6 @@ sub _set_gid {
     }
 
     return 1;
-}
-
-sub daemonise {
-    my $self = shift;
-
-    $self->phase('starting');
-    $self->check_pid_file if $self->has_pid_file;
-
-    $self->uid($self->_get_uid);
-    $self->gid($self->_get_gid);
-    $self->gid((split /\s+/, $self->gid)[0]);
-
-    my $pid = $self->_safe_fork;
-
-    ### parent process should do the pid file and exit
-    if ($pid) {
-        $pid && exit(0);
-        ### child process will continue on
-    }
-    else {
-        $self->_create_pid_file if $self->has_pid_file;
-
-        ### make sure we can remove the file later
-        chown($self->uid, $self->gid, $self->pid_file)
-            if $self->has_pid_file;
-
-        ### become another user and group
-        $self->_set_user;
-
-        ### close all input/output and separate
-        ### from the parent process group
-        open STDIN, '</dev/null'
-            or die "Can't open STDIN from /dev/null: [$!]";
-
-        # check for Tie::Syslog for later
-        my $tie_syslog;
-        eval { require Tie::Syslog; } and do { $tie_syslog = 1 unless $@ };
-
-        if ($self->logfile) {
-            my $logfile = $self->logfile;
-            open(STDOUT, ">$logfile")
-                or die "Can't redirect STDOUT to $logfile: [$!]";
-            open(STDERR, '>&STDOUT')
-                or die "Can't redirect STDERR to STDOUT: [$!]";
-        }
-        elsif ($tie_syslog) {
-            my $name = $self->name;
-            my $y = tie *STDOUT, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name STDOUT ", 'pid', 'unix';
-            my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
-            $x->ExtendedSTDERR();
-        }
-        else {
-            open(STDOUT, ">/dev/null")
-                or die "Can't redirect STDOUT to /dev/null: [$!]";
-            open(STDERR, '>&STDOUT')
-                or die "Can't redirect STDERR to STDOUT: [$!]";
-        }
-
-        ### Change to root dir to avoid locking a mounted file system
-        ### does this mean to be chroot ?
-        chdir '/' or die "Can't chdir to \"/\": [$!]";
-
-        ### Turn process into session leader, and ensure no controlling terminal
-        POSIX::setsid();
-
-        if ($self->has_name) {
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started (" . $self->name . ") with pid: $$");
-        }
-        else {
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started with pid: $$");
-        }
-        ### install a signal handler to make sure
-        ### SIGINT's remove our pid_file
-        $SIG{INT} = sub { $self->HUNTSMAN }
-            if $self->has_pid_file;
-        return 1;
-    }
-}
-
-sub status {
-    my $self = shift;
-    $self->phase('status');
-    $self->check_pid_file();
-    if ($self->is_running) {
-        return $self->running . ' with PID file ' . $self->pid_file . "\n";
-    }
-    return;
-}
-
-sub restart {
-    my $self = shift;
-    $self->stop;
-    $self->start;
-    return "Restarted Daemon\n";
-}
-
-sub stop {
-    my $self = shift;
-    my $msg;
-    $self->phase('status');
-    $self->check_pid_file();
-    if ($self->is_running) {
-        my $pid = $self->running;
-        qx{kill $pid};
-        unlink $self->pid_file;
-        if ($self->has_name) {
-            $msg = "Daemon stopped (" . $self->name . ") with $$";
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
-        }
-        else {
-            $msg = "Daemon stopped with $$";
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
-        }
-        return $msg;
-    }
-    else {
-        die "Could not PID!\n";
-    }
-}
-
-sub start {
-    my $self = shift;
-    $self->daemonise;
-    return;
-}
-
-sub HUNTSMAN {
-    my $self = shift;
-    unlink $self->pid_file;
-
-    eval {
-        Unix::Syslog::syslog(Unix::Syslog::LOG_ERR(), "Exiting on INT signal.");
-    };
-
-    exit;
 }
 
 =head1 NAME
