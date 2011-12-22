@@ -36,18 +36,21 @@ sub get_job {
 }
 
 sub create_job {
-    my ($self, $job) = @_;
+    my ($self, $msg) = @_;
 
-    confess "{message}->{meta}->{platform} is missing, can't create job"
-        unless ((ref($job) eq 'HASH')
-        and (exists $job->{message}->{meta}->{platform}));
+    confess "{meta}->{platform} is missing, can't create job"
+        unless ((ref($msg) eq 'HASH')
+        and (exists $msg->{meta}->{platform}));
 
-    $job->{created}     = time;
-    $job->{last_update} = time;
-    $job->{platform}    = $job->{message}->{meta}->{platform};
-    $job->{status}      = 'requested';
+    my $job = {
+        created     => time,
+        last_update => time,
+        message     => $msg,
+        platform    => $msg->{meta}->{platform},
+        status      => 'requested',
+    };
 
-    # $job_hash->{type} = split(/_/, $job->{message}->{data}->{command}, 2)->[0];
+    # $job->{type} = split(/_/, $msg->{data}->{command}, 2)->[0];
 
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
@@ -79,6 +82,7 @@ sub update_job {
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
     my $job = $self->get_job($msg->{meta}->{id});
+    $self->couchdb->db($old_db);
 
     return unless $job;
 
@@ -86,6 +90,8 @@ sub update_job {
     $job->{status}      = $status || $job->{status};
     $job->{message}     = $msg;
 
+    $old_db = $self->couchdb->db;
+    $self->couchdb->db($self->jobqueue_db);
     $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
