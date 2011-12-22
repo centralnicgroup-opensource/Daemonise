@@ -1,5 +1,6 @@
 package Daemonise::Plugin::JobQueue;
 
+use feature 'switch';
 use Mouse::Role;
 use Data::Dumper;
 use Carp;
@@ -120,6 +121,29 @@ sub job_pending {
     my ($self, $msg) = @_;
 
     return $self->update_job($msg, 'pending');
+}
+
+sub find_job {
+    my ($self, $how, $info) = @_;
+
+    my $result;
+    given ($how) {
+        when ('by_billing_callback') {
+            my $old_db = $self->couchdb->db;
+            $self->couchdb->db($self->jobqueue_db);
+            $result = $self->couchdb->get_array_view({
+                    view => 'billing/billing_callback',
+                    opts => {
+                        key => [ $info->{transaction_id}, $info->{platform} ]
+                    },
+                });
+            $self->couchdb->db($old_db);
+        }
+        default { return; }
+    }
+
+    return $result->[0] if ($result->[0]);
+    return;
 }
 
 1;
