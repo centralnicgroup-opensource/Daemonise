@@ -18,8 +18,10 @@ has 'couch_port' => (
 );
 
 has 'couch_db' => (
-    is  => 'rw',
-    isa => 'Str',
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'test' },
 );
 
 has 'couch_view' => (
