@@ -255,6 +255,8 @@ sub daemonise {
             my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
                 "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
             $x->ExtendedSTDERR();
+            binmode(STDOUT, ":utf8");
+            binmode(STDERR, ":utf8");
         }
         else {
             open(STDOUT, ">/dev/null")
