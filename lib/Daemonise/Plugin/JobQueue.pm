@@ -77,8 +77,10 @@ sub create_job {
 sub update_job {
     my ($self, $msg, $status) = @_;
 
-    confess "first argument must be a hashref"
-        unless ((ref($msg) eq 'HASH') and (exists $msg->{meta}->{id}));
+    unless ((ref($msg) eq 'HASH') and (exists $msg->{meta}->{id})) {
+        $self->log("not a JOB, just a message, nothing to see here");
+        return;
+    }
 
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
