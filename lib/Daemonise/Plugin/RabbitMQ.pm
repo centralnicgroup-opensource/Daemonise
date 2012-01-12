@@ -133,7 +133,8 @@ sub msg_pub {
     }
     $self->log("Sent message to queue '$queue' with channel "
             . $self->rabbit_channel
-            . " ($rep)");
+            . " ($rep)")
+        if $self->debug;
     return;
 }
 
@@ -164,7 +165,7 @@ sub msg_rpc {
             last if ($reply->{consumer_tag} eq $tag);
             last if (time - $now) > 180;
         }
-        $self->log("Got reply on queue $reply_queue");
+        $self->log("Got reply on queue $reply_queue") if $self->debug;
         $self->rabbit_last_response($reply->{body});
         $self->mq->channel_close($fwd_chan);
         $self->mq->channel_close($rep_chan) unless $_tag;
@@ -174,7 +175,8 @@ sub msg_rpc {
     }
     $self->log("Sent message to queue '$queue' with channel "
             . $self->rabbit_channel
-            . " ($rep)");
+            . " ($rep)")
+        if $self->debug;
     return $self->rabbit_last_response;
 }
 

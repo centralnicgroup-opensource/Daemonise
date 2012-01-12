@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.9     2012-01-12T18:46:52
+        less printing if debug is off
+
 1.8     2011-12-29T13:13:13
         - enabled binmode utf8 for debug printing in syslog mode
         - added foreground attribute preventing syslogging
