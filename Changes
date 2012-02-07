@@ -1,5 +1,17 @@
 Revision history for Daemonise
 
+1.9     2012-01-12T18:46:52
+        less printing if debug is off
+
+1.8     2011-12-29T13:13:13
+        - enabled binmode utf8 for debug printing in syslog mode
+        - added foreground attribute preventing syslogging
+        - added new plugin JobQueue
+        - replaced all print()s with log()s
+
+1.7     2011-12-20T18:25:25
+        chomp $msg before sending it to syslog
+
 1.6     2011-12-03T18:57:25
         use Tie::Syslog to bind STDOUT/STDERR instead
 

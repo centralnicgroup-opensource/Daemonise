@@ -1,10 +1,7 @@
-#!/usr/bin/perl -Ilib
-
 package Daemonise::Plugin::CouchDB;
 
 use Mouse::Role;
 use Store::CouchDB;
-use Data::Dumper;
 
 has 'couch_host' => (
     is      => 'rw',
@@ -17,12 +14,14 @@ has 'couch_port' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
-    default => 5984,
+    default => sub { 5984 },
 );
 
 has 'couch_db' => (
-    is  => 'rw',
-    isa => 'Str',
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'test' },
 );
 
 has 'couch_view' => (
@@ -50,7 +49,7 @@ has 'couchdb' => (
 after 'configure' => sub {
     my ($self) = @_;
 
-    print STDERR "configuring CouchDB plugin\n" if $self->debug;
+    $self->log("configuring CouchDB plugin") if $self->debug;
 
     $self->couch_host($self->config->{couchdb}->{host})
         if $self->config->{couchdb}->{host};
