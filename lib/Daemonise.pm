@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.9';
+our $VERSION = '1.10';
 
 has 'user' => (
     is      => 'rw',

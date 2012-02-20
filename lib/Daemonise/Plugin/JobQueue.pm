@@ -44,11 +44,11 @@ sub create_job {
         and (exists $msg->{meta}->{platform}));
 
     my $job = {
-        created     => time,
-        last_update => time,
-        message     => $msg,
-        platform    => $msg->{meta}->{platform},
-        status      => 'requested',
+        created  => time,
+        updated  => time,
+        message  => $msg,
+        platform => $msg->{meta}->{platform},
+        status   => 'requested',
     };
 
     # $job->{type} = split(/_/, $msg->{data}->{command}, 2)->[0];
@@ -89,9 +89,9 @@ sub update_job {
 
     return unless $job;
 
-    $job->{last_update} = time;
-    $job->{status}      = $status || $job->{status};
-    $job->{message}     = $msg;
+    $job->{updated} = time;
+    $job->{status}  = $status || $job->{status};
+    $job->{message} = $msg;
 
     $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
