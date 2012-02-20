@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.10    2012-02-20T22:17:24
+        [CHANGED] last_update => updated
+
 1.9     2012-01-12T18:46:52
         less printing if debug is off
 
