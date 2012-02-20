@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.11    2012-02-21T11:09:13
+        [NEW] implemented log_worker() for convenience
+
 1.10    2012-02-20T22:17:24
         [CHANGED] last_update => updated
 
