@@ -125,6 +125,14 @@ sub job_pending {
     return $self->update_job($msg, 'pending');
 }
 
+sub log_worker {
+    my ($self, $msg) = @_;
+
+    push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+
+    return $msg;
+}
+
 sub find_job {
     my ($self, $how, $info) = @_;
 
