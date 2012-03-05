@@ -3,6 +3,8 @@ package Daemonise::Plugin::JobQueue;
 use feature 'switch';
 use Mouse::Role;
 use Data::Dumper;
+use Digest::MD5 'md5_hex';
+use DateTime;
 use Carp;
 
 has 'jobqueue_db' => (
@@ -43,18 +45,32 @@ sub create_job {
         unless ((ref($msg) eq 'HASH')
         and (exists $msg->{meta}->{platform}));
 
+    # kill duplicate identical jobs with a hashsum over the input data and a 2 caching time
+    my $created = time;
+    my $cached = DateTime->from_epoch(epoch => $created);
+    $cached->truncate(to => 'minute');
+    $cached->set_minute($cached->minute - ($cached->minute % 2));
+    $msg->{meta}->{id} = md5_hex(Dumper($msg->{data}->{options}) . $cached);
+
     my $job = {
-        created  => time,
-        updated  => time,
+        id       => $msg->{meta}->{id},
+        created  => $created,
+        updated  => $created,
         message  => $msg,
         platform => $msg->{meta}->{platform},
         status   => 'requested',
     };
 
-    # $job->{type} = split(/_/, $msg->{data}->{command}, 2)->[0];
-
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
+
+    # return if job ID exists
+    my $doc = $self->couchdb->get_doc({ id => $job->{id} });
+    if ($doc) {
+        $self->log("found duplicate job: " . $doc->{_id});
+        return;
+    }
+
     my ($id, $rev) = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
