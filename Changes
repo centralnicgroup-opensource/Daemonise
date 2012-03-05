@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.15    2012-03-05T19:09:13
+        [FIXED] _id NOT id when calling put_doc() FFS!!!
+
 1.14    2012-03-05T18:18:37
         [FIXED] only manipulate $msg after checking if job exists
 

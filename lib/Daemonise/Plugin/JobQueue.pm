@@ -63,7 +63,7 @@ sub create_job {
 
     $msg->{meta}->{id} = $id;
     my $job = {
-        id       => $id,
+        _id      => $id,
         created  => $created,
         updated  => $created,
         message  => $msg,
