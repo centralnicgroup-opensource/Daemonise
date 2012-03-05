@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.13    2012-03-05T18:18:37
+        [FIXED] no need to update job with job ID in meta data
+
 1.12    2012-03-05T18:01:23
         [CHANGED] introduced duplicatejob detection by hashing over input
                   data + 2 min. caching timestamp

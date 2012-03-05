@@ -76,17 +76,6 @@ sub create_job {
 
     confess 'creating job failed: ' . $self->couchdb->error unless $id;
 
-    # store job ID within meta data to be able to find jobs easily later
-    $job->{message}->{meta}->{id} = $id;
-    $job->{_id}                   = $id;
-    $job->{_rev}                  = $rev;
-    $self->couchdb->db($self->jobqueue_db);
-    $self->couchdb->put_doc({ doc => $job });
-    $self->couchdb->db($old_db);
-
-    confess 'updating job failed: ' . $self->couchdb->error
-        if $self->couchdb->has_error;
-
     return $job;
 }
 
