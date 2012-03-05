@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.14    2012-03-05T18:18:37
+        [FIXED] only manipulate $msg after checking if job exists
+
 1.13    2012-03-05T18:18:37
         [FIXED] no need to update job with job ID in meta data
 

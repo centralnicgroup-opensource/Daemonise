@@ -50,10 +50,20 @@ sub create_job {
     my $cached = DateTime->from_epoch(epoch => $created);
     $cached->truncate(to => 'minute');
     $cached->set_minute($cached->minute - ($cached->minute % 2));
-    $msg->{meta}->{id} = md5_hex(Dumper($msg->{data}->{options}) . $cached);
+    my $id = md5_hex(Dumper($msg->{data}->{options}) . $cached);
 
+    # return if job ID exists
+    my $old_db = $self->couchdb->db;
+    $self->couchdb->db($self->jobqueue_db);
+    my $doc = $self->couchdb->get_doc({ id => $id });
+    if ($doc) {
+        $self->log("found duplicate job: " . $doc->{_id});
+        return;
+    }
+
+    $msg->{meta}->{id} = $id;
     my $job = {
-        id       => $msg->{meta}->{id},
+        id       => $id,
         created  => $created,
         updated  => $created,
         message  => $msg,
@@ -61,17 +71,7 @@ sub create_job {
         status   => 'requested',
     };
 
-    my $old_db = $self->couchdb->db;
-    $self->couchdb->db($self->jobqueue_db);
-
-    # return if job ID exists
-    my $doc = $self->couchdb->get_doc({ id => $job->{id} });
-    if ($doc) {
-        $self->log("found duplicate job: " . $doc->{_id});
-        return;
-    }
-
-    my ($id, $rev) = $self->couchdb->put_doc({ doc => $job });
+    $id = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
     confess 'creating job failed: ' . $self->couchdb->error unless $id;
