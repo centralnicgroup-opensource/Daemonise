@@ -1,5 +1,9 @@
 Revision history for Daemonise
 
+1.16    2012-03-05T19:09:13
+        [FIXED] sort keys with dumper before md5 hashing over it to make it
+        actually work...
+
 1.15    2012-03-05T19:09:13
         [FIXED] _id NOT id when calling put_doc() FFS!!!
 

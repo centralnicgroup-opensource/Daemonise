@@ -50,7 +50,12 @@ sub create_job {
     my $cached = DateTime->from_epoch(epoch => $created);
     $cached->truncate(to => 'minute');
     $cached->set_minute($cached->minute - ($cached->minute % 2));
-    my $id = md5_hex(Dumper($msg->{data}->{options}) . $cached);
+    my $dumper = Data::Dumper->new($msg->{data}->{options});
+    $dumper->Terse(1);
+    $dumper->Sortkeys(1);
+    $dumper->Indent(0);
+    $dumper->Deepcopy(1);
+    my $id = md5_hex($dumper->Dump . $cached);
 
     # return if job ID exists
     my $old_db = $self->couchdb->db;
