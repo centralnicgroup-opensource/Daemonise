@@ -147,14 +147,18 @@ sub find_job {
     my ($self, $how, $info) = @_;
 
     my $result;
+    my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
     given ($how) {
         when ('by_transaction_id') {
-            my $old_db = $self->couchdb->db;
-            $result = $self->couchdb->get_array_view({
-                    view => 'billing/billing_callback',
-                    opts => { key => $info->{transaction_id} },
-            });
+            $result = $self->couchdb->get_array_view(
+                {
+                    view     => 'billing/billing_callback',
+                        opts => {
+                        key              => $info->{transaction_id},
+                            include_docs => 'true',
+                    },
+                });
         }
         default { return; }
     }
