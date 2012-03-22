@@ -60,14 +60,14 @@ sub create_job {
     # return if job ID exists
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    my $doc = $self->couchdb->get_doc({ id => $id });
-    if ($doc) {
-        $self->log("found duplicate job: " . $doc->{_id});
-        return;
+    my $job = $self->couchdb->get_doc({ id => $id });
+    if ($job) {
+        $self->log("found duplicate job: " . $job->{_id});
+        return $job;
     }
 
     $msg->{meta}->{id} = $id;
-    my $job = {
+    $job = {
         _id      => $id,
         created  => $created,
         updated  => $created,

@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.18    2012-03-21T17:47:14
+        [CHANGED] return existing job if duplicate found
+
 1.17    2012-03-21T14:04:53
         [FIXED] find_job() by_transaction_id only needs the id and no platform
         as all callbacks come in via iwantmyname.com
