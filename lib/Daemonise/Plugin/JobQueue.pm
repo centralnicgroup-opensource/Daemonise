@@ -3,6 +3,8 @@ package Daemonise::Plugin::JobQueue;
 use feature 'switch';
 use Mouse::Role;
 use Data::Dumper;
+use Digest::MD5 'md5_hex';
+use DateTime;
 use Carp;
 
 has 'jobqueue_db' => (
@@ -43,33 +45,41 @@ sub create_job {
         unless ((ref($msg) eq 'HASH')
         and (exists $msg->{meta}->{platform}));
 
-    my $job = {
-        created     => time,
-        last_update => time,
-        message     => $msg,
-        platform    => $msg->{meta}->{platform},
-        status      => 'requested',
-    };
+    # kill duplicate identical jobs with a hashsum over the input data and a 2 caching time
+    my $created = time;
+    my $cached = DateTime->from_epoch(epoch => $created);
+    $cached->truncate(to => 'minute');
+    $cached->set_minute($cached->minute - ($cached->minute % 2));
+    my $dumper = Data::Dumper->new([ $msg->{data}->{options} ]);
+    $dumper->Terse(1);
+    $dumper->Sortkeys(1);
+    $dumper->Indent(0);
+    $dumper->Deepcopy(1);
+    my $id = md5_hex($dumper->Dump . $cached);
 
-    # $job->{type} = split(/_/, $msg->{data}->{command}, 2)->[0];
-
+    # return if job ID exists
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    my ($id, $rev) = $self->couchdb->put_doc({ doc => $job });
+    my $job = $self->couchdb->get_doc({ id => $id });
+    if ($job) {
+        $self->log("found duplicate job: " . $job->{_id});
+        return $job;
+    }
+
+    $msg->{meta}->{id} = $id;
+    $job = {
+        _id      => $id,
+        created  => $created,
+        updated  => $created,
+        message  => $msg,
+        platform => $msg->{meta}->{platform},
+        status   => 'requested',
+    };
+
+    $id = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
     confess 'creating job failed: ' . $self->couchdb->error unless $id;
-
-    # store job ID within meta data to be able to find jobs easily later
-    $job->{message}->{meta}->{id} = $id;
-    $job->{_id}                   = $id;
-    $job->{_rev}                  = $rev;
-    $self->couchdb->db($self->jobqueue_db);
-    $self->couchdb->put_doc({ doc => $job });
-    $self->couchdb->db($old_db);
-
-    confess 'updating job failed: ' . $self->couchdb->error
-        if $self->couchdb->has_error;
 
     return $job;
 }
@@ -89,9 +99,9 @@ sub update_job {
 
     return unless $job;
 
-    $job->{last_update} = time;
-    $job->{status}      = $status || $job->{status};
-    $job->{message}     = $msg;
+    $job->{updated} = time;
+    $job->{status}  = $status || $job->{status};
+    $job->{message} = $msg;
 
     $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
@@ -125,24 +135,34 @@ sub job_pending {
     return $self->update_job($msg, 'pending');
 }
 
+sub log_worker {
+    my ($self, $msg) = @_;
+
+    push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+
+    return $msg;
+}
+
 sub find_job {
     my ($self, $how, $info) = @_;
 
     my $result;
+    my $old_db = $self->couchdb->db;
+    $self->couchdb->db($self->jobqueue_db);
     given ($how) {
-        when ('by_billing_callback') {
-            my $old_db = $self->couchdb->db;
-            $self->couchdb->db($self->jobqueue_db);
-            $result = $self->couchdb->get_array_view({
-                    view => 'billing/billing_callback',
-                    opts => {
-                        key => [ $info->{transaction_id}, $info->{platform} ]
+        when ('by_transaction_id') {
+            $result = $self->couchdb->get_array_view(
+                {
+                    view     => 'billing/billing_callback',
+                        opts => {
+                        key              => $info->{transaction_id},
+                            include_docs => 'true',
                     },
                 });
-            $self->couchdb->db($old_db);
         }
         default { return; }
     }
+    $self->couchdb->db($old_db);
 
     return $result->[0] if ($result->[0]);
     return;

@@ -1,5 +1,35 @@
 Revision history for Daemonise
 
+1.18    2012-03-21T17:47:14
+        [CHANGED] return existing job if duplicate found
+
+1.17    2012-03-21T14:04:53
+        [FIXED] find_job() by_transaction_id only needs the id and no platform
+        as all callbacks come in via iwantmyname.com
+
+1.16    2012-03-05T19:09:13
+        [FIXED] sort keys with dumper before md5 hashing over it to make it
+        actually work...
+
+1.15    2012-03-05T19:09:13
+        [FIXED] _id NOT id when calling put_doc() FFS!!!
+
+1.14    2012-03-05T18:18:37
+        [FIXED] only manipulate $msg after checking if job exists
+
+1.13    2012-03-05T18:18:37
+        [FIXED] no need to update job with job ID in meta data
+
+1.12    2012-03-05T18:01:23
+        [CHANGED] introduced duplicatejob detection by hashing over input
+                  data + 2 min. caching timestamp
+
+1.11    2012-02-21T11:09:13
+        [NEW] implemented log_worker() for convenience
+
+1.10    2012-02-20T22:17:24
+        [CHANGED] last_update => updated
+
 1.9     2012-01-12T18:46:52
         less printing if debug is off
 
