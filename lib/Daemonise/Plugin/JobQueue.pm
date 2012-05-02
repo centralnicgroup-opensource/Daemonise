@@ -63,7 +63,7 @@ sub create_job {
     my $job = $self->couchdb->get_doc({ id => $id });
     if ($job) {
         $self->log("found duplicate job: " . $job->{_id});
-        return $job;
+        return $job, 1;
     }
 
     $msg->{meta}->{id} = $id;
