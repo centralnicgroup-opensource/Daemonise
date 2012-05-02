@@ -73,7 +73,7 @@ sub create_job {
         updated  => $created,
         message  => $msg,
         platform => $msg->{meta}->{platform},
-        status   => 'requested',
+        status   => 'new',
     };
 
     $id = $self->couchdb->put_doc({ doc => $job });
