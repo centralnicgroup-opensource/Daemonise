@@ -45,7 +45,8 @@ sub create_job {
         unless ((ref($msg) eq 'HASH')
         and (exists $msg->{meta}->{platform}));
 
-    # kill duplicate identical jobs with a hashsum over the input data and a 2 caching time
+    # kill duplicate identical jobs with a hashsum over the input data
+    # and a 2 min caching time
     my $created = time;
     my $cached = DateTime->from_epoch(epoch => $created);
     $cached->truncate(to => 'minute');

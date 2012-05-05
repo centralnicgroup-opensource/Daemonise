@@ -251,12 +251,11 @@ sub _consume_queue {
 sub _get_channel {
     my $self = shift;
 
-    my $num = $self->rabbit_channel;
-    $num++;
-    $num = 1 if ($num > 64000);
-    $self->rabbit_channel($num);
+    my $chan = $self->rabbit_channel;
+    $chan = int(rand(63999)) + 1;
+    $self->rabbit_channel($chan);
 
-    return $num;
+    return $chan;
 }
 
 1;
