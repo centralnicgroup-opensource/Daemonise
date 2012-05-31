@@ -45,7 +45,8 @@ sub create_job {
         unless ((ref($msg) eq 'HASH')
         and (exists $msg->{meta}->{platform}));
 
-    # kill duplicate identical jobs with a hashsum over the input data and a 2 caching time
+    # kill duplicate identical jobs with a hashsum over the input data
+    # and a 2 min caching time
     my $created = time;
     my $cached = DateTime->from_epoch(epoch => $created);
     $cached->truncate(to => 'minute');
@@ -63,7 +64,7 @@ sub create_job {
     my $job = $self->couchdb->get_doc({ id => $id });
     if ($job) {
         $self->log("found duplicate job: " . $job->{_id});
-        return $job;
+        return $job, 1;
     }
 
     $msg->{meta}->{id} = $id;
@@ -73,7 +74,7 @@ sub create_job {
         updated  => $created,
         message  => $msg,
         platform => $msg->{meta}->{platform},
-        status   => 'requested',
+        status   => 'new',
     };
 
     $id = $self->couchdb->put_doc({ doc => $job });
