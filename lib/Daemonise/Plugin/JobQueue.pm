@@ -145,24 +145,18 @@ sub log_worker {
 }
 
 sub find_job {
-    my ($self, $how, $info) = @_;
+    my ($self, $how, $key) = @_;
 
     my $result;
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    given ($how) {
-        when ('by_transaction_id') {
-            $result = $self->couchdb->get_array_view(
-                {
-                    view     => 'billing/billing_callback',
-                        opts => {
-                        key              => $info->{transaction_id},
-                            include_docs => 'true',
-                    },
-                });
-        }
-        default { return; }
-    }
+    $result = $self->couchdb->get_array_view({
+            view => "find/$how",
+            opts => {
+                key          => $key,
+                include_docs => 'true',
+            },
+        });
     $self->couchdb->db($old_db);
 
     return $result->[0] if ($result->[0]);
