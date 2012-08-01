@@ -3,6 +3,7 @@ package Daemonise::Plugin::RabbitMQ;
 use Mouse::Role;
 use Net::RabbitMQ;
 use Data::UUID;
+use Carp;
 
 has 'rabbit_host' => (
     is      => 'rw',
@@ -124,12 +125,14 @@ sub msg_pub {
         }
         eval { $rep = $self->mq->publish($self->rabbit_channel, $queue, $msg); };
         if ($@) {
-            confess "Could not send message: $@\n";
+            carp "Could not send message: $@\n";
+            return;
         }
         $self->mq->channel_close($self->rabbit_channel);
     }
     else {
-        confess "You have to provide a message to send!";
+        carp "You have to provide a message to send!";
+        return;
     }
     $self->log("Sent message to queue '$queue' with channel "
             . $self->rabbit_channel
@@ -152,11 +155,14 @@ sub msg_rpc {
             unless $tag;
         my $rep_chan = $self->rabbit_channel;
         my $fwd_chan = $self->_get_channel;
-        eval { $self->mq->channel_open($fwd_chan); };
-        sleep 1;
-        eval { $rep = $self->mq->publish($fwd_chan, $queue, $msg); };
+        eval {
+            $self->mq->channel_open($fwd_chan);
+            sleep 1;
+            $rep = $self->mq->publish($fwd_chan, $queue, $msg);
+        };
         if ($@) {
-            confess "Could not send message: $@\n";
+            carp "Could not send message: $@\n";
+            return;
         }
         my $reply;
         my $now = time;
@@ -171,7 +177,8 @@ sub msg_rpc {
         $self->mq->channel_close($rep_chan) unless $_tag;
     }
     else {
-        confess "You have to provide a message to send!";
+        carp "You have to provide a message to send!";
+        return;
     }
     $self->log("Sent message to queue '$queue' with channel "
             . $self->rabbit_channel
@@ -194,7 +201,8 @@ sub _amqp {
             });
     };
     if ($@) {
-        confess "Could not connect to the RabbitMQ server! $@\n";
+        carp "Could not connect to the RabbitMQ server! $@\n";
+        return;
     }
     $self->_get_channel;
     $self->log("Trying to open channel: " . $self->rabbit_channel);
@@ -215,34 +223,34 @@ sub _consume_queue {
 
     $self->_get_channel;
     eval { $self->mq->channel_open($self->rabbit_channel); };
-    my $tag;
     if ($@) {
         $self->_amqp();
     }
+    my $tag;
     if ($temp) {
         eval {
             $self->mq->queue_declare($self->rabbit_channel, $queue,
                 { durable => 0, auto_delete => 1, exclusive => 1 });
+            $tag = $self->mq->consume($self->rabbit_channel, $queue);
         };
-        eval { $tag = $self->mq->consume($self->rabbit_channel, $queue); };
     }
     else {
         eval {
             $self->mq->queue_declare($self->rabbit_channel, $queue,
                 { durable => 1, auto_delete => 0 });
-        };
 
-        #eval { $self->mq->exchange_declare( $self->rabbit_channel, $self->rabbit_exchange, { durable => 1, auto_delete => 0 } ); };
-        eval {
+            # $self->mq->exchange_declare($self->rabbit_channel,
+            #     $self->rabbit_exchange, { durable => 1, auto_delete => 0 });
             $self->mq->queue_bind(
                 $self->rabbit_channel,  $queue,
                 $self->rabbit_exchange, $queue
             );
+            $tag = $self->mq->consume($self->rabbit_channel, $queue);
         };
-        eval { $tag = $self->mq->consume($self->rabbit_channel, $queue); };
     }
     if ($@) {
-        confess "Could not setup the listening queue: $@\n";
+        carp "Could not setup the listening queue: $@\n";
+        return;
     }
     $self->rabbit_last_consumer_tag($tag);
     return $tag;

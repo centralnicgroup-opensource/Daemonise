@@ -2,6 +2,7 @@ package Daemonise::Plugin::CouchDB;
 
 use Mouse::Role;
 use Store::CouchDB;
+use Carp;
 
 has 'couch_host' => (
     is      => 'rw',
@@ -97,8 +98,9 @@ sub lookup {
         return $config || undef;
     }
     else {
-        confess "You have to provide a key to look up!";
+        carp "You have to provide a key to look up!";
     }
+
     return;
 }
 
