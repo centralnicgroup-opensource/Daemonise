@@ -14,6 +14,13 @@ has 'jobqueue_db' => (
     default => sub { 'jobqueue' },
 );
 
+has 'job' => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub { {} },
+);
+
 after 'configure' => sub {
     my ($self) = @_;
 
@@ -23,17 +30,41 @@ after 'configure' => sub {
         unless (%Daemonise::Plugin::CouchDB::);
 };
 
+around 'log' => sub {
+    my ($orig, $self, $msg) = @_;
+
+    unless ((exists $self->job->{_id}) and (exists $self->job->{platform})) {
+        $self->$orig($msg);
+        return;
+    }
+
+    $msg = 'platform=' . $self->job->{platform} . ' ';
+    $msg = 'job_id=' . $self->job->{_id} . ' ';
+    $self->$orig($msg);
+
+    return;
+};
+
 sub get_job {
     my ($self, $id) = @_;
 
-    confess "Job ID missing" unless $id;
+    unless ($id) {
+        carp "Job ID missing";
+        return;
+    }
 
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
     my $job = $self->couchdb->get_doc({ id => $id });
     $self->couchdb->db($old_db);
 
-    carp("job ID not existing: $id") unless $job;
+    unless ($job) {
+        carp("job ID not existing: $id");
+        return;
+    }
+
+    # store job in attribute
+    $self->job($job);
 
     return $job;
 }
@@ -41,9 +72,12 @@ sub get_job {
 sub create_job {
     my ($self, $msg) = @_;
 
-    confess "{meta}->{platform} is missing, can't create job"
-        unless ((ref($msg) eq 'HASH')
-        and (exists $msg->{meta}->{platform}));
+    unless ((ref($msg) eq 'HASH')
+        and (exists $msg->{meta}->{platform}))
+    {
+        carp "{meta}->{platform} is missing, can't create job";
+        return;
+    }
 
     # kill duplicate identical jobs with a hashsum over the input data
     # and a 2 min caching time
@@ -80,7 +114,12 @@ sub create_job {
     $id = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
-    confess 'creating job failed: ' . $self->couchdb->error unless $id;
+    unless ($id) {
+        carp 'creating job failed: ' . $self->couchdb->error;
+        return;
+    }
+
+    $self->job($job);
 
     return $job;
 }
@@ -100,20 +139,26 @@ sub update_job {
 
     return unless $job;
 
+    $self->job($job);
+
     $job->{updated} = time;
     $job->{status}  = $status || $job->{status};
     $job->{message} = $msg;
 
     $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    $self->couchdb->put_doc({ doc => $job });
+    (undef, $job->{_rev}) = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
-    confess 'updating job failed! id: '
-        . $msg->{meta}->{id}
-        . ', error: '
-        . $self->couchdb->error
-        if $self->couchdb->has_error;
+    if ($self->couchdb->has_error) {
+        carp 'updating job failed! id: '
+            . $msg->{meta}->{id}
+            . ', error: '
+            . $self->couchdb->error;
+        return;
+    }
+
+    $self->job($job);
 
     return $job;
 }
@@ -139,33 +184,42 @@ sub job_pending {
 sub log_worker {
     my ($self, $msg) = @_;
 
-    push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+    # no log yet? create it
+    unless (exists $msg->{meta}->{log}) {
+        push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+        return $msg;
+    }
+
+    # last worker same as current? ignore
+    unless (
+        pop @{ $msg->{meta}->{log} } eq ($msg->{meta}->{worker} || $self->name))
+    {
+        push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+    }
 
     return $msg;
 }
 
 sub find_job {
-    my ($self, $how, $info) = @_;
+    my ($self, $how, $key) = @_;
 
     my $result;
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    given ($how) {
-        when ('by_transaction_id') {
-            $result = $self->couchdb->get_array_view(
-                {
-                    view     => 'billing/billing_callback',
-                        opts => {
-                        key              => $info->{transaction_id},
-                            include_docs => 'true',
-                    },
-                });
-        }
-        default { return; }
-    }
+    $result = $self->couchdb->get_array_view({
+            view => "find/$how",
+            opts => {
+                key          => $key,
+                include_docs => 'true',
+            },
+        });
     $self->couchdb->db($old_db);
 
-    return $result->[0] if ($result->[0]);
+    if ($result->[0]) {
+        $self->job($result->[0]);
+        return $result->[0];
+    }
+
     return;
 }
 
