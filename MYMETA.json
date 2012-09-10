@@ -1,0 +1,54 @@
+{
+   "abstract" : "a general daemoniser for anything...",
+   "author" : [
+      "Lenz Gschwendtner, C<< <norbu09 at cpan.org> >>",
+      "Lenz Gschwendtner <norbu09@cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Daemonise",
+   "no_index" : {
+      "directory" : [
+         "inc",
+         "t"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.36",
+            "Test::More" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.36"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Config::Any" : "0",
+            "Data::UUID" : "0",
+            "Mouse" : "0",
+            "Mouse::Role" : "0",
+            "Net::RabbitMQ" : "0",
+            "Store::CouchDB" : "0",
+            "Unix::Syslog" : "0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "1.19"
+}
