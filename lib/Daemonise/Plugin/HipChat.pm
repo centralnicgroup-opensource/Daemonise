@@ -49,7 +49,6 @@ sub notify {
     my ($self, $msg, $room) = @_;
 
     my $ua = LWP::UserAgent->new(agent => $self->name);
-    $self->log(Dumper($self));
     $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
             room_id => $room || $self->hipchat_room,
