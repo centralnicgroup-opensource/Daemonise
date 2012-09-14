@@ -472,7 +472,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 1.23.23
+Version 1.23.23.23
 
 =head1 SYNOPSIS
 
