@@ -52,11 +52,11 @@ sub create_event {
 
     # add mapped stuff
     given ($type) {
-        when ('restart_workflow') {
+        when ('restart_billing') {
             $event = {
                 %$event,
                 backend => 'internal',
-                object  => 'workflow',
+                object  => 'billing',
                 action  => 'restart',
                 status  => 'none',
                 job_id  => $key,
