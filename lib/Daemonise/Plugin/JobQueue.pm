@@ -227,7 +227,7 @@ sub log_worker {
 
     # last worker same as current? ignore
     unless (
-        pop @{ $msg->{meta}->{log} } eq ($msg->{meta}->{worker} || $self->name))
+        $msg->{meta}->{log}->[-1] eq ($msg->{meta}->{worker} || $self->name))
     {
         push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
     }
