@@ -178,7 +178,7 @@ sub update_job {
 
     $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    (undef, $job->{_rev}) = $self->couchdb->put_doc({ doc => $job });
+    ($job->{_id}, $job->{_rev}) = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
     if ($self->couchdb->has_error) {
