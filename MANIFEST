@@ -13,6 +13,8 @@ lib/Daemonise/Plugin/CouchDB.pm
 lib/Daemonise/Plugin/RabbitMQ.pm
 lib/Daemonise/Plugin/JobQueue.pm
 lib/Daemonise/Plugin/HipChat.pm
+lib/Daemonise/Plugin/Redis.pm
+lib/Daemonise/Plugin/Event.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
