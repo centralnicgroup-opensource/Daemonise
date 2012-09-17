@@ -2,7 +2,6 @@ package Daemonise::Plugin::RabbitMQ;
 
 use Mouse::Role;
 use Net::RabbitMQ;
-use Data::UUID;
 use Carp;
 
 has 'rabbit_host' => (

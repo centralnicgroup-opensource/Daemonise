@@ -1,5 +1,12 @@
 Revision history for Daemonise
 
+1.25    2012-09-17T13:45:42
+        added start_job() method to Jobqueue plugin
+
+1.24    2012-09-17T12:27:51
+        2 new plugins Event and Redis implementing lock/unlock methods and
+        creating of events via couchdb or rabbitmq plugin
+
 1.23    2012-09-10T18:55:23
         new plugin HipChat providing a notify() method
 
