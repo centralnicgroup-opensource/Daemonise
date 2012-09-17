@@ -74,7 +74,7 @@ sub create_event {
 
         # is it a timestamp of an offset?
         $event->{when} =
-            length($offset) >= 10 ? $offset : $now + ($offset * 60 * 60);
+            length($offset) >= 10 ? int $offset : $now + ($offset * 60 * 60);
         my $old_db = $self->couchdb->db;
         $self->couchdb->db($self->event_db);
         my ($id, $rev) = $self->couchdb->put_doc({ doc => $event });
