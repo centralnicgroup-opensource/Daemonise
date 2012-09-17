@@ -1,5 +1,8 @@
 Revision history for Daemonise
 
+1.26    2012-09-18T00:10:12
+        fixed bug in JobQueue log()
+
 1.25    2012-09-17T13:45:42
         added start_job() method to Jobqueue plugin
 

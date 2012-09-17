@@ -41,8 +41,12 @@ around 'log' => sub {
         return;
     }
 
-    $msg = 'platform=' . $self->job->{platform} . ' ';
-    $msg = 'job_id=' . $self->job->{_id} . ' ';
+    $msg =
+          'platform='
+        . $self->job->{platform}
+        . ' job_id='
+        . $self->job->{_id} . ' '
+        . $msg;
     $self->$orig($msg);
 
     return;
