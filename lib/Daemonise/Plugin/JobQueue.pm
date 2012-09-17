@@ -5,6 +5,7 @@ use Mouse::Role;
 use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
+use JSON;
 use Carp;
 
 has 'jobqueue_db' => (
@@ -28,6 +29,8 @@ after 'configure' => sub {
 
     confess "this plugin requires the CouchDB plugin to be loaded as well"
         unless (%Daemonise::Plugin::CouchDB::);
+    confess "this plugin requires the RabbitMQ plugin to be loaded as well"
+        unless (%Daemonise::Plugin::RabbitMQ::);
 };
 
 around 'log' => sub {
@@ -122,6 +125,34 @@ sub create_job {
     $self->job($job);
 
     return $job;
+}
+
+sub start_job {
+    my ($self, $workflow, $platform, $options) = @_;
+
+    unless ($workflow) {
+        carp 'workflow not defined';
+        return;
+    }
+
+    unless ($platform) {
+        carp 'platform not defined';
+        return;
+    }
+
+    $options = {} unless $options;
+
+    my $frame = {
+        meta => {
+            platform => $platform,
+            lang     => 'en',
+        },
+        data => {
+            command => $workflow,
+            options => $options,
+        },
+    };
+    $self->msg_pub(encode_json($frame), 'workflow');
 }
 
 sub update_job {
