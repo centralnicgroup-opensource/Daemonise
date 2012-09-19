@@ -78,7 +78,7 @@ sub create_event {
         my $old_db = $self->couchdb->db;
         $self->couchdb->db($self->event_db);
         my ($id, $rev) = $self->couchdb->put_doc({ doc => $event });
-        if ($self->couchdb->error) {
+        if ($self->couchdb->has_error) {
             $self->log("failed creating $type event: " . $self->couchdb->error);
             return;
         }

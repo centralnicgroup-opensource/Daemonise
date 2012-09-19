@@ -41,8 +41,12 @@ around 'log' => sub {
         return;
     }
 
-    $msg = 'platform=' . $self->job->{platform} . ' ';
-    $msg = 'job_id=' . $self->job->{_id} . ' ';
+    $msg =
+          'platform='
+        . $self->job->{platform}
+        . ' job_id='
+        . $self->job->{_id} . ' '
+        . $msg;
     $self->$orig($msg);
 
     return;
@@ -159,7 +163,8 @@ sub update_job {
     my ($self, $msg, $status) = @_;
 
     unless ((ref($msg) eq 'HASH') and (exists $msg->{meta}->{id})) {
-        $self->log("not a JOB, just a message, nothing to see here");
+        $self->log("not a JOB, just a message, nothing to see here")
+            if $self->debug;
         return;
     }
 
@@ -178,7 +183,7 @@ sub update_job {
 
     $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    (undef, $job->{_rev}) = $self->couchdb->put_doc({ doc => $job });
+    ($job->{_id}, $job->{_rev}) = $self->couchdb->put_doc({ doc => $job });
     $self->couchdb->db($old_db);
 
     if ($self->couchdb->has_error) {
@@ -223,7 +228,7 @@ sub log_worker {
 
     # last worker same as current? ignore
     unless (
-        pop @{ $msg->{meta}->{log} } eq ($msg->{meta}->{worker} || $self->name))
+        $msg->{meta}->{log}->[-1] eq ($msg->{meta}->{worker} || $self->name))
     {
         push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
     }
