@@ -48,6 +48,8 @@ after 'configure' => sub {
 sub notify {
     my ($self, $msg, $room) = @_;
 
+    $self->log($msg);
+
     my $ua = LWP::UserAgent->new(agent => $self->name);
     $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
