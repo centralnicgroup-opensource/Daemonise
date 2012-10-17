@@ -150,6 +150,7 @@ sub start_job {
         meta => {
             platform => $platform,
             lang     => 'en',
+            user     => $options->{user_id},
         },
         data => {
             command => $workflow,

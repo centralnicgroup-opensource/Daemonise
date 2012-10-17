@@ -62,6 +62,16 @@ sub create_event {
                 job_id  => $key,
             };
         }
+        when ('start_billing') {
+            $event = {
+                %$event,
+                backend => 'internal',
+                object  => 'billing',
+                action  => 'start',
+                status  => 'none',
+                job_id  => $key,
+            };
+        }
     }
 
     if ($data) {
