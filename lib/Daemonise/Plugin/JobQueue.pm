@@ -35,17 +35,13 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
-    unless ((exists $self->job->{_id}) and (exists $self->job->{platform})) {
-        $self->$orig($msg);
-        return;
-    }
+    $msg = 'user_id=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
+        if exists $self->job->{message}->{meta}->{user};
+    $msg = 'job_id=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
+        if exists $self->job->{message}->{meta}->{id};
+    $msg = 'platform=' . $self->job->{message}->{meta}->{platform} . ' ' . $msg
+        if exists $self->job->{message}->{meta}->{platform};
 
-    $msg =
-          'platform='
-        . $self->job->{platform}
-        . ' job_id='
-        . $self->job->{_id} . ' '
-        . $msg;
     $self->$orig($msg);
 
     return;
@@ -259,6 +255,12 @@ sub find_job {
     }
 
     return;
+}
+
+sub stop_here {
+    my ($self) = @_;
+
+    $self->dont_reply if exists $self->job->{message}->{meta}->{id};
 }
 
 1;
