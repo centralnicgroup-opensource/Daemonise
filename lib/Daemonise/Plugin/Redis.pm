@@ -3,7 +3,6 @@ package Daemonise::Plugin::Redis;
 use Mouse::Role;
 use Redis;
 use Carp;
-use Data::Dumper;
 
 has 'redis_host' => (
     is      => 'rw',

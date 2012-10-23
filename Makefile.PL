@@ -11,8 +11,14 @@ requires 'Config::Any';
 requires 'Unix::Syslog';
 requires 'Store::CouchDB';
 requires 'Net::RabbitMQ';
-requires 'Data::UUID';
+requires 'JSON';
+requires 'LWP::UserAgent';
+requires 'Data::Dumper';
+requires 'DateTime';
+requires 'Digest::MD5';
+requires 'Redis';
 
+recommends 'Tie::Syslog';
 
 build_requires 'Test::More';
 

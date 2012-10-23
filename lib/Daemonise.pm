@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.26';
+our $VERSION = '1.27';
 
 has 'user' => (
     is      => 'rw',
@@ -184,10 +184,9 @@ sub check_pid_file {
                     "Pid_file already exists for running process ($current_pid)... aborting\n";
             }
         }
-
-        ### remove the pid_file
     }
     else {
+        ### remove the pid_file
 
         warn "Pid_file \""
             . $self->pid_file
@@ -196,6 +195,7 @@ sub check_pid_file {
             || die "Couldn't remove pid_file \""
             . $self->pid_file
             . "\" [$!]\n";
+
         return 1;
     }
 }
@@ -204,7 +204,8 @@ sub daemonise {
     my $self = shift;
 
     if ($self->foreground) {
-        $self->log('forground() is set, not daemonise()ing');
+        $self->running($$);
+        $self->log('staying in forground');
         return;
     }
 
@@ -280,10 +281,12 @@ sub daemonise {
             Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
                 "Daemon started with pid: $$");
         }
+
         ### install a signal handler to make sure
         ### SIGINT's remove our pid_file
         $SIG{INT} = sub { $self->HUNTSMAN }
             if $self->has_pid_file;
+
         return 1;
     }
 }
@@ -472,7 +475,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 1.26.26.26.26
+Version 1.27
 
 =head1 SYNOPSIS
 

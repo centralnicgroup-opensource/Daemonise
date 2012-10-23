@@ -3,8 +3,6 @@ package Daemonise::Plugin::Event;
 use feature 'switch';
 use Mouse::Role;
 use Carp;
-use JSON;
-use Data::UUID;
 
 has 'event_db' => (
     is      => 'rw',
@@ -100,17 +98,13 @@ sub create_event {
             meta => {
                 platform => $event->{platform},
                 lang     => 'en',
-                reply_to => Data::UUID->new->create_str(),
             },
             data => {
                 command => "event_add",
                 options => $event,
             },
         };
-        my $res = decode_json(
-            $self->msg_rpc(
-                encode_json($frame), $self->event_queue,
-                $frame->{meta}->{reply_to}));
+        my $res = $self->queue($self->event_queue, $frame);
         if ($res->{error}) {
             $self->log(
                 "failed to create $type event via queue: " . $res->{error});

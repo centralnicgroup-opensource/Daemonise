@@ -5,7 +5,6 @@ use Mouse::Role;
 use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
-use JSON;
 use Carp;
 
 has 'jobqueue_db' => (
@@ -157,7 +156,9 @@ sub start_job {
             options => $options,
         },
     };
-    $self->msg_pub(encode_json($frame), 'workflow');
+    $self->queue('workflow', $frame);
+
+    return;
 }
 
 sub update_job {
