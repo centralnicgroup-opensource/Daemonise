@@ -113,7 +113,7 @@ sub log {
     my ($self, $msg) = @_;
 
     if ($self->foreground) {
-        print $msg . $/;
+        print $self->name . ": $msg\n";
     }
     elsif ($self->has_logfile) {
         open(LOG, '>>', $self->logfile)
