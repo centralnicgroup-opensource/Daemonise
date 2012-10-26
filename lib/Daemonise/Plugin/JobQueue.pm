@@ -5,7 +5,6 @@ use Mouse::Role;
 use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
-use JSON;
 use Carp;
 
 has 'jobqueue_db' => (
@@ -36,17 +35,13 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
-    unless ((exists $self->job->{_id}) and (exists $self->job->{platform})) {
-        $self->$orig($msg);
-        return;
-    }
+    $msg = 'user_id=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
+        if exists $self->job->{message}->{meta}->{user};
+    $msg = 'job_id=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
+        if exists $self->job->{message}->{meta}->{id};
+    $msg = 'platform=' . $self->job->{message}->{meta}->{platform} . ' ' . $msg
+        if exists $self->job->{message}->{meta}->{platform};
 
-    $msg =
-          'platform='
-        . $self->job->{platform}
-        . ' job_id='
-        . $self->job->{_id} . ' '
-        . $msg;
     $self->$orig($msg);
 
     return;
@@ -157,7 +152,9 @@ sub start_job {
             options => $options,
         },
     };
-    $self->msg_pub(encode_json($frame), 'workflow');
+    $self->queue('workflow', $frame);
+
+    return;
 }
 
 sub update_job {
@@ -258,6 +255,12 @@ sub find_job {
     }
 
     return;
+}
+
+sub stop_here {
+    my ($self) = @_;
+
+    $self->dont_reply if exists $self->job->{message}->{meta}->{id};
 }
 
 1;

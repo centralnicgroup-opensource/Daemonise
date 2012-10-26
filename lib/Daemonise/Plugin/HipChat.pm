@@ -3,7 +3,6 @@ package Daemonise::Plugin::HipChat;
 use Mouse::Role;
 use LWP::UserAgent;
 use Carp;
-use Data::Dumper;
 
 has 'hipchat_url' => (
     is      => 'rw',
