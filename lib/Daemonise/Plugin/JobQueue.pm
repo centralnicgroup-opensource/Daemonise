@@ -158,6 +158,11 @@ sub start_job {
             options => $options,
         },
     };
+
+    # tell the new job who created it
+    $frame->{meta}->{created_by} = $self->job->{message}->{meta}->{id}
+        if exists $self->job->{message}->{meta}->{id};
+
     $self->queue('workflow', $frame);
 
     return;
