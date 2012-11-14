@@ -151,7 +151,7 @@ sub start_job {
         meta => {
             platform => $platform,
             lang     => 'en',
-            user     => $options->{user_id},
+            user     => $options->{user_id} || undef,
         },
         data => {
             command => $workflow,
@@ -163,6 +163,8 @@ sub start_job {
     $frame->{meta}->{created_by} = $self->job->{message}->{meta}->{id}
         if exists $self->job->{message}->{meta}->{id};
 
+    $self->log("starting '$workflow' workflow with:\n" . Dumper($frame))
+        if $self->debug;
     $self->queue('workflow', $frame);
 
     return;
