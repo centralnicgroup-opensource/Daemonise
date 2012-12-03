@@ -35,12 +35,18 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
-    $msg = 'user_id=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
-        if exists $self->job->{message}->{meta}->{user};
-    $msg = 'job_id=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
-        if exists $self->job->{message}->{meta}->{id};
+    $msg = 'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
+        if (exists $self->job->{message}->{meta}->{account}
+        and defined $self->job->{message}->{meta}->{account});
+    $msg = 'user=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
+        if (exists $self->job->{message}->{meta}->{user}
+        and defined $self->job->{message}->{meta}->{user});
+    $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
+        if (exists $self->job->{message}->{meta}->{id}
+        and defined $self->job->{message}->{meta}->{id});
     $msg = 'platform=' . $self->job->{message}->{meta}->{platform} . ' ' . $msg
-        if exists $self->job->{message}->{meta}->{platform};
+        if (exists $self->job->{message}->{meta}->{platform}
+        and defined $self->job->{message}->{meta}->{platform});
 
     $self->$orig($msg);
 
@@ -145,13 +151,20 @@ sub start_job {
         meta => {
             platform => $platform,
             lang     => 'en',
-            user     => $options->{user_id},
+            user     => $options->{user_id} || undef,
         },
         data => {
             command => $workflow,
             options => $options,
         },
     };
+
+    # tell the new job who created it
+    $frame->{meta}->{created_by} = $self->job->{message}->{meta}->{id}
+        if exists $self->job->{message}->{meta}->{id};
+
+    $self->log("starting '$workflow' workflow with:\n" . Dumper($frame))
+        if $self->debug;
     $self->queue('workflow', $frame);
 
     return;

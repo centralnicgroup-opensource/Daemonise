@@ -70,6 +70,16 @@ sub create_event {
                 job_id  => $key,
             };
         }
+        when ('continue') {
+            $event = {
+                %$event,
+                backend => 'internal',
+                object  => 'none',
+                action  => 'continue',
+                status  => 'none',
+                job_id  => $key,
+            };
+        }
     }
 
     if ($data) {

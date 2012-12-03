@@ -1,5 +1,11 @@
 Revision history for Daemonise
 
+1.29    2012-11-01T15:10:33
+        also store job ID of creator in meta info when calling start_job()
+
+1.28    2012-10-31T14:24:12
+        fixed "uninitialized value" warnings, added account to log() output
+
 1.27    2012-10-23T02:16:32
         rewrite of RabbitMQ plugin, requires massive changes
 
