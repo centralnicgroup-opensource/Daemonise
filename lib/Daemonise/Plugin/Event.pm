@@ -80,6 +80,10 @@ sub create_event {
                 job_id  => $key,
             };
         }
+        default {
+            $self->log("unsupported event type: $type");
+            return;
+        }
     }
 
     if ($data) {
