@@ -15,6 +15,7 @@ lib/Daemonise/Plugin/JobQueue.pm
 lib/Daemonise/Plugin/HipChat.pm
 lib/Daemonise/Plugin/Redis.pm
 lib/Daemonise/Plugin/Event.pm
+lib/Daemonise/Plugin/Riemann.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
