@@ -5,7 +5,7 @@ use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.29';
+our $VERSION = '1.30';
 
 has 'user' => (
     is      => 'rw',
@@ -475,7 +475,7 @@ Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-Version 1.29.29.29.29
+Version 1.30
 
 =head1 SYNOPSIS
 

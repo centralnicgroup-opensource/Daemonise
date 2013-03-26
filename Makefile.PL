@@ -17,6 +17,8 @@ requires 'Data::Dumper';
 requires 'DateTime';
 requires 'Digest::MD5';
 requires 'Redis';
+requires 'Riemann::Client';
+requires 'Scalar::Util';
 
 recommends 'Tie::Syslog';
 

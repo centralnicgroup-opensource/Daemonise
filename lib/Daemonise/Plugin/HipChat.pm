@@ -59,6 +59,8 @@ sub notify {
             notify         => 0,
             color          => 'green',
         });
+
+    return;
 }
 
 1;
