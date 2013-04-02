@@ -49,6 +49,8 @@ sub notify {
 
     $self->log($msg);
 
+    $msg = '[debug] ' . $msg if $self->debug;
+
     my $ua = LWP::UserAgent->new(agent => $self->name);
     $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
