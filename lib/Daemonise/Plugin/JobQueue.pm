@@ -67,7 +67,7 @@ sub get_job {
     $self->couchdb->db($old_db);
 
     unless ($job) {
-        carp("job ID not existing: $id");
+        carp "job ID not existing: $id";
         return;
     }
 

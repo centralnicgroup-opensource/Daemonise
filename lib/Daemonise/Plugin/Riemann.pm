@@ -62,18 +62,18 @@ sub metric {
         and ref(\$state)  eq 'SCALAR'
         and ref(\$metric) eq 'SCALAR')
     {
-        carp(     'missing mandatory parameter! '
-                . 'usage: $d->metric($service, $state, $metric)');
+        carp 'missing mandatory parameter! '
+            . 'usage: $d->metric($service, $state, $metric)';
         return;
     }
 
     unless (looks_like_number($metric)) {
-        carp("metric has to be an integer or float");
+        carp "metric has to be an integer or float";
         return;
     }
 
     if ($desc and ref(\$desc) ne 'SCALAR') {
-        carp("description must be of SCALAR type");
+        carp "description must be of SCALAR type";
         undef $desc;
     }
 
@@ -90,7 +90,7 @@ sub metric {
                 description => $desc || "metric for $service",
         });
     };
-    carp("sending metric failed: $@") if $@;
+    carp "sending metric failed: $@" if $@;
 
     return;
 }

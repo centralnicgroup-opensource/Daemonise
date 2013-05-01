@@ -2,7 +2,6 @@ package Daemonise::Plugin::Redis;
 
 use Mouse::Role;
 use Redis;
-use Carp;
 
 has 'redis_host' => (
     is      => 'rw',
