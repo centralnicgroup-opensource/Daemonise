@@ -1,0 +1,136 @@
+=pod
+
+=head1 NAME
+
+Daemonise - Daemonise - a general daemoniser for anything...
+
+=head1 VERSION
+
+version 1.33
+
+=head1 SYNOPSIS
+
+Example:
+
+    use Daemonise;
+    use File::Basename;
+    
+    my $d = Daemonise->new();
+    $d->name(basename($0));
+    
+    # log/print more debug info
+    $d->debug(1);
+    
+    # stay in foreground, don't actually fork when calling $d->start
+    $d->foreground(1) if $d->debug;
+    
+    # set file can be Config::Any style
+    $d->config_file('/path/to/some.conf');
+    
+    # where to store/look for PID file
+    $d->pid_file("/var/run/${name}.pid");
+    
+    # configure everything so far
+    $d->configure;
+    
+    # fork and redirect STDERR/STDOUT to syslog per default
+    $d->start;
+    
+    # load some plugins (refer to plugin documentation for provided methods)
+    $d->load_plugin('RabbitMQ');
+    $d->load_plugin('CouchDB');
+    $d->load_plugin('JobQueue');
+    $d->load_plugin('Event');
+    $d->load_plugin('Redis');
+    $d->load_plugin('HipChat');
+    
+    # reconfigure after loading plugins if necessary
+    $d->configure;
+    
+    # do stuff
+
+=head1 ATTRIBUTES
+
+=head2 user
+
+=head2 uid
+
+=head2 group
+
+=head2 gid
+
+=head2 name
+
+=head2 pid_file
+
+=head2 running
+
+=head2 config_file
+
+=head2 config
+
+=head2 phase
+
+=head2 logfile
+
+=head2 debug
+
+=head2 foreground
+
+=head1 SUBROUTINES/METHODS
+
+=head2 load_plugin
+
+=head2 configure
+
+=head2 log
+
+=head2 status
+
+=head2 restart
+
+=head2 stop
+
+=head2 start
+
+=head1 BUGS
+
+Please report any bugs or feature requests on GitHub's issue tracker L<https://github.com/ideegeo/Daemonise/issues>.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Daemonise
+
+You can also look for information at:
+
+=over 4
+
+=item * GitHub repository
+
+L<https://github.com/ideegeo/Daemonise>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Daemonise>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Daemonise>
+
+=back
+
+=head1 ACKNOWLEDGEMENTS
+
+=head1 AUTHOR
+
+Lenz Gschwendtner <norbu09@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2013 by Lenz Gschwendtner.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+

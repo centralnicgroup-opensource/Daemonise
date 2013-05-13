@@ -1,15 +1,65 @@
 package Daemonise::Plugin::RabbitMQ;
 
 use Mouse::Role;
+
+# ABSTRACT: Daemonise RabbitMQ plugin
+
 use Net::RabbitMQ;
 use Carp;
 use JSON;
+
+=head1 SYNOPSIS
+
+Example:
+
+    use Daemonise;
+    
+    my $d = Daemonise->new();
+    
+    # this is the rabbitMQ queue name we eventually create and subscribe to
+    $d->name("queue_name");
+    
+    $d->debug(1);
+    $d->foreground(1) if $d->debug;
+    $d->config_file('/path/to/some.conf');
+    
+    $d->load_plugin('RabbitMQ');
+    
+    $d->is_worker(1); # make it create its own queue
+    $d->configure;
+    
+    # fetch next message from our subscribed queue
+    $msg = $d->dequeue;
+    
+    # send message to some_queue and don't wait (rabbitMQ publish)
+    # $msg can be anything that encodes into JSON
+    $d->queue('some_queue', $msg);
+    
+    # send message and wait for response (rabbitMQ RPC)
+    my $response = $d->queue('some_queue', $msg);
+    
+    # worker that wants a reply from us, not necessarily from an RPC call
+    my $worker = $d->reply_queue;
+    
+    # does NOT reply to caller, no matter what, usually not what you want
+    $d->dont_reply;
+    
+    # at last, acknowledge message as processed
+    $d->ack;
+
+=cut
 
 our $js = JSON->new;
 $js->utf8;
 $js->allow_blessed;
 $js->convert_blessed;
 $js->allow_nonref;
+
+=head1 ATTRIBUTES
+
+=head2 is_worker
+
+=cut
 
 has 'is_worker' => (
     is      => 'rw',
@@ -18,12 +68,20 @@ has 'is_worker' => (
     default => sub { 0 },
 );
 
+=head2 rabbit_host
+
+=cut
+
 has 'rabbit_host' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { 'localhost' },
 );
+
+=head2 rabbit_port
+
+=cut
 
 has 'rabbit_port' => (
     is      => 'rw',
@@ -32,12 +90,20 @@ has 'rabbit_port' => (
     default => sub { 5672 },
 );
 
+=head2 rabbit_user
+
+=cut
+
 has 'rabbit_user' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { 'guest' },
 );
+
+=head2 rabbit_pass
+
+=cut
 
 has 'rabbit_pass' => (
     is      => 'rw',
@@ -46,12 +112,20 @@ has 'rabbit_pass' => (
     default => sub { 'guest' },
 );
 
+=head2 rabbit_vhost
+
+=cut
+
 has 'rabbit_vhost' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { '/' },
 );
+
+=head2 rabbit_exchange
+
+=cut
 
 has 'rabbit_exchange' => (
     is      => 'rw',
@@ -60,6 +134,10 @@ has 'rabbit_exchange' => (
     default => sub { 'amq.direct' },
 );
 
+=head2 rabbit_channel
+
+=cut
+
 has 'rabbit_channel' => (
     is      => 'rw',
     isa     => 'Int',
@@ -67,17 +145,29 @@ has 'rabbit_channel' => (
     default => sub { int(rand(63999)) + 1 },
 );
 
+=head2 rabbit_consumer_tag
+
+=cut
+
 has 'rabbit_consumer_tag' => (
     is      => 'rw',
     lazy    => 1,
     default => sub { '' },
 );
 
+=head2 last_delivery_tag
+
+=cut
+
 has 'last_delivery_tag' => (
     is      => 'rw',
     lazy    => 1,
     default => sub { '' },
 );
+
+=head2 reply_queue
+
+=cut
 
 has 'reply_queue' => (
     is        => 'rw',
@@ -87,12 +177,22 @@ has 'reply_queue' => (
     default   => sub { undef },
 );
 
+=head2 mq
+
+=cut
+
 has 'mq' => (
     is      => 'rw',
     isa     => 'Net::RabbitMQ',
     lazy    => 1,
-    default => sub { new Net::RabbitMQ },
+    default => sub { Net::RabbitMQ->new },
 );
+
+=head1 SUBROUTINES/METHODS provided
+
+=head2 configure
+
+=cut
 
 after 'configure' => sub {
     my ($self) = @_;
@@ -149,10 +249,15 @@ after 'configure' => sub {
     return;
 };
 
+=head2 queue
+
+=cut
+
 sub queue {
     my ($self, $queue, $hash, $reply_queue) = @_;
 
-    my $rpc = 1 if defined wantarray;
+    my $rpc;
+    $rpc = 1 if defined wantarray;
 
     unless (defined $hash) {
         $self->log("message hash missing");
@@ -200,13 +305,19 @@ sub queue {
     return;
 }
 
+=head2 dequeue
+
+=cut
+
 sub dequeue {
     my ($self, $tag) = @_;
 
     # clear reply_queue if this not an RPC response
     $self->dont_reply unless defined $tag;
 
-    my $now = time if defined $tag;
+    my $now;
+    $now = time if defined $tag;
+
     my $frame;
     while (1) {
         $frame = $self->mq->recv();
@@ -231,10 +342,16 @@ sub dequeue {
     return $js->decode($frame->{body});
 }
 
+=head2 ack
+
+=cut
+
 sub ack {
     my ($self) = @_;
 
     $self->mq->ack($self->rabbit_channel, $self->last_delivery_tag);
+
+    return;
 }
 
 1;

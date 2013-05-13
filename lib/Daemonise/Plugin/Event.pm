@@ -1,8 +1,47 @@
 package Daemonise::Plugin::Event;
 
-use feature 'switch';
 use Mouse::Role;
+
+# ABSTRACT: Daemonise Event plugin
+
+use feature 'switch';
 use Carp;
+
+=head1 SYNOPSIS
+
+This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
+
+    use Daemonise;
+    
+    my $d = Daemonise->new();
+    $d->debug(1);
+    $d->foreground(1) if $d->debug;
+    $d->config_file('/path/to/some.conf');
+    
+    $d->load_plugin('CouchDB');
+    $d->load_plugin('RabbitMQ');
+    $d->load_plugin('Event');
+    
+    $d->configure;
+    
+    # this will create an event, store it in the event_db and trigger it if
+    # necessary. requires a daemon to be running that can process such events.
+    my $when = 24 || 1360934857 || undef;
+    my $options = {
+        parsed => 'some parsed response',
+        raw    => 'some%20raw%20response',
+    };
+    my $event_id = $d->create_event('pre_defined_type', "platform_identifier", "job_id", $when, $options);
+    
+    # stop an event
+    $d->stop_event($event_id);
+
+
+=head1 ATTRIBUTES
+
+=head2 event_db
+
+=cut
 
 has 'event_db' => (
     is      => 'rw',
@@ -11,12 +50,22 @@ has 'event_db' => (
     default => sub { 'events' },
 );
 
+=head2 event_queue
+
+=cut
+
 has 'event_queue' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { 'event' },
 );
+
+=head1 SUBROUTINES/METHODS provided
+
+=head2 configure
+
+=cut
 
 after 'configure' => sub {
     my ($self) = @_;
@@ -36,6 +85,10 @@ after 'configure' => sub {
 
     $self->couchdb->db($self->event_db);
 };
+
+=head2 create_event
+
+=cut
 
 sub create_event {
     my ($self, $type, $platform, $key, $offset, $data) = @_;
@@ -128,6 +181,10 @@ sub create_event {
         return $res->{response}->{event_id};
     }
 }
+
+=head2 stop_event
+
+=cut
 
 sub stop_event {
     my ($self, $id, $reason) = @_;

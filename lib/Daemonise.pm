@@ -1,28 +1,95 @@
 package Daemonise;
 
 use Mouse;
+
+# ABSTRACT: Daemonise - a general daemoniser for anything...
+
+# VERSION
+
 use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Config::Any;
 use Unix::Syslog;
 
-our $VERSION = '1.32';
+=head1 SYNOPSIS
+
+Example:
+
+    use Daemonise;
+    use File::Basename;
+    
+    my $d = Daemonise->new();
+    $d->name(basename($0));
+    
+    # log/print more debug info
+    $d->debug(1);
+    
+    # stay in foreground, don't actually fork when calling $d->start
+    $d->foreground(1) if $d->debug;
+    
+    # set file can be Config::Any style
+    $d->config_file('/path/to/some.conf');
+    
+    # where to store/look for PID file
+    $d->pid_file("/var/run/${name}.pid");
+    
+    # configure everything so far
+    $d->configure;
+    
+    # fork and redirect STDERR/STDOUT to syslog per default
+    $d->start;
+    
+    # load some plugins (refer to plugin documentation for provided methods)
+    $d->load_plugin('RabbitMQ');
+    $d->load_plugin('CouchDB');
+    $d->load_plugin('JobQueue');
+    $d->load_plugin('Event');
+    $d->load_plugin('Redis');
+    $d->load_plugin('HipChat');
+    
+    # reconfigure after loading plugins if necessary
+    $d->configure;
+    
+    # do stuff
+
+
+=head1 ATTRIBUTES
+
+=head2 user
+
+=cut
 
 has 'user' => (
     is      => 'rw',
     default => sub { 'root' },
 );
 
+=head2 uid
+
+=cut
+
 has 'uid' => (
     is  => 'rw',
     isa => 'Int',
 );
+
+=head2 group
+
+=cut
 
 has 'group' => (
     is      => 'rw',
     default => sub { 'root' },
 );
 
+=head2 gid
+
+=cut
+
 has 'gid' => (is => 'rw');
+
+=head2 name
+
+=cut
 
 has 'name' => (
     is        => 'rw',
@@ -30,35 +97,63 @@ has 'name' => (
     predicate => 'has_name',
 );
 
+=head2 pid_file
+
+=cut
+
 has 'pid_file' => (
     is        => 'rw',
     predicate => 'has_pid_file',
 );
+
+=head2 running
+
+=cut
 
 has 'running' => (
     is        => 'rw',
     predicate => 'is_running',
 );
 
+=head2 config_file
+
+=cut
+
 has 'config_file' => (
     is        => 'rw',
     predicate => 'has_config_file',
 );
+
+=head2 config
+
+=cut
 
 has 'config' => (
     is      => 'rw',
     default => sub { },
 );
 
+=head2 phase
+
+=cut
+
 has 'phase' => (
     is      => 'rw',
     default => sub { 'starting' },
 );
 
+=head2 logfile
+
+=cut
+
 has 'logfile' => (
     is        => 'rw',
     predicate => 'has_logfile',
 );
+
+=head2 debug
+
+=cut
 
 has 'debug' => (
     is      => 'rw',
@@ -67,11 +162,21 @@ has 'debug' => (
     default => sub { 0 },
 );
 
+=head2 foreground
+
+=cut
+
 has 'foreground' => (
     is      => 'rw',
     isa     => 'Bool',
     default => sub { 0 },
 );
+
+=head1 SUBROUTINES/METHODS
+
+=head2 load_plugin
+
+=cut
 
 sub load_plugin {
     my ($self, $plugin) = @_;
@@ -82,19 +187,33 @@ sub load_plugin {
     return;
 }
 
+=head2 configure
+
+=cut
+
 sub configure {
     my $self = shift;
 
-    warn "No config file defined!" unless $self->has_config_file;
-    return unless $self->has_config_file;
-
     $self->log("configuring Daemonise") if $self->debug;
 
-    my $_conf = Config::Any->load_files({
+    unless ($self->has_config_file) {
+        warn "No config file defined!";
+        return;
+    }
+
+    my $conf = Config::Any->load_files({
             files   => [ $self->config_file ],
             use_ext => 1,
     });
-    my $conf = $_conf->[0]->{ $self->config_file } if $_conf;
+    $conf = $conf->[0]->{ $self->config_file } if $conf;
+
+    unless ((ref $conf eq 'HASH')
+        and (exists $conf->{main})
+        and ref $conf->{main} eq 'HASH')
+    {
+        warn "'main' config section missing!";
+        return;
+    }
 
     foreach my $key (keys %{ $conf->{main} }) {
         my $val = $conf->{main}->{$key};
@@ -109,24 +228,30 @@ sub configure {
     return $conf;
 }
 
-sub log {
+=head2 log
+
+=cut
+
+sub log {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $msg) = @_;
 
     if ($self->foreground) {
         print $self->name . ": $msg\n";
     }
     elsif ($self->has_logfile) {
-        open(LOG, '>>', $self->logfile)
+        open(my $log_file, '>>', $self->logfile)
             or confess "Could not open File (" . $self->logfile . "): $@";
         my $now = strftime "[%F %T]", localtime;
-        print LOG "$now\t$$\t$msg\n";
-        close LOG;
+        print $log_file "$now\t$$\t$msg\n";
+        close $log_file;
     }
     else {
         chomp($msg);
         Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
             'queue=%s %s', $self->name, $msg);
     }
+
+    return;
 }
 
 sub check_pid_file {
@@ -136,23 +261,23 @@ sub check_pid_file {
     return 1 unless -e $self->pid_file;
 
     ### get the currently listed pid
-    if (!open(_PID, $self->pid_file)) {
-        die "Couldn't open existant pid_file \""
-            . $self->pid_file
-            . "\" [$!]\n";
-    }
-    my $_current_pid = <_PID>;
-    close _PID;
-    my $current_pid =
-          $_current_pid =~ /^(\d{1,10})/
+    open(my $pid_file, '<', $self->pid_file)
+        or die "Couldn't open existant pid_file \""
+        . $self->pid_file
+        . "\" [$!]\n";
+    my $pid = <$pid_file>;
+    close $pid_file;
+
+    $pid =
+          $pid =~ /^(\d{1,10})/
         ? $1
         : die "Couldn't find pid in existing pid_file";
 
-    my $exists = undef;
+    my $exists;
 
     ### try a proc file system
     if (-d '/proc') {
-        $exists = -e "/proc/$current_pid";
+        $exists = -e "/proc/$pid";
 
         ### try ps
         #}elsif( -x '/bin/ps' ){ # not as portable
@@ -163,25 +288,25 @@ sub check_pid_file {
     elsif (`ps p $$ | grep -v 'PID'` =~ /^\s*$$\s+.*$/) {
 
         # can I play ps on myself ?
-        $exists = `ps p $current_pid | grep -v 'PID'`;
+        $exists = `ps p $pid | grep -v 'PID'`;
 
     }
 
     ### running process exists, ouch
     if ($exists) {
 
-        if ($current_pid == $$) {
+        if ($pid == $$) {
             warn "Pid_file created by this same process. Doing nothing.\n";
             return 1;
         }
         else {
             if ($self->phase eq 'status') {
-                $self->running($current_pid);
+                $self->running($pid);
                 return;
             }
             else {
                 die
-                    "Pid_file already exists for running process ($current_pid)... aborting\n";
+                    "Pid_file already exists for running process ($pid)... aborting\n";
             }
         }
     }
@@ -235,7 +360,7 @@ sub daemonise {
 
         ### close all input/output and separate
         ### from the parent process group
-        open STDIN, '</dev/null'
+        open(STDIN, '<', '/dev/null')
             or die "Can't open STDIN from /dev/null: [$!]";
 
         # check for Tie::Syslog for later
@@ -244,9 +369,9 @@ sub daemonise {
 
         if ($self->logfile) {
             my $logfile = $self->logfile;
-            open(STDOUT, ">$logfile")
+            open(STDOUT, '>', $logfile)
                 or die "Can't redirect STDOUT to $logfile: [$!]";
-            open(STDERR, '>&STDOUT')
+            open(STDERR, '>', '&STDOUT')
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
         elsif ($tie_syslog) {
@@ -256,13 +381,13 @@ sub daemonise {
             my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
                 "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
             $x->ExtendedSTDERR();
-            binmode(STDOUT, ":utf8");
-            binmode(STDERR, ":utf8");
+            binmode(STDOUT, ":encoding(UTF-8)");
+            binmode(STDERR, ":encoding(UTF-8)");
         }
         else {
-            open(STDOUT, ">/dev/null")
+            open(STDOUT, '>', '/dev/null')
                 or die "Can't redirect STDOUT to /dev/null: [$!]";
-            open(STDERR, '>&STDOUT')
+            open(STDERR, '>', '&STDOUT')
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
 
@@ -284,12 +409,18 @@ sub daemonise {
 
         ### install a signal handler to make sure
         ### SIGINT's remove our pid_file
-        $SIG{INT} = sub { $self->HUNTSMAN }
+        local $SIG{INT} = sub { $self->HUNTSMAN }
             if $self->has_pid_file;
 
         return 1;
     }
+
+    return;
 }
+
+=head2 status
+
+=cut
 
 sub status {
     my $self = shift;
@@ -301,12 +432,20 @@ sub status {
     return;
 }
 
+=head2 restart
+
+=cut
+
 sub restart {
     my $self = shift;
     $self->stop;
     $self->start;
     return "Restarted Daemon\n";
 }
+
+=head2 stop
+
+=cut
 
 sub stop {
     my $self = shift;
@@ -331,6 +470,10 @@ sub stop {
         die "Could not PID!\n";
     }
 }
+
+=head2 start
+
+=cut
 
 sub start {
     my $self = shift;
@@ -400,7 +543,7 @@ sub _safe_fork {
     }
 
     ### make SIGINT kill us as it did before
-    $SIG{INT} = 'DEFAULT';
+    local $SIG{INT} = 'DEFAULT';
 
     ### put back to normal
     POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
@@ -415,24 +558,22 @@ sub _create_pid_file {
     ### see if the pid_file is already there
     $self->check_pid_file;
 
-    if (!open(PID, '>', $self->pid_file)) {
-        die "Couldn't open pid file \"" . $self->pid_file . "\" [$!].\n";
-    }
-
-    ### save out the pid and exit
-    print PID "$$\n";
-    close PID;
+    open(my $pid_file, '>', $self->pid_file)
+        or die "Couldn't open pid file \"" . $self->pid_file . "\" [$!].\n";
+    print $pid_file "$$\n";
+    close $pid_file;
 
     die "Pid_file \"" . $self->pid_file . "\" not created.\n"
         unless -e $self->pid_file;
+
     return 1;
 }
 
 sub _set_user {
     my $self = shift;
 
-    $self->_set_gid || return undef;
-    $self->_set_uid || return undef;
+    $self->_set_gid || return;
+    $self->_set_uid || return;
 
     return 1;
 }
@@ -442,9 +583,12 @@ sub _set_uid {
     my $uid  = $self->_get_uid;
 
     POSIX::setuid($uid);
-    if ($< != $uid || $> != $uid) {    # check $> also (rt #21262)
-        $< = $> =
-            $uid;   # try again - needed by some 5.8.0 linux systems (rt #13450)
+
+    # check $> also (rt #21262)
+    if ($< != $uid || $> != $uid) {
+
+        # try again - needed by some 5.8.0 linux systems (rt #13450)
+        local $< = local $> = $uid;
         if ($< != $uid) {
             die "Couldn't become uid \"$uid\": $!\n";
         }
@@ -457,7 +601,9 @@ sub _set_gid {
     my $self = shift;
     my $gids = $self->_get_gid;
     my $gid  = (split /\s+/, $gids)[0];
-    eval { $) = $gids };  # store all the gids - this is really sort of optional
+
+    # store all the gids - this is really sort of optional
+    eval { local $) = $gids };
 
     POSIX::setgid($gid);
 
@@ -469,41 +615,9 @@ sub _set_gid {
     return 1;
 }
 
-=head1 NAME
-
-Daemonise - a general daemoniser for anything...
-
-=head1 VERSION
-
-Version 1.32
-
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Daemonise;
-
-    my $foo = Daemonise->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 AUTHOR
-
-Lenz Gschwendtner, C<< <norbu09 at cpan.org> >>
-
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-daemonise at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Daemonise>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
+Please report any bugs or feature requests on GitHub's issue tracker L<https://github.com/ideegeo/Daemonise/issues>.
 
 
 =head1 SUPPORT
@@ -517,9 +631,9 @@ You can also look for information at:
 
 =over 4
 
-=item * RT: CPAN's request tracker
+=item * GitHub repository
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Daemonise>
+L<https://github.com/ideegeo/Daemonise>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
@@ -529,26 +643,10 @@ L<http://annocpan.org/dist/Daemonise>
 
 L<http://cpanratings.perl.org/d/Daemonise>
 
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Daemonise/>
-
 =back
 
 
 =head1 ACKNOWLEDGEMENTS
-
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2009 Lenz Gschwendtner.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See http://dev.perl.org/licenses/ for more information.
-
 
 =cut
 

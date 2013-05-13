@@ -1,11 +1,57 @@
 package Daemonise::Plugin::JobQueue;
 
-use feature 'switch';
 use Mouse::Role;
+
+# ABSTRACT: Daemonise JobQueue plugin
+
+use feature 'switch';
 use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
 use Carp;
+
+=head1 SYNOPSIS
+
+This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
+
+    use Daemonise;
+    
+    my $d = Daemonise->new();
+    $d->debug(1);
+    $d->foreground(1) if $d->debug;
+    $d->config_file('/path/to/some.conf');
+    
+    $d->load_plugin('CouchDB');
+    $d->load_plugin('RabbitMQ');
+    $d->load_plugin('JobQueue');
+    
+    $d->configure;
+    
+    # fetch job from "jobqueue_db" and put it in $d->job
+    my $job_id = '585675aab87f878c9e98779e9e9c9ccadff';
+    my $job    = $d->get_job($job_id);
+    
+    # creates a new job in "jobqueue_db"
+    $job = $d->create_job({ some => { structured => 'hash' } });
+    
+    # starts new job by sending a new job message to workflow worker
+    $d->start_job('workflow_name', "some platform identifier", { user => "kevin", command => "play" });
+    
+    # searches for job in couchdb using view 'find/by_something' and key provided
+    $job = $d->find_job('by_bottles', "bottle_id");
+    
+    # if you REALLY have to persist something in jobqueue right now, rather don't
+    $d->update_job($d->job->{message} || $job->{message});
+    
+    # stops workflow here if it is a job (if it has a message->meta->job_id)
+    $d->stop_here;
+
+
+=head1 ATTRIBUTES
+
+=head2 jobqueue_db
+
+=cut
 
 has 'jobqueue_db' => (
     is      => 'rw',
@@ -14,12 +60,22 @@ has 'jobqueue_db' => (
     default => sub { 'jobqueue' },
 );
 
+=head2 job
+
+=cut
+
 has 'job' => (
     is      => 'rw',
     isa     => 'HashRef',
     lazy    => 1,
     default => sub { {} },
 );
+
+=head1 SUBROUTINES/METHODS provided
+
+=head2 configure
+
+=cut
 
 after 'configure' => sub {
     my ($self) = @_;
@@ -31,6 +87,10 @@ after 'configure' => sub {
     confess "this plugin requires the RabbitMQ plugin to be loaded as well"
         unless (%Daemonise::Plugin::RabbitMQ::);
 };
+
+=head2 log
+
+=cut
 
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
@@ -52,6 +112,10 @@ around 'log' => sub {
 
     return;
 };
+
+=head2 get_job
+
+=cut
 
 sub get_job {
     my ($self, $id) = @_;
@@ -76,6 +140,10 @@ sub get_job {
 
     return $job;
 }
+
+=head2 create_job
+
+=cut
 
 sub create_job {
     my ($self, $msg) = @_;
@@ -132,6 +200,10 @@ sub create_job {
     return $job;
 }
 
+=head2 start_job
+
+=cut
+
 sub start_job {
     my ($self, $workflow, $platform, $options) = @_;
 
@@ -169,6 +241,10 @@ sub start_job {
 
     return;
 }
+
+=head2 update_job
+
+=cut
 
 sub update_job {
     my ($self, $msg, $status) = @_;
@@ -210,11 +286,19 @@ sub update_job {
     return $job;
 }
 
+=head2 job_done
+
+=cut
+
 sub job_done {
     my ($self, $msg) = @_;
 
     return $self->update_job($msg, 'done');
 }
+
+=head2 job_failed
+
+=cut
 
 sub job_failed {
     my ($self, $msg) = @_;
@@ -222,11 +306,19 @@ sub job_failed {
     return $self->update_job($msg, 'failed');
 }
 
+=head2 pending
+
+=cut
+
 sub job_pending {
     my ($self, $msg) = @_;
 
     return $self->update_job($msg, 'pending');
 }
+
+=head2 log_worker
+
+=cut
 
 sub log_worker {
     my ($self, $msg) = @_;
@@ -246,6 +338,10 @@ sub log_worker {
 
     return $msg;
 }
+
+=head2 find_job
+
+=cut
 
 sub find_job {
     my ($self, $how, $key) = @_;
@@ -270,10 +366,16 @@ sub find_job {
     return;
 }
 
+=head2 stop_here
+
+=cut
+
 sub stop_here {
     my ($self) = @_;
 
     $self->dont_reply if exists $self->job->{message}->{meta}->{id};
+
+    return;
 }
 
 1;
