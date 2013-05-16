@@ -254,6 +254,10 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     return;
 }
 
+=head2 check_pid_file
+
+=cut
+
 sub check_pid_file {
     my $self = shift;
 
@@ -324,6 +328,10 @@ sub check_pid_file {
         return 1;
     }
 }
+
+=head2 daemonise
+
+=cut
 
 sub daemonise {
     my $self = shift;
@@ -409,7 +417,7 @@ sub daemonise {
 
         ### install a signal handler to make sure
         ### SIGINT's remove our pid_file
-        local $SIG{INT} = sub { $self->HUNTSMAN }
+        local $SIG{INT} = sub { $self->_huntsman }
             if $self->has_pid_file;
 
         return 1;
@@ -481,8 +489,9 @@ sub start {
     return;
 }
 
-sub HUNTSMAN {
+sub _huntsman {
     my $self = shift;
+
     unlink $self->pid_file;
 
     eval {

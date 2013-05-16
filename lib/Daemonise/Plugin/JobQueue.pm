@@ -306,7 +306,7 @@ sub job_failed {
     return $self->update_job($msg, 'failed');
 }
 
-=head2 pending
+=head2 job_pending
 
 =cut
 
@@ -368,14 +368,14 @@ sub find_job {
     return;
 }
 
-=head2 find_job
+=head2 find_all_jobs
 
 =cut
 
 sub find_all_jobs {
-    my ($self) = shift;
+    my ($self, @args) = @_;
 
-    return $self->find_job(@_[ 0, 1 ], 'all');
+    return $self->find_job(@args[ 0, 1 ], 'all');
 }
 
 =head2 stop_here

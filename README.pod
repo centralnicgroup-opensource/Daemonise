@@ -85,6 +85,10 @@ Example:
 
 =head2 log
 
+=head2 check_pid_file
+
+=head2 daemonise
+
 =head2 status
 
 =head2 restart
