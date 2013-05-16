@@ -344,7 +344,7 @@ sub log_worker {
 =cut
 
 sub find_job {
-    my ($self, $how, $key) = @_;
+    my ($self, $how, $key, $all) = @_;
 
     my $result;
     my $old_db = $self->couchdb->db;
@@ -359,11 +359,23 @@ sub find_job {
     $self->couchdb->db($old_db);
 
     if ($result->[0]) {
+        return @{$result} if $all;
+
         $self->job($result->[0]);
         return $result->[0];
     }
 
     return;
+}
+
+=head2 find_job
+
+=cut
+
+sub find_all_jobs {
+    my ($self) = shift;
+
+    return $self->find_job(@_[ 0, 1 ], 'all');
 }
 
 =head2 stop_here
