@@ -5,7 +5,7 @@
 
 MODULE=$1
 
-[[ -z "${MODULE}" ]] || exit 1
+[[ -z "${MODULE}" ]] && exit 1
 
 PWD=$(pwd)
 MODULE_PATH='modules/perl_modules/files'
