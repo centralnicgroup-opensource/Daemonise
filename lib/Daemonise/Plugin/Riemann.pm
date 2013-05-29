@@ -111,12 +111,12 @@ after 'configure' => sub {
 sub graph {
     my ($self, $service, $state, $metric, $desc) = @_;
 
-    unless (ref(\$service) eq 'SCALAR'
-        and ref(\$state)  eq 'SCALAR'
-        and ref(\$metric) eq 'SCALAR')
+    unless (ref \$service eq 'SCALAR'
+        and ref \$state  eq 'SCALAR'
+        and ref \$metric eq 'SCALAR')
     {
-        carp 'missing mandatory parameter! '
-            . 'usage: $d->metric($service, $state, $metric)';
+        carp 'missing or wrong type of mandatory argument! '
+            . 'usage: $d->graph("$service", "$state", $metric)';
         return;
     }
 
