@@ -113,7 +113,7 @@ sub graph {
         return;
     }
 
-    unless ($service =~ m/\./) {
+    unless ($service =~ m/\w\.\w/) {
         carp 'service has to have at least one namespace! '
             . 'e.g.: "site.graph.thing"';
         return;
@@ -129,7 +129,7 @@ sub graph {
         return;
     }
 
-    eval { $self->graphite->send({ path => $service, value => $metric }); };
+    eval { $self->graphite->send(path => $service, value => $metric); };
     carp "sending metric failed: $@" if $@;
 
     return;
