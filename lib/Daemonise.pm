@@ -97,6 +97,17 @@ has 'name' => (
     predicate => 'has_name',
 );
 
+=head2 hostname
+
+=cut
+
+has 'hostname' => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { `hostname` },
+);
+
 =head2 pid_file
 
 =cut
