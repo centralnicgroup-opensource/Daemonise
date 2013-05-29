@@ -105,7 +105,7 @@ has 'hostname' => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { $h = `hostname`; chomp $h; $h },
+    default => sub { my $h = `hostname`; chomp $h; $h },
 );
 
 =head2 pid_file
