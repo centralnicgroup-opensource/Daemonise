@@ -53,6 +53,16 @@ has 'pagerduty_subdomain' => (
     required => 1,
 );
 
+=head2 pagerduty_service_key
+
+=cut
+
+has 'pagerduty_service_key' => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 1,
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -72,8 +82,7 @@ after 'configure' => sub {
 
     $self->pagerduty(
         WebService::PagerDuty->new(
-            api_key   => $self->pagerduty_user,
-            pass      => $self->pagerduty_pass,
+            api_key   => $self->pagerduty_api_key,
             subdomain => $self->pagerduty_subdomain,
         ));
 };
