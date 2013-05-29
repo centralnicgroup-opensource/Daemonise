@@ -1,14 +1,17 @@
-package Daemonise::Plugin::Redis;
+package Daemonise::Plugin::KyotoTycoon;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Redis plugin
+# ABSTRACT: Daemonise KyotoTycoon plugin
 
-use Redis;
+use Cache::KyotoTycoon;
+use Try::Tiny;
+use MIME::Base64 qw(encode_base64 decode_base64);
+use Storable qw/nfreeze thaw/;
 
 =head1 SYNOPSIS
 
-This plugin conflicts with other plugins that provide caching, like the KyotoTycoon plugin.
+This plugin conflicts with other plugins that provide caching, like the Redis plugin.
 
     use Daemonise;
     
@@ -17,16 +20,15 @@ This plugin conflicts with other plugins that provide caching, like the KyotoTyc
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
     
-    $d->load_plugin('Redis');
+    $d->load_plugin('KyotoTycoon');
     
     $d->configure;
     
-    # get a redis key
-    my $value = $d->redis->get("some_key");
+    # get a key
+    my $value = $d->tycoon->get("some_key");
     
-    # set a key and expire (see Redis module for more)
-    $d->redis->set(key => "value");
-    $d->redis->expire(key, 600);
+    # set a key and expire (see Cache::KyotoTycoon module for more)
+    $d->tycoon->replace("key", "value", 600);
     
     # allow only one instance of this deamon to run at a time
     $d->lock;
@@ -37,68 +39,68 @@ This plugin conflicts with other plugins that provide caching, like the KyotoTyc
 
 =head1 ATTRIBUTES
 
-=head2 redis_host
+=head2 tycoon_host
 
 =cut
 
-has 'redis_host' => (
+has 'tycoon_host' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { 'localhost' },
 );
 
-=head2 redis_port
+=head2 tycoon_port
 
 =cut
 
-has 'redis_port' => (
+has 'tycoon_port' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
-    default => sub { 6379 },
+    default => sub { 1978 },
 );
 
-=head2 redis_connect_timeout
+=head2 tycoon_db
 
 =cut
 
-has 'redis_connect_timeout' => (
+has 'tycoon_db' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+=head2 tycoon_connect_timeout
+
+=cut
+
+has 'tycoon_timeout' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
-    default => sub { 2 },
+    default => sub { 5 },
 );
 
-=head2 redis_connect_rate
+=head2 tycoon_default_expire
 
 =cut
 
-has 'redis_connect_rate' => (
-    is      => 'rw',
-    isa     => 'Int',
-    lazy    => 1,
-    default => sub { 500 },
-);
-
-=head2 redis_default_expire
-
-=cut
-
-has 'redis_default_expire' => (
+has 'tycoon_default_expire' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
     default => sub { 600 },
 );
 
-=head2 redis
+=head2 tycoon
 
 =cut
 
-has 'redis' => (
+has 'tycoon' => (
     is       => 'rw',
-    isa      => 'Redis',
+    isa      => 'Cache::KyotoTycoon',
     required => 1,
 );
 
@@ -111,65 +113,75 @@ has 'redis' => (
 after 'configure' => sub {
     my ($self) = @_;
 
-    $self->log("configuring Redis plugin") if $self->debug;
+    $self->log("configuring KyotoTycoon plugin") if $self->debug;
 
-    foreach my $conf_key ('host', 'port', 'connect_timeout', 'connect_rate',
-        'default_expire')
-    {
-        my $attr = "redis_" . $conf_key;
-        $self->$attr($self->config->{redis}->{$conf_key})
-            if exists $self->config->{redis}->{$conf_key};
+    foreach my $conf_key ('host', 'port', 'timeout', 'default_expire') {
+        my $attr = "tycoon_" . $conf_key;
+        $self->$attr($self->config->{kyoto_tycoon}->{$conf_key})
+            if exists $self->config->{kyoto_tycoon}->{$conf_key};
     }
 
-    $self->redis(
-        Redis->new(
-            server    => $self->redis_host . ':' . $self->redis_port,
-            reconnect => $self->redis_connect_timeout,
-            every     => $self->redis_connect_rate,
-            debug     => $self->debug,
+    $self->tycoon(
+        KyotoTycoon->new(
+            host    => $self->tycoon_host,
+            port    => $self->tycoon_port,
+            timeout => $self->tycoon_timeout,
+            db      => $self->tycoon_db,
         ));
 };
 
 =head2 cache_get
 
-retrieve, base64 decode and thaw complex data from Redis
+retrieve, base64 decode and thaw complex data from KyotoTycoon
 
 =cut
 
 sub cache_get {
     my ($self, $key) = @_;
 
-    my $value = $self->redis->get($key);
+    my ($value, $expire);
 
-    return unless defined $value;
-    return thaw(decode_base64($value));
+    if (wantarray) {
+        ($value, $expire) = $self->tycoon->get($key);
+        return unless defined $value;
+        return (thaw(decode_base64($value)), $expire);
+    }
+    else {
+        $value = $self->tycoon->get($key);
+        return unless defined $value;
+        return thaw(decode_base64($value));
+    }
+
+    return;
 }
 
 =head2 cache_set
 
-freeze, base64 encode and store complex data in Redis
+freeze, base64 encode and store complex data in KyotoTycoon
 
 =cut
 
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
-    $self->redis->set($key => encode_base64(nfreeze($data)));
-    $self->redis->expire($key, ($expire || $self->tycoon_default_expire));
+    $self->tycoon->replace(
+        $key,
+        encode_base64(nfreeze($data)),
+        ($expire || $self->tycoon_default_expire));
 
     return 1;
 }
 
 =head2 cache_del
 
-delete Redis key
+delete KyotoTycoon key
 
 =cut
 
 sub cache_del {
     my ($self, $key);
 
-    return $self->redis->del($key);
+    return $self->tycoon->remove($key);
 }
 
 =head2 lock
@@ -186,9 +198,9 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
 
     my $lock = $thing || $self->name;
 
-    if (my $pid = $self->redis->get($lock)) {
+    if (my $pid = $self->tycoon->get($lock)) {
         if ($pid == $$) {
-            $self->redis->expire($lock, $self->redis_default_expire);
+            $self->tycoon->replace($lock, $$, $self->tycoon_default_expire);
             $self->log("locking time extended") if $self->debug;
             return 1;
         }
@@ -198,8 +210,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
         }
     }
     else {
-        $self->redis->set($lock => $$);
-        $self->redis->expire($lock, $self->redis_default_expire);
+        $self->tycoon->replace($lock, $$, $self->tycoon_default_expire);
         $self->log("lock acquired") if $self->debug;
         return 1;
     }
@@ -219,9 +230,9 @@ sub unlock {
 
     my $lock = $thing || $self->name;
 
-    if (my $pid = $self->redis->get($lock)) {
+    if (my $pid = $self->tycoon->get($lock)) {
         if ($pid == $$) {
-            $self->redis->del($lock);
+            $self->tycoon->remove($lock);
             $self->log("lock released") if $self->debug;
             return 1;
         }

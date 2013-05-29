@@ -1,8 +1,36 @@
 package Daemonise::Plugin::CouchDB;
 
 use Mouse::Role;
+
+# ABSTRACT: Daemonise CouchDB plugin
+
 use Store::CouchDB;
 use Carp;
+
+=head1 SYNOPSIS
+
+Example:
+
+    use Daemonise;
+    
+    my $d = Daemonise->new();
+    $d->debug(1);
+    $d->foreground(1) if $d->debug;
+    $d->config_file('/path/to/some.conf');
+    
+    $d->load_plugin('CouchDB');
+    
+    $d->configure;
+    
+    # simple document GET (see Store::CouchBB for more)
+    my $doc = $d->couchdb->get_doc({id => "some_couchdb_id"});
+
+
+=head1 ATTRIBUTES
+
+=head2 couch_host
+
+=cut
 
 has 'couch_host' => (
     is      => 'rw',
@@ -11,12 +39,20 @@ has 'couch_host' => (
     default => sub { 'localhost' },
 );
 
+=head2 couch_port
+
+=cut
+
 has 'couch_port' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
     default => sub { 5984 },
 );
+
+=head2 couch_db
+
+=cut
 
 has 'couch_db' => (
     is      => 'rw',
@@ -25,6 +61,10 @@ has 'couch_db' => (
     default => sub { 'test' },
 );
 
+=head2 couch_view
+
+=cut
+
 has 'couch_view' => (
     is      => 'rw',
     isa     => 'Str',
@@ -32,10 +72,18 @@ has 'couch_view' => (
     default => sub { 'config/backend' },
 );
 
+=head2 couch_user
+
+=cut
+
 has 'couch_user' => (
     is  => 'rw',
     isa => 'Str',
 );
+
+=head2 couch_pass
+
+=cut
 
 has 'couch_pass' => (
     is  => 'rw',
@@ -46,6 +94,12 @@ has 'couchdb' => (
     is  => 'rw',
     isa => 'Store::CouchDB',
 );
+
+=head1 SUBROUTINES/METHODS provided
+
+=head2 configure
+
+=cut
 
 after 'configure' => sub {
     my ($self) = @_;
@@ -80,6 +134,10 @@ after 'configure' => sub {
     return;
 };
 
+=head2 lookup
+
+=cut
+
 sub lookup {
     my ($self, $key) = @_;
 
@@ -92,7 +150,7 @@ sub lookup {
         };
         my $config = $self->couchdb->get_view($view);
         while (my $part = shift(@path)) {
-            return undef unless $config->{$part};
+            return unless $config->{$part};
             $config = $config->{$part};
         }
         return $config || undef;

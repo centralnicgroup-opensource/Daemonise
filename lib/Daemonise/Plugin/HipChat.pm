@@ -1,8 +1,38 @@
 package Daemonise::Plugin::HipChat;
 
 use Mouse::Role;
+
+# ABSTRACT: Daemonise HipChat plugin
+
 use LWP::UserAgent;
-use Carp;
+
+=head1 SYNOPSIS
+
+Example:
+
+    use Daemonise;
+    
+    my $d = Daemonise->new();
+    $d->debug(1);
+    $d->foreground(1) if $d->debug;
+    $d->config_file('/path/to/some.conf');
+    
+    $d->load_plugin('HipChat');
+    
+    $d->configure;
+    
+    # send a message to the default 'log' channel
+    $d->notify("some text");
+    
+    # send a message to the specified hipchat channel
+    $d->notify("some text", 'channel');
+
+
+=head1 ATTRIBUTES
+
+=head2 hipchat_url
+
+=cut
 
 has 'hipchat_url' => (
     is      => 'rw',
@@ -13,11 +43,19 @@ has 'hipchat_url' => (
     },
 );
 
+=head2 hipchat_token
+
+=cut
+
 has 'hipchat_token' => (
     is       => 'rw',
     isa      => 'Str',
     required => 1,
 );
+
+=head2 hipchat_from
+
+=cut
 
 has 'hipchat_from' => (
     is      => 'rw',
@@ -26,12 +64,22 @@ has 'hipchat_from' => (
     default => sub { 'Daemonise' },
 );
 
+=head2 hipchat_room
+
+=cut
+
 has 'hipchat_room' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { 'log' },
 );
+
+=head1 SUBROUTINES/METHODS provided
+
+=head2 configure
+
+=cut
 
 after 'configure' => sub {
     my ($self) = @_;
@@ -44,10 +92,16 @@ after 'configure' => sub {
         if $self->config->{hipchat}->{room};
 };
 
+=head2 notify
+
+=cut
+
 sub notify {
     my ($self, $msg, $room) = @_;
 
     $self->log($msg);
+
+    $msg = '[debug] ' . $msg if $self->debug;
 
     my $ua = LWP::UserAgent->new(agent => $self->name);
     $ua->post(
