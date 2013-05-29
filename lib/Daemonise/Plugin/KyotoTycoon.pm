@@ -29,7 +29,7 @@ This plugin conflicts with other plugins that provide caching, like the Redis pl
     
     # set a key and expire (see Cache::KyotoTycoon module for more)
     $d->tycoon->replace("key", "value", 600);
-
+    
     # allow only one instance of this deamon to run at a time
     $d->lock;
     

@@ -10,6 +10,8 @@ use Carp;
 
 =head1 SYNOPSIS
 
+This plugin conflicts with other plugins that provide graphing, like the Graphite plugin.
+
 Example:
 
     use Daemonise;
@@ -25,7 +27,7 @@ Example:
     
     # send a metric to riemann server
     # (service, state, metric, optional description)
-    $d->metric("interwebs", "slow", 1.4, "MB/s");
+    $d->graph("interwebs", "slow", 1.4, "MB/s");
 
 
 =head1 ATTRIBUTES
@@ -102,11 +104,11 @@ after 'configure' => sub {
     return;
 };
 
-=head2 metric
+=head2 graph
 
 =cut
 
-sub metric {
+sub graph {
     my ($self, $service, $state, $metric, $desc) = @_;
 
     unless (ref(\$service) eq 'SCALAR'
