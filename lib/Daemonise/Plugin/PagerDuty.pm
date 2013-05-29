@@ -87,7 +87,11 @@ shortcut for most common used case, to trigger an alert in pagerduty
 sub alert {
     my ($self, $incident, $description, $details) = @_;
 
-    unless (ref \$incident eq 'SCALAR' and ref \$description eq 'SCALAR') {
+    unless (ref \$incident eq 'SCALAR'
+        and $incident
+        and ref \$description eq 'SCALAR'
+        and $description)
+    {
         carp 'missing or wrong type of mandatory arguments! '
             . 'usage: $d->alert("$incident", "$description", \%details)';
         return;

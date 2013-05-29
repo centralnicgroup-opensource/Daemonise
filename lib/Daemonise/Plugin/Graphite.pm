@@ -104,7 +104,9 @@ sub graph {
     my ($self, $service, $state, $metric, $desc) = @_;
 
     unless (ref \$service eq 'SCALAR'
-        and ref \$metric eq 'SCALAR')
+        and defined $service
+        and ref \$metric eq 'SCALAR'
+        and defined $metric)
     {
         carp 'missing or wrong type of mandatory argument! '
             . 'usage: $d->graph("$service", "$state", $metric, "$desc")';
