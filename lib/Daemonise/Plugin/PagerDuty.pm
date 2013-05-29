@@ -63,6 +63,15 @@ has 'pagerduty_service_key' => (
     required => 1,
 );
 
+=head2 pagerduty
+
+=cut
+
+has 'pagerduty' => (
+    is  => 'rw',
+    isa => 'WebService::PagerDuty',
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
