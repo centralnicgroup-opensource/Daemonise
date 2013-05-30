@@ -85,8 +85,8 @@ after 'configure' => sub {
 
     foreach my $conf_key ('api_key', 'subdomain', 'service_key') {
         my $attr = "pagerduty_" . $conf_key;
-        $self->$attr($self->config->{pagerduty}->{$conf_key})
-            if exists $self->config->{pagerduty}->{$conf_key};
+        $self->$attr($self->config->{api}->{pagerduty}->{$conf_key})
+            if exists $self->config->{api}->{pagerduty}->{$conf_key};
     }
 
     $self->pagerduty(
