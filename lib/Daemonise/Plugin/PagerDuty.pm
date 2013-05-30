@@ -146,7 +146,8 @@ sub alert {
         incident_key => $incident,
         description  => "$service: $description",
         details      => {%$details},
-    )->trigger;
+        )->trigger
+        unless $self->debug;
 
     return;
 }
