@@ -86,10 +86,10 @@ after 'configure' => sub {
 
     $self->log("configuring HipChat plugin") if $self->debug;
 
-    $self->hipchat_token($self->config->{hipchat}->{token});
+    $self->hipchat_token($self->config->{api}->{hipchat}->{token});
     $self->hipchat_from($self->name);
-    $self->hipchat_room($self->config->{hipchat}->{room})
-        if $self->config->{hipchat}->{room};
+    $self->hipchat_room($self->config->{api}->{hipchat}->{room})
+        if $self->config->{api}->{hipchat}->{room};
 };
 
 =head2 notify
