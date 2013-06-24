@@ -86,11 +86,16 @@ after 'configure' => sub {
 
     $self->log("configuring HipChat plugin") if $self->debug;
 
-    foreach my $conf_key ('token', 'room') {
-        my $attr = "hipchat_" . $conf_key;
-        $self->$attr($self->config->{api}->{hipchat}->{$conf_key})
-            if exists $self->config->{api}->{hipchat}->{$conf_key};
+    if (    ref($self->config->{api}) eq 'HASH'
+        and ref($self->config->{api}->{hipchat}) eq 'HASH')
+    {
+        foreach my $conf_key ('token', 'room') {
+            my $attr = "hipchat_" . $conf_key;
+            $self->$attr($self->config->{api}->{hipchat}->{$conf_key})
+                if defined $self->config->{api}->{hipchat}->{$conf_key};
+        }
     }
+
     $self->hipchat_from($self->name);
 };
 

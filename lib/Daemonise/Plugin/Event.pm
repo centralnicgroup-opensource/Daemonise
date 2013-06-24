@@ -78,10 +78,13 @@ after 'configure' => sub {
     confess "this plugin requires the RabbitMQ plugin to be loaded as well"
         unless (%Daemonise::Plugin::RabbitMQ::);
 
-    $self->event_db($self->config->{events}->{db})
-        if exists $self->config->{events}->{db};
-    $self->event_queue($self->config->{events}->{queue})
-        if exists $self->config->{events}->{queue};
+    if (ref($self->config->{events}) eq 'HASH') {
+        foreach my $conf_key ('db', 'queue') {
+            my $attr = "event_" . $conf_key;
+            $self->$attr($self->config->{events}->{$conf_key})
+                if defined $self->config->{events}->{$conf_key};
+        }
+    }
 
     $self->couchdb->db($self->event_db);
 };

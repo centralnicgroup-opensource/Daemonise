@@ -91,8 +91,9 @@ has 'couch_pass' => (
 );
 
 has 'couchdb' => (
-    is  => 'rw',
-    isa => 'Store::CouchDB',
+    is       => 'rw',
+    isa      => 'Store::CouchDB',
+    required => 1,
 );
 
 =head1 SUBROUTINES/METHODS provided
@@ -106,18 +107,13 @@ after 'configure' => sub {
 
     $self->log("configuring CouchDB plugin") if $self->debug;
 
-    $self->couch_host($self->config->{couchdb}->{host})
-        if $self->config->{couchdb}->{host};
-    $self->couch_port($self->config->{couchdb}->{port})
-        if $self->config->{couchdb}->{port};
-    $self->couch_user($self->config->{couchdb}->{user})
-        if $self->config->{couchdb}->{user};
-    $self->couch_pass($self->config->{couchdb}->{pass})
-        if $self->config->{couchdb}->{pass};
-    $self->couch_db($self->config->{couchdb}->{db})
-        if $self->config->{couchdb}->{db};
-    $self->couch_view($self->config->{couchdb}->{view})
-        if $self->config->{couchdb}->{view};
+    if (ref($self->config->{couchdb}) eq 'HASH') {
+        foreach my $conf_key ('host', 'port', 'user', 'pass', 'db', 'view') {
+            my $attr = "couch_" . $conf_key;
+            $self->$attr($self->config->{couchdb}->{$conf_key})
+                if defined $self->config->{couchdb}->{$conf_key};
+        }
+    }
 
     my $sc = Store::CouchDB->new(
         host  => $self->couch_host,

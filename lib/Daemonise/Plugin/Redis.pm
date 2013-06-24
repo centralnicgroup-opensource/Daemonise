@@ -113,12 +113,17 @@ after 'configure' => sub {
 
     $self->log("configuring Redis plugin") if $self->debug;
 
-    foreach my $conf_key ('host', 'port', 'connect_timeout', 'connect_rate',
-        'default_expire')
-    {
-        my $attr = "redis_" . $conf_key;
-        $self->$attr($self->config->{redis}->{$conf_key})
-            if exists $self->config->{redis}->{$conf_key};
+    if (ref($self->config->{redis}) eq 'HASH') {
+        foreach my $conf_key (
+            'host',            'port',
+            'connect_timeout', 'connect_rate',
+            'default_expire'
+            )
+        {
+            my $attr = "redis_" . $conf_key;
+            $self->$attr($self->config->{redis}->{$conf_key})
+                if defined $self->config->{redis}->{$conf_key};
+        }
     }
 
     $self->redis(

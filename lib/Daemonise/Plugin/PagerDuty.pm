@@ -83,10 +83,14 @@ after 'configure' => sub {
 
     $self->log("configuring PagerDuty plugin") if $self->debug;
 
-    foreach my $conf_key ('api_key', 'subdomain', 'service_key') {
-        my $attr = "pagerduty_" . $conf_key;
-        $self->$attr($self->config->{api}->{pagerduty}->{$conf_key})
-            if exists $self->config->{api}->{pagerduty}->{$conf_key};
+    if (    ref($self->config->{api}) eq 'HASH'
+        and ref($self->config->{api}->{pagerduty}) eq 'HASH')
+    {
+        foreach my $conf_key ('api_key', 'subdomain', 'service_key') {
+            my $attr = "pagerduty_" . $conf_key;
+            $self->$attr($self->config->{api}->{pagerduty}->{$conf_key})
+                if defined $self->config->{api}->{pagerduty}->{$conf_key};
+        }
     }
 
     $self->pagerduty(

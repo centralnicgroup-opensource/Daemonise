@@ -115,14 +115,16 @@ after 'configure' => sub {
 
     $self->log("configuring KyotoTycoon plugin") if $self->debug;
 
-    foreach my $conf_key ('host', 'port', 'timeout', 'default_expire') {
-        my $attr = "tycoon_" . $conf_key;
-        $self->$attr($self->config->{kyoto_tycoon}->{$conf_key})
-            if exists $self->config->{kyoto_tycoon}->{$conf_key};
+    if (ref($self->config->{kyoto_tycoon}) eq 'HASH') {
+        foreach my $conf_key ('host', 'port', 'timeout', 'default_expire') {
+            my $attr = "tycoon_" . $conf_key;
+            $self->$attr($self->config->{kyoto_tycoon}->{$conf_key})
+                if defined $self->config->{kyoto_tycoon}->{$conf_key};
+        }
     }
 
     $self->tycoon(
-        KyotoTycoon->new(
+        Cache::KyotoTycoon->new(
             host    => $self->tycoon_host,
             port    => $self->tycoon_port,
             timeout => $self->tycoon_timeout,
@@ -179,7 +181,7 @@ delete KyotoTycoon key
 =cut
 
 sub cache_del {
-    my ($self, $key);
+    my ($self, $key) = @_;
 
     return $self->tycoon->remove($key);
 }

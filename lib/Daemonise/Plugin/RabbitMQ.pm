@@ -199,18 +199,15 @@ after 'configure' => sub {
 
     $self->log("configuring RabbitMQ plugin") if $self->debug;
 
-    $self->rabbit_user($self->config->{rabbitmq}->{user})
-        if exists $self->config->{rabbitmq}->{user};
-    $self->rabbit_pass($self->config->{rabbitmq}->{pass})
-        if exists $self->config->{rabbitmq}->{pass};
-    $self->rabbit_host($self->config->{rabbitmq}->{host})
-        if exists $self->config->{rabbitmq}->{host};
-    $self->rabbit_port($self->config->{rabbitmq}->{port})
-        if exists $self->config->{rabbitmq}->{port};
-    $self->rabbit_vhost($self->config->{rabbitmq}->{vhost})
-        if exists $self->config->{rabbitmq}->{vhost};
-    $self->rabbit_exchange($self->config->{rabbitmq}->{exchange})
-        if exists $self->config->{rabbitmq}->{exchange};
+    if (ref($self->config->{rabbitmq}) eq 'HASH') {
+        foreach
+            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange')
+        {
+            my $attr = "rabbit_" . $conf_key;
+            $self->$attr($self->config->{rabbitmq}->{$conf_key})
+                if defined $self->config->{rabbitmq}->{$conf_key};
+        }
+    }
 
     eval {
         $self->mq->connect(
