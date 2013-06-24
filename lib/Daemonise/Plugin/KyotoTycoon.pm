@@ -28,7 +28,7 @@ This plugin conflicts with other plugins that provide caching, like the Redis pl
     my $value = $d->tycoon->get("some_key");
     
     # set a key and expire (see Cache::KyotoTycoon module for more)
-    $d->tycoon->replace("key", "value", 600);
+    $d->tycoon->set("key", "value", 600);
     
     # allow only one instance of this deamon to run at a time
     $d->lock;
@@ -164,7 +164,7 @@ freeze, base64 encode and store complex data in KyotoTycoon
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
-    $self->tycoon->replace(
+    $self->tycoon->set(
         $key,
         encode_base64(nfreeze($data)),
         ($expire || $self->tycoon_default_expire));
@@ -210,7 +210,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
         }
     }
     else {
-        $self->tycoon->replace($lock, $$, $self->tycoon_default_expire);
+        $self->tycoon->set($lock, $$, $self->tycoon_default_expire);
         $self->log("lock acquired") if $self->debug;
         return 1;
     }
