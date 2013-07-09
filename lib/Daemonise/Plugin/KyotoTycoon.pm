@@ -166,6 +166,8 @@ freeze, base64 encode and store complex data in KyotoTycoon
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
+    return unless ref $data;
+
     $self->tycoon->set(
         $key,
         encode_base64(nfreeze($data)),
