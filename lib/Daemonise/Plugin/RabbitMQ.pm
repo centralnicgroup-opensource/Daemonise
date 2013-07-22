@@ -7,6 +7,7 @@ use Mouse::Role;
 use Net::RabbitMQ;
 use Carp;
 use JSON;
+use Try::Tiny;
 
 =head1 SYNOPSIS
 
@@ -199,49 +200,7 @@ after 'configure' => sub {
 
     $self->log("configuring RabbitMQ plugin") if $self->debug;
 
-    if (ref($self->config->{rabbitmq}) eq 'HASH') {
-        foreach
-            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange')
-        {
-            my $attr = "rabbit_" . $conf_key;
-            $self->$attr($self->config->{rabbitmq}->{$conf_key})
-                if defined $self->config->{rabbitmq}->{$conf_key};
-        }
-    }
-
-    eval {
-        $self->mq->connect(
-            $self->rabbit_host, {
-                user     => $self->rabbit_user,
-                password => $self->rabbit_pass,
-                port     => $self->rabbit_port,
-                vhost    => $self->rabbit_vhost,
-            });
-    };
-    my $err = $@;
-
-    if ($err) {
-        confess "Could not connect to the RabbitMQ server '"
-            . $self->rabbit_host
-            . "': $err\n";
-    }
-
-    $self->mq->channel_open($self->rabbit_channel);
-    $self->log("opened channel " . $self->rabbit_channel) if $self->debug;
-
-    return unless $self->is_worker;
-
-    $self->log("preparing worker queue") if $self->debug;
-
-    $self->mq->basic_qos($self->rabbit_channel, { prefetch_count => 1 });
-    $self->mq->queue_declare($self->rabbit_channel, $self->name,
-        { durable => 1, auto_delete => 0 });
-    $self->rabbit_consumer_tag(
-        $self->mq->consume($self->rabbit_channel, $self->name, { no_ack => 0 })
-    );
-
-    $self->log("got consumer tag: " . $self->rabbit_consumer_tag)
-        if $self->debug;
+    $self->_setup_rabbit_connection;
 
     return;
 };
@@ -269,7 +228,13 @@ sub queue {
     my $tag;
     my $reply_channel = $self->rabbit_channel + 1;
     if ($rpc) {
-        $self->mq->channel_open($reply_channel);
+        try {
+            $self->mq->channel_open($reply_channel);
+        } catch {
+            warn "Could not open channel 1st time! >>" . $@ ."<<";
+            $self->_setup_rabbit_connection;
+            $self->mq->channel_open($reply_channel);
+        };
         $self->log("opened channel $reply_channel for reply") if $self->debug;
 
         $reply_queue =
@@ -347,6 +312,56 @@ sub ack {
     my ($self) = @_;
 
     $self->mq->ack($self->rabbit_channel, $self->last_delivery_tag);
+
+    return;
+}
+
+sub _setup_rabbit_connection {
+    my $self = shift;
+
+    if (ref($self->config->{rabbitmq}) eq 'HASH') {
+        foreach
+            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange')
+        {
+            my $attr = "rabbit_" . $conf_key;
+            $self->$attr($self->config->{rabbitmq}->{$conf_key})
+                if defined $self->config->{rabbitmq}->{$conf_key};
+        }
+    }
+
+    eval {
+        $self->mq->connect(
+            $self->rabbit_host, {
+                user     => $self->rabbit_user,
+                password => $self->rabbit_pass,
+                port     => $self->rabbit_port,
+                vhost    => $self->rabbit_vhost,
+            });
+    };
+    my $err = $@;
+
+    if ($err) {
+        confess "Could not connect to the RabbitMQ server '"
+            . $self->rabbit_host
+            . "': $err\n";
+    }
+
+    $self->mq->channel_open($self->rabbit_channel);
+    $self->log("opened channel " . $self->rabbit_channel) if $self->debug;
+
+    return unless $self->is_worker;
+
+    $self->log("preparing worker queue") if $self->debug;
+
+    $self->mq->basic_qos($self->rabbit_channel, { prefetch_count => 1 });
+    $self->mq->queue_declare($self->rabbit_channel, $self->name,
+        { durable => 1, auto_delete => 0 });
+    $self->rabbit_consumer_tag(
+        $self->mq->consume($self->rabbit_channel, $self->name, { no_ack => 0 })
+    );
+
+    $self->log("got consumer tag: " . $self->rabbit_consumer_tag)
+        if $self->debug;
 
     return;
 }
