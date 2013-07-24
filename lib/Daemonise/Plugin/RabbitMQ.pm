@@ -249,8 +249,15 @@ sub queue {
     my $props = { content_type => 'application/json' };
     $props->{reply_to} = $reply_queue if defined $reply_queue;
 
-    $self->mq->publish($self->rabbit_channel, $queue, $js->encode($hash), undef,
-        $props);
+    my $err =
+        $self->mq->publish($self->rabbit_channel, $queue, $js->encode($hash),
+        undef, $props);
+
+    if ($err) {
+        $self->log("sending message failed: $err");
+        return;
+    }
+
     $self->log(
         "sent message to '$queue' using channel " . $self->rabbit_channel)
         if $self->debug;
@@ -292,7 +299,10 @@ sub dequeue {
         else {
             last if ($frame->{consumer_tag} eq $self->rabbit_consumer_tag);
         }
-        $self->log("LOSING MESSAGE:\n" . Dumper($frame));
+
+        require Data::Dump;
+        $self->log("LOSING MESSAGE: " . Data::Dump::dump($frame));
+
     }
 
     # store delivery tag to ack later
