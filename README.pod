@@ -24,7 +24,7 @@ Example:
     # stay in foreground, don't actually fork when calling $d->start
     $d->foreground(1) if $d->debug;
     
-    # set file can be Config::Any style
+    # config file style can be whatever Config::Any supports
     $d->config_file('/path/to/some.conf');
     
     # where to store/look for PID file
@@ -43,6 +43,10 @@ Example:
     $d->load_plugin('Event');
     $d->load_plugin('Redis');
     $d->load_plugin('HipChat');
+    $d->load_plugin('Riemann');
+    $d->load_plugin('PagerDuty');
+    $d->load_plugin('KyotoTycoon');
+    $d->load_plugin('Graphite');
     
     # reconfigure after loading plugins if necessary
     $d->configure;
@@ -51,33 +55,15 @@ Example:
 
 =head1 ATTRIBUTES
 
-=head2 user
-
-=head2 uid
-
-=head2 group
-
-=head2 gid
-
 =head2 name
 
 =head2 hostname
-
-=head2 pid_file
-
-=head2 running
 
 =head2 config_file
 
 =head2 config
 
-=head2 phase
-
-=head2 logfile
-
 =head2 debug
-
-=head2 foreground
 
 =head1 SUBROUTINES/METHODS
 
@@ -86,18 +72,6 @@ Example:
 =head2 configure
 
 =head2 log
-
-=head2 check_pid_file
-
-=head2 daemonise
-
-=head2 status
-
-=head2 restart
-
-=head2 stop
-
-=head2 start
 
 =head1 BUGS
 
