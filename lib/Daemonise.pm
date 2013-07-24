@@ -7,6 +7,7 @@ use Mouse;
 # VERSION
 
 use Unix::Syslog;
+use Config::Any;
 
 =head1 SYNOPSIS
 
@@ -77,12 +78,23 @@ has 'hostname' => (
     default => sub { my $h = `hostname`; chomp $h; $h },
 );
 
+=head2 config_file
+
+=cut
+
+has 'config_file' => (
+    is        => 'rw',
+    isa       => "Str",
+    predicate => 'has_config_file',
+);
+
 =head2 config
 
 =cut
 
 has 'config' => (
     is      => 'rw',
+    isa     => 'HashRef',
     default => sub { {} },
 );
 
@@ -128,6 +140,17 @@ sub load_plugin {
 
 sub configure {
     my ($self) = @_;
+
+    return unless $self->has_config_file;
+
+    my $conf = Config::Any->load_files({
+            files   => [ $self->config_file ],
+            use_ext => 1,
+    });
+    $conf = $conf->[0]->{ $self->config_file } if $conf;
+
+    $self->config($conf);
+
     return;
 }
 

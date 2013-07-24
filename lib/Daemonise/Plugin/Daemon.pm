@@ -5,7 +5,6 @@ use Mouse::Role;
 # ABSTRACT: Daemonise Daemon plugin handlind PID file, config file, start, stop, restart, syslog
 
 use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
-use Config::Any;
 use Unix::Syslog;
 
 =head1 SYNOPSIS
@@ -93,15 +92,6 @@ has 'phase' => (
     default => sub { 'starting' },
 );
 
-=head2 config_file
-
-=cut
-
-has 'config_file' => (
-    is        => 'rw',
-    predicate => 'has_config_file',
-);
-
 =head2 logfile
 
 =cut
@@ -132,27 +122,15 @@ after 'configure' => sub {
 
     $self->log("configuring Daemon plugin") if $self->debug;
 
-    unless ($self->has_config_file) {
-        warn "No config file defined!";
-        return;
-    }
-
-    my $conf = Config::Any->load_files({
-            files   => [ $self->config_file ],
-            use_ext => 1,
-    });
-    $conf = $conf->[0]->{ $self->config_file } if $conf;
-
-    unless ((ref $conf eq 'HASH')
-        and (exists $conf->{main})
-        and ref $conf->{main} eq 'HASH')
+    unless (exists $self->config->{main}
+        and ref $self->config->{main} eq 'HASH')
     {
         warn "'main' config section missing!";
         return;
     }
 
-    foreach my $key (keys %{ $conf->{main} }) {
-        my $val = $conf->{main}->{$key};
+    foreach my $key (keys %{ $self->config->{main} }) {
+        my $val = $self->config->{main}->{$key};
 
         # set properties if they exist but don't die if they don't
         eval { $self->$key($val) };
@@ -160,9 +138,7 @@ after 'configure' => sub {
             if ($@ && $self->debug);
     }
 
-    $self->config($conf);
-
-    return $conf;
+    return;
 };
 
 =head2 log
