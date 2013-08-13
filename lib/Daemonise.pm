@@ -95,6 +95,7 @@ has 'config_file' => (
 has 'config' => (
     is      => 'rw',
     isa     => 'HashRef',
+    lazy    => 1,
     default => sub { {} },
 );
 
@@ -142,6 +143,12 @@ sub configure {
     my ($self) = @_;
 
     return unless $self->has_config_file;
+
+    unless (-e $self->config_file) {
+        $self->log(
+            "ERROR: config file '" . $self->config_file . "' does not exist!");
+        return;
+    }
 
     my $conf = Config::Any->load_files({
             files   => [ $self->config_file ],
