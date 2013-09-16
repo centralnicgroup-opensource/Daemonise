@@ -1,6 +1,7 @@
 package Daemonise;
 
 use Mouse;
+use lib 'lib';
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
