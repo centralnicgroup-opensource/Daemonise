@@ -1,7 +1,8 @@
 package Daemonise;
 
 use Mouse;
-use lib 'lib';
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
