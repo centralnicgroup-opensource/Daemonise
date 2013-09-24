@@ -155,6 +155,7 @@ sub configure {
     my $conf = Config::Any->load_files({
             files   => [ $self->config_file ],
             use_ext => 1,
+            driver_args => { General => { -InterPolateEnv => 1 } }
     });
     $conf = $conf->[0]->{ $self->config_file } if $conf;
 
