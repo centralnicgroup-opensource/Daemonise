@@ -14,3 +14,4 @@ cover_db
 pm_to_blib*
 META.yml
 MANIFEST.bak
+local/
