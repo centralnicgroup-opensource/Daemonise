@@ -111,7 +111,7 @@ sub notify {
     $msg = '[debug] ' . $msg if $self->debug;
 
     my $ua = LWP::UserAgent->new(agent => $self->name);
-    $ua->post(
+    my $res = $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
             room_id => $room || $self->hipchat_room,
             from    => $self->hipchat_from,
@@ -120,6 +120,10 @@ sub notify {
             notify         => 0,
             color          => 'green',
         });
+
+    unless ($res->is_success) {
+        $self->log($res->status_line . ': ' . $res->decoded_content);
+    }
 
     return;
 }
