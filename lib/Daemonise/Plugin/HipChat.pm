@@ -6,6 +6,15 @@ use Mouse::Role;
 
 use LWP::UserAgent;
 
+# severity to message colour mapping
+my %colour = (
+    debug    => 'gray',
+    info     => 'green',
+    warning  => 'yellow',
+    critical => 'purple',
+    error    => 'red',
+);
+
 =head1 SYNOPSIS
 
 Example:
@@ -87,13 +96,14 @@ after 'configure' => sub {
     $self->log("configuring HipChat plugin") if $self->debug;
 
     if (    ref($self->config->{api}) eq 'HASH'
-        and ref($self->config->{api}->{hipchat}) eq 'HASH')
+        and ref($self->config->{api}->{hipchat}) eq 'HASH'
+        and ref($self->config->{api}->{hipchat}->{token}) eq 'HASH')
     {
-        foreach my $conf_key ('token', 'room') {
-            my $attr = "hipchat_" . $conf_key;
-            $self->$attr($self->config->{api}->{hipchat}->{$conf_key})
-                if defined $self->config->{api}->{hipchat}->{$conf_key};
-        }
+        $self->hipchat_token(
+            $self->config->{api}->{hipchat}->{token}->{default})
+            if defined $self->config->{api}->{hipchat}->{token}->{default};
+        $self->hipchat_room($self->config->{api}->{hipchat}->{room})
+            if defined $self->config->{api}->{hipchat}->{room};
     }
 
     $self->hipchat_from($self->name);
@@ -104,12 +114,13 @@ after 'configure' => sub {
 =cut
 
 sub notify {
-    my ($self, $msg, $room) = @_;
+    my ($self, $msg, $room, $severity) = @_;
 
     $self->log($msg);
 
     $msg = '[debug] ' . $msg if $self->debug;
 
+    my $colour = ($colour{ $severity || 'info' }) || 'info';
     my $ua = LWP::UserAgent->new(agent => $self->name);
     my $res = $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
@@ -118,7 +129,7 @@ sub notify {
             message => $msg,
             message_format => 'text',
             notify         => 0,
-            color          => 'green',
+            color          => $colour,
         });
 
     unless ($res->is_success) {
