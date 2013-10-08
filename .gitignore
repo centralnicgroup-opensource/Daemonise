@@ -4,6 +4,8 @@
 .lwpcookies
 .shipit
 .vimbk
+cpanfile
+cpanfile.snapshot
 Build
 Daemonise-*
 Makefile
