@@ -155,6 +155,9 @@ sub create_job {
         return;
     }
 
+    # set testmode when running in debug mode
+    $msg->{data}->{options}->{testmode} = 1 if $self->debug;
+
     # kill duplicate identical jobs with a hashsum over the input data
     # and a 2 min caching time
     my $created = time;
