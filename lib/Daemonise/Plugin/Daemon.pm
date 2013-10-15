@@ -4,12 +4,15 @@ use Mouse::Role;
 
 # ABSTRACT: Daemonise Daemon plugin handlind PID file, config file, start, stop, restart, syslog
 
-use POSIX qw(strftime SIGINT SIG_BLOCK SIG_UNBLOCK);
+use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 use Unix::Syslog;
+use Scalar::Util qw(looks_like_number);
+
+BEGIN {
+    with("Daemonise::Plugin::KyotoTycoon");
+}
 
 =head1 SYNOPSIS
-
-This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
 
     use Daemonise;
     
@@ -108,6 +111,37 @@ has 'logfile' => (
 has 'foreground' => (
     is      => 'rw',
     isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+=head2 restart_key
+
+=cut
+
+has 'restart_key' => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
+=head2 restart_time
+
+=cut
+
+has 'restart_time' => (
+    is      => 'rw',
+    isa     => 'Int',
+    clearer => 'clear_restart_time',
+);
+
+=head2 dont_loop
+
+=cut
+
+has 'dont_loop' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
     default => sub { 0 },
 );
 
@@ -172,7 +206,7 @@ around 'log' => sub {
 =cut
 
 sub check_pid_file {
-    my $self = shift;
+    my ($self) = @_;
 
     ### no pid_file = return success
     return 1 unless -e $self->pid_file;
@@ -247,7 +281,7 @@ sub check_pid_file {
 =cut
 
 sub daemonise {
-    my $self = shift;
+    my ($self) = @_;
 
     if ($self->foreground) {
         $self->running($$);
@@ -266,7 +300,7 @@ sub daemonise {
 
     ### parent process should do the pid file and exit
     if ($pid) {
-        $pid && exit(0);
+        $pid && exit;
         ### child process will continue on
     }
     else {
@@ -329,8 +363,8 @@ sub daemonise {
         }
 
         ### install a signal handler to make sure
-        ### SIGINT's remove our pid_file
-        local $SIG{INT} = sub { $self->_huntsman }
+        ### SIGTERM's remove our pid_file
+        $SIG{TERM} = sub { $self->stop }
             if $self->has_pid_file;
 
         return 1;
@@ -344,24 +378,17 @@ sub daemonise {
 =cut
 
 sub status {
-    my $self = shift;
+    my ($self) = @_;
+
     $self->phase('status');
     $self->check_pid_file();
+
     if ($self->is_running) {
-        return $self->running . ' with PID file ' . $self->pid_file . "\n";
+        print $self->running . ' with PID file ' . $self->pid_file . "\n";
+        return 1;
     }
+
     return;
-}
-
-=head2 restart
-
-=cut
-
-sub restart {
-    my $self = shift;
-    $self->stop;
-    $self->start;
-    return "Restarted Daemon\n";
 }
 
 =head2 stop
@@ -369,27 +396,12 @@ sub restart {
 =cut
 
 sub stop {
-    my $self = shift;
-    my $msg;
-    $self->phase('status');
-    $self->check_pid_file();
-    if ($self->is_running) {
-        my $pid = $self->running;
-        system("kill $pid");
-        unlink $self->pid_file;
-        if ($self->has_name) {
-            $msg = "Daemon stopped (" . $self->name . ") with $$";
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
-        }
-        else {
-            $msg = "Daemon stopped with $$";
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(), $msg);
-        }
-        return $msg;
-    }
-    else {
-        die "Could not PID!\n";
-    }
+    my ($self) = @_;
+
+    unlink $self->pid_file if $self->has_pid_file;
+    $self->log("pid=$$ good bye cruel world!");
+
+    exit;
 }
 
 =head2 start
@@ -397,27 +409,61 @@ sub stop {
 =cut
 
 sub start {
-    my $self = shift;
+    my ($self, $code) = @_;
+
     $self->daemonise;
+
+    if (ref $code eq 'CODE') {
+        if ($self->dont_loop) {
+            $code->();
+            $self->stop;
+        }
+        else {
+            while (1) {
+                $self->stop if $self->restarting;
+                $code->();
+            }
+        }
+    }
+    else {
+        $self->log("first argument of start() is not a CODEREF! existing...");
+        $self->stop;
+    }
+
     return;
 }
 
-sub _huntsman {
-    my $self = shift;
+=head2 restarting
 
-    unlink $self->pid_file;
+=cut
 
-    eval {
-        Unix::Syslog::syslog(Unix::Syslog::LOG_ERR(), "Exiting on INT signal.");
-    };
+sub restarting {
+    my ($self) = @_;
 
-    exit;
+    return unless $self->restart_key;
+
+    $self->log("looking up restart_key: " . $self->restart_key) if $self->debug;
+
+    my $restart_time = $self->tycoon->get($self->restart_key);
+    if (looks_like_number($restart_time)) {
+        return
+            if ($self->restart_time and $restart_time == $self->restart_time);
+
+        $self->restart_time($restart_time);
+        $self->log("OH NO! i have to die() at " . $self->restart_time)
+            if $self->debug;
+    }
+
+    return unless $self->restart_time;
+    return 1 if ($self->restart_time <= time);
+
+    return;
 }
 
 sub _get_uid {
-    my $self = shift;
-    my $uid  = undef;
+    my ($self) = @_;
 
+    my $uid = undef;
     if ($self->user =~ /^\d+$/) {
         $uid = $self->user;
     }
@@ -431,9 +477,9 @@ sub _get_uid {
 }
 
 sub _get_gid {
-    my $self = shift;
-    my @gid  = ();
+    my ($self) = @_;
 
+    my @gid = ();
     foreach my $group (split(/[, ]+/, join(" ", $self->group))) {
         if ($group =~ /^\d+$/) {
             push @gid, $group;
@@ -451,12 +497,12 @@ sub _get_gid {
 }
 
 sub _safe_fork {
-    my $self = shift;
+    my ($self) = @_;
 
     ### block signal for fork
-    my $sigset = POSIX::SigSet->new(SIGINT);
+    my $sigset = POSIX::SigSet->new(SIGTERM);
     POSIX::sigprocmask(SIG_BLOCK, $sigset)
-        or die "Can't block SIGINT for fork: [$!]\n";
+        or die "Can't block SIGTERM for fork: [$!]\n";
 
     ### fork off a child
     my $pid = fork;
@@ -464,18 +510,18 @@ sub _safe_fork {
         die "Couldn't fork: [$!]\n";
     }
 
-    ### make SIGINT kill us as it did before
-    local $SIG{INT} = 'DEFAULT';
+    ### make SIGTERM kill us as it did before
+    local $SIG{TERM} = 'DEFAULT';
 
     ### put back to normal
     POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
-        or die "Can't unblock SIGINT for fork: [$!]\n";
+        or die "Can't unblock SIGTERM for fork: [$!]\n";
 
     return $pid;
 }
 
 sub _create_pid_file {
-    my $self = shift;
+    my ($self) = @_;
 
     ### see if the pid_file is already there
     $self->check_pid_file;
@@ -492,7 +538,7 @@ sub _create_pid_file {
 }
 
 sub _set_user {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->_set_gid || return;
     $self->_set_uid || return;
@@ -501,8 +547,9 @@ sub _set_user {
 }
 
 sub _set_uid {
-    my $self = shift;
-    my $uid  = $self->_get_uid;
+    my ($self) = @_;
+
+    my $uid = $self->_get_uid;
 
     POSIX::setuid($uid);
 
@@ -520,9 +567,10 @@ sub _set_uid {
 }
 
 sub _set_gid {
-    my $self = shift;
+    my ($self) = @_;
+
     my $gids = $self->_get_gid;
-    my $gid  = (split /\s+/, $gids)[0];
+    my $gid = (split /\s+/, $gids)[0];
 
     # store all the gids - this is really sort of optional
     eval { local $) = $gids };
