@@ -384,8 +384,7 @@ sub status {
     $self->check_pid_file();
 
     if ($self->is_running) {
-        print $self->running . ' with PID file ' . $self->pid_file . "\n";
-        return 1;
+        return $self->running . ' with PID file ' . $self->pid_file;
     }
 
     return;
