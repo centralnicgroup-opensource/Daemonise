@@ -413,6 +413,10 @@ sub start {
 
     $self->daemonise;
 
+    # we need to reconfigure, because we are in the child and some plugins
+    # start connections in the configure stage
+    $self->configure;
+
     if (ref $code eq 'CODE') {
         if ($self->dont_loop) {
             $code->();
