@@ -230,8 +230,9 @@ sub queue {
     if ($rpc) {
         try {
             $self->mq->channel_open($reply_channel);
-        } catch {
-            warn "Could not open channel 1st time! >>" . $@ ."<<";
+        }
+        catch {
+            warn "Could not open channel 1st time! >>" . $@ . "<<";
             $self->_setup_rabbit_connection;
             $self->mq->channel_open($reply_channel);
         };
@@ -287,22 +288,14 @@ sub dequeue {
     my $now;
     $now = time if defined $tag;
 
-    my $frame;
-    while (1) {
-        $frame = $self->mq->recv();
-        if (defined $tag) {
-            last if ($frame->{consumer_tag} eq $tag);
-            return
-                if (time - $now) >
-                ($self->config->{rabbitmq}->{timeout} || 180);
+    my $frame = $self->mq->recv();
+    if (defined $tag) {
+        unless (($frame->{consumer_tag} eq $tag)
+            or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
+        {
+            require Data::Dump;
+            $self->log("LOSING MESSAGE: " . Data::Dump::dump($frame));
         }
-        else {
-            last if ($frame->{consumer_tag} eq $self->rabbit_consumer_tag);
-        }
-
-        require Data::Dump;
-        $self->log("LOSING MESSAGE: " . Data::Dump::dump($frame));
-
     }
 
     # store delivery tag to ack later
@@ -311,7 +304,16 @@ sub dequeue {
         if exists $frame->{props}->{reply_to};
 
     # decode
-    return $js->decode($frame->{body});
+    my $msg = $js->decode($frame->{body});
+
+    # check if this is just an empty message, ack() it and return
+    unless (ref $msg eq 'HASH') {
+        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
+            unless $tag;
+        return;
+    }
+
+    return $msg;
 }
 
 =head2 ack
