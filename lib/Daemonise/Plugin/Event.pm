@@ -7,9 +7,12 @@ use Mouse::Role;
 use feature 'switch';
 use Carp;
 
-=head1 SYNOPSIS
+BEGIN {
+    with("Daemonise::Plugin::CouchDB");
+    with("Daemonise::Plugin::RabbitMQ");
+}
 
-This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
+=head1 SYNOPSIS
 
     use Daemonise;
     
@@ -18,8 +21,6 @@ This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
     
-    $d->load_plugin('CouchDB');
-    $d->load_plugin('RabbitMQ');
     $d->load_plugin('Event');
     
     $d->configure;
@@ -72,12 +73,6 @@ after 'configure' => sub {
 
     $self->log("configuring Events plugin") if $self->debug;
 
-    confess "this plugin requires the CouchDB plugin to be loaded as well"
-        unless (%Daemonise::Plugin::CouchDB::);
-
-    confess "this plugin requires the RabbitMQ plugin to be loaded as well"
-        unless (%Daemonise::Plugin::RabbitMQ::);
-
     if (ref($self->config->{events}) eq 'HASH') {
         foreach my $conf_key ('db', 'queue') {
             my $attr = "event_" . $conf_key;
@@ -87,6 +82,8 @@ after 'configure' => sub {
     }
 
     $self->couchdb->db($self->event_db);
+
+    return;
 };
 
 =head2 create_event

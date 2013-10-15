@@ -98,6 +98,8 @@ after 'configure' => sub {
             api_key   => $self->pagerduty_api_key,
             subdomain => $self->pagerduty_subdomain,
         ));
+
+    return;
 };
 
 =head2 alert

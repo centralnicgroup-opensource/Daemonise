@@ -10,9 +10,12 @@ use Digest::MD5 'md5_hex';
 use DateTime;
 use Carp;
 
-=head1 SYNOPSIS
+BEGIN {
+    with("Daemonise::Plugin::CouchDB");
+    with("Daemonise::Plugin::RabbitMQ");
+}
 
-This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
+=head1 SYNOPSIS
 
     use Daemonise;
     
@@ -21,8 +24,6 @@ This plugin requires the CouchDB and the RabbitMQ plugin to be loaded first.
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
     
-    $d->load_plugin('CouchDB');
-    $d->load_plugin('RabbitMQ');
     $d->load_plugin('JobQueue');
     
     $d->configure;
@@ -82,10 +83,7 @@ after 'configure' => sub {
 
     $self->log("configuring JobQueue plugin") if $self->debug;
 
-    confess "this plugin requires the CouchDB plugin to be loaded as well"
-        unless (%Daemonise::Plugin::CouchDB::);
-    confess "this plugin requires the RabbitMQ plugin to be loaded as well"
-        unless (%Daemonise::Plugin::RabbitMQ::);
+    return;
 };
 
 =head2 log

@@ -130,6 +130,8 @@ after 'configure' => sub {
             timeout => $self->tycoon_timeout,
             db      => $self->tycoon_db,
         ));
+
+    return;
 };
 
 =head2 cache_get

@@ -107,6 +107,8 @@ after 'configure' => sub {
     }
 
     $self->hipchat_from($self->name);
+
+    return;
 };
 
 =head2 notify

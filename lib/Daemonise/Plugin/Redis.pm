@@ -133,6 +133,8 @@ after 'configure' => sub {
             every     => $self->redis_connect_rate,
             debug     => $self->debug,
         ));
+
+    return;
 };
 
 =head2 cache_get
