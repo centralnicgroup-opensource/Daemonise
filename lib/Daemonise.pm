@@ -112,6 +112,16 @@ has 'debug' => (
     default => sub { 0 },
 );
 
+=head2 start_time
+
+=cut
+
+has 'start_time' => (
+    is      => 'rw',
+    isa     => 'Int',
+    default => sub { time },
+);
+
 # backwards compatibility
 after 'new' => sub {
     my ($class, %args) = @_;
