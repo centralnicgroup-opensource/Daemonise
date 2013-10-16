@@ -133,6 +133,16 @@ sub create_event {
                 job_id  => $key,
             };
         }
+        when ('restart') {
+            $event = {
+                %$event,
+                backend => 'internal',
+                object  => 'none',
+                action  => 'restart',
+                status  => 'none',
+                job_id  => $key,
+            };
+        }
         default {
             $self->log("unsupported event type: $type");
             return;
