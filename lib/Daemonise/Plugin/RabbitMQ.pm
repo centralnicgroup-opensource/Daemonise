@@ -1,5 +1,6 @@
 package Daemonise::Plugin::RabbitMQ;
 
+use 5.14.2;
 use Mouse::Role;
 
 # ABSTRACT: Daemonise RabbitMQ plugin
@@ -166,6 +167,17 @@ has 'last_delivery_tag' => (
     default => sub { '' },
 );
 
+=head2 admin_queue
+
+=cut
+
+has 'admin_queue' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 1 },
+);
+
 =head2 reply_queue
 
 =cut
@@ -196,7 +208,12 @@ has 'mq' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
+
+    if ($reconfig) {
+        $self->log("closing channel " . $self->rabbit_channel) if $self->debug;
+        $self->mq->channel_close($self->rabbit_channel);
+    }
 
     $self->log("configuring RabbitMQ plugin") if $self->debug;
 
@@ -210,7 +227,7 @@ after 'configure' => sub {
 =cut
 
 sub queue {
-    my ($self, $queue, $hash, $reply_queue) = @_;
+    my ($self, $queue, $hash, $reply_queue, $exchange) = @_;
 
     my $rpc;
     $rpc = 1 if defined wantarray;
@@ -250,17 +267,22 @@ sub queue {
     my $props = { content_type => 'application/json' };
     $props->{reply_to} = $reply_queue if defined $reply_queue;
 
+    my $options;
+    $options->{exchange} = $exchange if $exchange;
+
     my $err =
         $self->mq->publish($self->rabbit_channel, $queue, $js->encode($hash),
-        undef, $props);
+        $options, $props);
 
     if ($err) {
         $self->log("sending message failed: $err");
         return;
     }
 
-    $self->log(
-        "sent message to '$queue' using channel " . $self->rabbit_channel)
+    $self->log("sent message to '$queue' via channel "
+            . $self->rabbit_channel
+            . " using "
+            . ($exchange ? $exchange : 'amq.direct'))
         if $self->debug;
 
     if ($rpc) {
@@ -285,16 +307,41 @@ sub dequeue {
     # clear reply_queue if this not an RPC response
     $self->dont_reply unless defined $tag;
 
-    my $now;
-    $now = time if defined $tag;
+    my $frame;
+    my $msg;
+    while (1) {
+        $frame = $self->mq->recv();
+        if (defined $tag) {
+            unless (($frame->{consumer_tag} eq $tag)
+                or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
+            {
+                require Data::Dump;
+                $self->log("LOSING MESSAGE: " . Data::Dump::dump($frame));
+            }
+        }
 
-    my $frame = $self->mq->recv();
-    if (defined $tag) {
-        unless (($frame->{consumer_tag} eq $tag)
-            or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
-        {
-            require Data::Dump;
-            $self->log("LOSING MESSAGE: " . Data::Dump::dump($frame));
+        # decode
+        eval { $msg = $js->decode($frame->{body} || '{}'); };
+        if ($@) {
+            $self->log("JSON parsing error: $@");
+            $msg = {};
+        }
+
+        last unless ($frame->{routing_key} =~ /^admin/);
+
+        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag});
+
+        given ($msg->{command} || 'restart') {
+            when ('configure') {
+                $self->log("reconfiguring");
+                $self->configure('reconfig');
+            }
+            when ('restart') {
+                my $name = $self->name;
+                if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
+                    $self->stop;
+                }
+            }
         }
     }
 
@@ -302,16 +349,6 @@ sub dequeue {
     $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
     $self->reply_queue($frame->{props}->{reply_to})
         if exists $frame->{props}->{reply_to};
-
-    # decode
-    my $msg = $js->decode($frame->{body});
-
-    # check if this is just an empty message, ack() it and return
-    unless (ref $msg eq 'HASH') {
-        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
-            unless $tag;
-        return;
-    }
 
     return $msg;
 }
@@ -368,12 +405,33 @@ sub _setup_rabbit_connection {
     $self->mq->basic_qos($self->rabbit_channel, { prefetch_count => 1 });
     $self->mq->queue_declare($self->rabbit_channel, $self->name,
         { durable => 1, auto_delete => 0 });
+    $self->mq->queue_bind(
+        $self->rabbit_channel,  $self->name,
+        $self->rabbit_exchange, $self->name,
+    );
     $self->rabbit_consumer_tag(
         $self->mq->consume($self->rabbit_channel, $self->name, { no_ack => 0 })
     );
-
     $self->log("got consumer tag: " . $self->rabbit_consumer_tag)
         if $self->debug;
+
+    # setup admin queue per worker using z.queue.host.pid
+    # and bind to fanout exchange
+    if ($self->admin_queue) {
+        my $admin_queue = join('.', 'z', $self->name, $self->hostname, $$);
+
+        $self->log("declaring and binding admin queue " . $admin_queue)
+            if $self->debug;
+
+        $self->mq->queue_declare($self->rabbit_channel, $admin_queue,
+            { durable => 0, auto_delete => 1 });
+        $self->mq->queue_bind($self->rabbit_channel, $admin_queue, 'amq.fanout',
+            'admin');
+        $self->mq->queue_bind($self->rabbit_channel, $admin_queue, 'amq.fanout',
+            'admin.' . $self->hostname);
+        $self->mq->consume($self->rabbit_channel, $admin_queue,
+            { no_ack => 0 });
+    }
 
     return;
 }

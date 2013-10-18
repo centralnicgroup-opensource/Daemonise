@@ -103,7 +103,7 @@ has 'couchdb' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring CouchDB plugin") if $self->debug;
 

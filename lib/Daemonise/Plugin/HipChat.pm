@@ -91,7 +91,7 @@ has 'hipchat_room' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring HipChat plugin") if $self->debug;
 

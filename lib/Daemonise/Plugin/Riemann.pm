@@ -81,7 +81,7 @@ has 'riemann' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring Riemann plugin") if $self->debug;
 

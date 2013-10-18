@@ -79,9 +79,14 @@ has 'job' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring JobQueue plugin") if $self->debug;
+
+    $self->jobqueue_db($self->config->{jobqueue}->{db})
+        if (exists $self->config->{jobqueue}
+        and exists $self->config->{jobqueue}->{db}
+        and $self->config->{jobqueue}->{db});
 
     return;
 };

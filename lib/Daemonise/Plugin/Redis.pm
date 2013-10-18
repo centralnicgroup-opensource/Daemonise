@@ -109,7 +109,12 @@ has 'redis' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
+
+    if ($reconfig) {
+        $self->log("closing redis connection") if $self->debug;
+        $self->redis->quit;
+    }
 
     $self->log("configuring Redis plugin") if $self->debug;
 

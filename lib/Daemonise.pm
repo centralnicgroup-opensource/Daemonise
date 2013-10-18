@@ -152,7 +152,7 @@ sub load_plugin {
 =cut
 
 sub configure {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     return unless $self->has_config_file;
 

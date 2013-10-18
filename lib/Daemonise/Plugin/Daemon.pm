@@ -2,15 +2,11 @@ package Daemonise::Plugin::Daemon;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Daemon plugin handlind PID file, config file, start, stop, restart, syslog
+# ABSTRACT: Daemonise Daemon plugin handlind PID file, config file, start, stop, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 use Unix::Syslog;
 use Scalar::Util qw(looks_like_number);
-
-BEGIN {
-    with("Daemonise::Plugin::KyotoTycoon");
-}
 
 =head1 SYNOPSIS
 
@@ -115,25 +111,6 @@ has 'foreground' => (
     default => sub { 0 },
 );
 
-=head2 restart_key
-
-=cut
-
-has 'restart_key' => (
-    is  => 'rw',
-    isa => 'Str',
-);
-
-=head2 restart_time
-
-=cut
-
-has 'restart_time' => (
-    is      => 'rw',
-    isa     => 'Int',
-    clearer => 'clear_restart_time',
-);
-
 =head2 dont_loop
 
 =cut
@@ -152,7 +129,7 @@ has 'dont_loop' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring Daemon plugin") if $self->debug;
 
@@ -423,7 +400,6 @@ sub start {
         }
         else {
             while (1) {
-                $self->stop if $self->restarting;
                 $code->();
             }
         }
@@ -432,33 +408,6 @@ sub start {
         $self->log("first argument of start() is not a CODEREF! existing...");
         $self->stop;
     }
-
-    return;
-}
-
-=head2 restarting
-
-=cut
-
-sub restarting {
-    my ($self) = @_;
-
-    return unless $self->restart_key;
-
-    $self->log("looking up restart_key: " . $self->restart_key) if $self->debug;
-
-    my $restart_time = $self->tycoon->get($self->restart_key);
-    if (looks_like_number($restart_time)) {
-        return
-            if ($self->restart_time and $restart_time == $self->restart_time);
-
-        $self->restart_time($restart_time);
-        $self->log("OH NO! i have to die() at " . $self->restart_time)
-            if $self->debug;
-    }
-
-    return unless $self->restart_time;
-    return 1 if ($self->restart_time <= time);
 
     return;
 }
@@ -525,6 +474,9 @@ sub _safe_fork {
 
 sub _create_pid_file {
     my ($self) = @_;
+
+    # child should also know its PID
+    $self->running($$);
 
     ### see if the pid_file is already there
     $self->check_pid_file;

@@ -111,7 +111,7 @@ has 'tycoon' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring KyotoTycoon plugin") if $self->debug;
 

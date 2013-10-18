@@ -81,9 +81,22 @@ has 'graphite' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
+
+    if ($reconfig and exists $self->graphite->{_socket}) {
+        $self->log("closing graphite socket") if $self->debug;
+        $self->graphite->close;
+    }
 
     $self->log("configuring Graphite plugin") if $self->debug;
+
+    if (ref($self->config->{graphite}) eq 'HASH') {
+        foreach my $conf_key ('host', 'port', 'proto') {
+            my $attr = "graphite_" . $conf_key;
+            $self->$attr($self->config->{graphite}->{$conf_key})
+                if defined $self->config->{graphite}->{$conf_key};
+        }
+    }
 
     $self->graphite(
         Net::Graphite->new(

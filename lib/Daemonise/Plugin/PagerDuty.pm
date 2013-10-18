@@ -79,7 +79,7 @@ has 'pagerduty' => (
 =cut
 
 after 'configure' => sub {
-    my ($self) = @_;
+    my ($self, $reconfig) = @_;
 
     $self->log("configuring PagerDuty plugin") if $self->debug;
 
