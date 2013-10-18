@@ -341,7 +341,7 @@ sub daemonise {
 
         ### install a signal handler to make sure
         ### SIGTERM's remove our pid_file
-        local $SIG{TERM} = sub { $self->stop }
+        $SIG{TERM} = sub { $self->stop }    ## no critic
             if $self->has_pid_file;
 
         return 1;
