@@ -327,9 +327,13 @@ sub dequeue {
             $msg = {};
         }
 
-        last unless ($frame->{routing_key} =~ /^admin/);
+        # ACK all admin messages no matter what
+        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
+            if ($frame->{routing_key} =~ m/^admin/);
 
-        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag});
+        last
+            unless (($frame->{routing_key} eq 'admin')
+            or ($frame->{routing_key} eq 'admin.' . $self->hostname));
 
         given ($msg->{command} || 'restart') {
             when ('configure') {
