@@ -320,6 +320,10 @@ sub dequeue {
             }
         }
 
+        # ACK all admin messages no matter what
+        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
+            if ($frame->{routing_key} =~ m/^admin/);
+
         # decode
         eval { $msg = $js->decode($frame->{body} || '{}'); };
         if ($@) {
@@ -327,23 +331,21 @@ sub dequeue {
             $msg = {};
         }
 
-        # ACK all admin messages no matter what
-        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
-            if ($frame->{routing_key} =~ m/^admin/);
+        last unless ($frame->{routing_key} =~ m/^admin/);
 
-        last
-            unless (($frame->{routing_key} eq 'admin')
-            or ($frame->{routing_key} eq 'admin.' . $self->hostname));
-
-        given ($msg->{command} || 'restart') {
-            when ('configure') {
-                $self->log("reconfiguring");
-                $self->configure('reconfig');
-            }
-            when ('restart') {
-                my $name = $self->name;
-                if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
-                    $self->stop;
+        if (   ($frame->{routing_key} eq 'admin')
+            or ($frame->{routing_key} eq 'admin.' . $self->hostname))
+        {
+            given ($msg->{command} || 'restart') {
+                when ('configure') {
+                    $self->log("reconfiguring");
+                    $self->configure('reconfig');
+                }
+                when ('restart') {
+                    my $name = $self->name;
+                    if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
+                        $self->stop;
+                    }
                 }
             }
         }
