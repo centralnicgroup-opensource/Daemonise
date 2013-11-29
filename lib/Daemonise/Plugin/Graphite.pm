@@ -142,8 +142,6 @@ sub graph {
         return;
     }
 
-    $self->async and return;
-
     eval { $self->graphite->send(path => $service, value => $metric); };
     carp "sending metric failed: $@" if $@;
 
