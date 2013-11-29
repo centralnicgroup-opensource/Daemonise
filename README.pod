@@ -6,7 +6,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.45
+version 1.46
 
 =head1 SYNOPSIS
 
@@ -67,11 +67,17 @@ Example:
 
 =head2 start_time
 
+=head2 is_cron
+
+=head2 cache_plugin
+
 =head1 SUBROUTINES/METHODS
 
 =head2 load_plugin
 
 =head2 configure
+
+=head2 async
 
 =head2 log
 
