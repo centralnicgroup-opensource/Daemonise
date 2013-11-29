@@ -121,6 +121,8 @@ sub alert {
         return;
     }
 
+    $self->async and return;
+
     # force $details to be a hash
     unless (ref $details eq 'HASH') {
         $details = {};
@@ -155,7 +157,7 @@ sub alert {
         )->trigger
         unless $self->debug;
 
-    return;
+    exit;
 }
 
 1;

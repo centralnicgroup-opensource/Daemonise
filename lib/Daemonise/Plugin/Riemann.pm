@@ -138,6 +138,8 @@ sub graph {
         return;
     }
 
+    $self->async and return;
+
     eval {
         $self->riemann->send({
                 service     => $service,
@@ -148,7 +150,7 @@ sub graph {
     };
     carp "sending metric failed: $@" if $@;
 
-    return;
+    exit;
 }
 
 1;

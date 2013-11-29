@@ -10,6 +10,7 @@ use lib "$Bin/../lib";
 
 use Unix::Syslog;
 use Config::Any;
+use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
 =head1 SYNOPSIS
 
@@ -205,6 +206,34 @@ sub configure {
     $self->config($conf);
 
     return;
+}
+
+=head2 async
+
+=cut
+
+sub async {
+    my ($self) = @_;
+
+    ### block signal for fork
+    my $sigset = POSIX::SigSet->new(SIGTERM);
+    POSIX::sigprocmask(SIG_BLOCK, $sigset)
+        or die "Can't block SIGTERM for fork: [$!]\n";
+
+    ### fork off a child
+    my $pid = fork;
+    unless (defined $pid) {
+        die "Couldn't fork: [$!]\n";
+    }
+
+    ### make SIGTERM kill us as it did before
+    local $SIG{TERM} = 'DEFAULT';
+
+    ### put back to normal
+    POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
+        or die "Can't unblock SIGTERM for fork: [$!]\n";
+
+    return $pid;
 }
 
 =head2 log

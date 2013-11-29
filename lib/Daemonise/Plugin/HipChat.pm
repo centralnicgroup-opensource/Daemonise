@@ -122,6 +122,9 @@ sub notify {
 
     $msg = '[debug] ' . $msg if $self->debug;
 
+    # fork and to the rest asynchronously
+    $self->async and return;
+
     my $colour = ($colour{ $severity || 'info' }) || 'info';
     my $ua = LWP::UserAgent->new(agent => $self->name);
     my $res = $ua->post(
@@ -138,7 +141,7 @@ sub notify {
         $self->log($res->status_line . ': ' . $res->decoded_content);
     }
 
-    return;
+    exit;
 }
 
 1;

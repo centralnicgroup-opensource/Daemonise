@@ -273,7 +273,7 @@ sub daemonise {
     $self->gid($self->_get_gid);
     $self->gid((split /\s+/, $self->gid)[0]);
 
-    my $pid = $self->_safe_fork;
+    my $pid = $self->async;
 
     ### parent process should do the pid file and exit
     if ($pid) {
@@ -341,8 +341,8 @@ sub daemonise {
 
         ### install a signal handler to make sure
         ### SIGTERM's remove our pid_file
-        $SIG{TERM} = sub { $self->stop }    ## no critic
-            if $self->has_pid_file;
+        $SIG{TERM} = sub { $self->stop };    ## no critic
+        $SIG{INT}  = sub { $self->stop };    ## no critic
 
         return 1;
     }
@@ -446,30 +446,6 @@ sub _get_gid {
     die "No group found in arguments.\n" unless @gid;
 
     return join(" ", $gid[0], @gid);
-}
-
-sub _safe_fork {
-    my ($self) = @_;
-
-    ### block signal for fork
-    my $sigset = POSIX::SigSet->new(SIGTERM);
-    POSIX::sigprocmask(SIG_BLOCK, $sigset)
-        or die "Can't block SIGTERM for fork: [$!]\n";
-
-    ### fork off a child
-    my $pid = fork;
-    unless (defined $pid) {
-        die "Couldn't fork: [$!]\n";
-    }
-
-    ### make SIGTERM kill us as it did before
-    local $SIG{TERM} = 'DEFAULT';
-
-    ### put back to normal
-    POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
-        or die "Can't unblock SIGTERM for fork: [$!]\n";
-
-    return $pid;
 }
 
 sub _create_pid_file {
