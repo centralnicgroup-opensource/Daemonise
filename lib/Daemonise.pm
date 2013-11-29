@@ -122,11 +122,41 @@ has 'start_time' => (
     default => sub { time },
 );
 
-# backwards compatibility
+=head2 is_cron
+
+=cut
+
+has 'is_cron' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+=head2 cache_plugin
+
+=cut
+
+has 'cache_plugin' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'KyotoTycoon' },
+);
+
 after 'new' => sub {
     my ($class, %args) = @_;
 
-    with('Daemonise::Plugin::Daemon') unless $args{no_daemon};
+    # backwards compatibility
+    with('Daemonise::Plugin::Daemon')
+        unless ($args{no_daemon} or $args{is_cron});
+
+    # load cache plugin required for cron locking
+    if ($args{is_cron}) {
+        return if %Daemonise::Plugin::KyotoTycoon::;
+        my $cache_plugin = $args{cache_plugin} || 'KyotoTycoon';
+        with("Daemonise::Plugin::$cache_plugin");
+    }
 
     return;
 };
@@ -154,7 +184,10 @@ sub load_plugin {
 sub configure {
     my ($self, $reconfig) = @_;
 
-    return unless $self->has_config_file;
+    unless ($self->has_config_file) {
+        $self->log("config_file unset, nothing to configure");
+        return;
+    }
 
     unless (-e $self->config_file) {
         $self->log(

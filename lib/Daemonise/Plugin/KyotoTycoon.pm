@@ -9,6 +9,10 @@ use Try::Tiny;
 use MIME::Base64 qw(encode_base64 decode_base64);
 use Storable qw/nfreeze thaw/;
 
+BEGIN {
+    with("Daemonise::Plugin::HipChat");
+}
+
 =head1 SYNOPSIS
 
 This plugin conflicts with other plugins that provide caching, like the Redis plugin.
@@ -131,6 +135,14 @@ after 'configure' => sub {
             db      => $self->tycoon_db,
         ));
 
+    # lock cron for 24hours
+    if ($self->is_cron) {
+        my $expire = $self->tycoon_default_expire;
+        $self->tycoon_default_expire(24 * 60 * 60);
+        die unless $self->lock;
+        $self->tycoon_default_expire($expire);
+    }
+
     return;
 };
 
@@ -211,7 +223,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
             return 1;
         }
         else {
-            $self->log("cannot acquire lock hold by $pid");
+            $self->notify("cannot acquire lock hold by PID $pid");
             return;
         }
     }
@@ -251,6 +263,16 @@ sub unlock {
         $self->log("lock was already released") if $self->debug;
         return 1;
     }
+}
+
+sub DESTROY {
+    my ($self) = @_;
+
+    return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+
+    $self->unlock if $self->is_cron;
+
+    return;
 }
 
 1;

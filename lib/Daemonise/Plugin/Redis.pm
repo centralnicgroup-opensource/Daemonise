@@ -6,6 +6,10 @@ use Mouse::Role;
 
 use Redis;
 
+BEGIN {
+    with("Daemonise::Plugin::HipChat");
+}
+
 =head1 SYNOPSIS
 
 This plugin conflicts with other plugins that provide caching, like the KyotoTycoon plugin.
@@ -139,6 +143,14 @@ after 'configure' => sub {
             debug     => $self->debug,
         ));
 
+    # lock cron for 24hours
+    if ($self->is_cron) {
+        my $expire = $self->redis_default_expire;
+        $self->redis_default_expire(24 * 60 * 60);
+        die unless $self->lock;
+        $self->redis_default_expire($expire);
+    }
+
     return;
 };
 
@@ -205,7 +217,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
             return 1;
         }
         else {
-            $self->log("cannot acquire lock hold by $pid");
+            $self->notify("cannot acquire lock hold by PID $pid");
             return;
         }
     }
@@ -246,6 +258,16 @@ sub unlock {
         $self->log("lock was already released") if $self->debug;
         return 1;
     }
+}
+
+sub DESTROY {
+    my ($self) = @_;
+
+    return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+
+    $self->unlock if $self->is_cron;
+
+    return;
 }
 
 1;
