@@ -6,7 +6,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.46
+version 1.47
 
 =head1 SYNOPSIS
 
