@@ -150,7 +150,8 @@ sub graph {
     };
     carp "sending metric failed: $@" if $@;
 
-    exit;
+    # exit; # async
+    return;
 }
 
 1;

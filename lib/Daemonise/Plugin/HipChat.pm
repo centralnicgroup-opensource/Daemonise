@@ -141,7 +141,8 @@ sub notify {
         $self->log($res->status_line . ': ' . $res->decoded_content);
     }
 
-    exit;
+    # exit; # async
+    return;
 }
 
 1;

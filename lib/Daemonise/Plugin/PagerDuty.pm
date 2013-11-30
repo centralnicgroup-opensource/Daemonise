@@ -157,7 +157,8 @@ sub alert {
         )->trigger
         unless $self->debug;
 
-    exit;
+    # exit; # async
+    return;
 }
 
 1;
