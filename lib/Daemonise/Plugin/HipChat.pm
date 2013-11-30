@@ -123,7 +123,7 @@ sub notify {
     $msg = '[debug] ' . $msg if $self->debug;
 
     # fork and to the rest asynchronously
-    $self->async and return;
+    # $self->async and return;
 
     my $colour = ($colour{ $severity || 'info' }) || 'info';
     my $ua = LWP::UserAgent->new(agent => $self->name);

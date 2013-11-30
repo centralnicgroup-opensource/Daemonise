@@ -121,7 +121,7 @@ sub alert {
         return;
     }
 
-    $self->async and return;
+    # $self->async and return;
 
     # force $details to be a hash
     unless (ref $details eq 'HASH') {

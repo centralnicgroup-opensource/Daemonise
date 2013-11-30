@@ -138,7 +138,7 @@ sub graph {
         return;
     }
 
-    $self->async and return;
+    # $self->async and return;
 
     eval {
         $self->riemann->send({
