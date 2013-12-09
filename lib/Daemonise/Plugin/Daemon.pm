@@ -309,7 +309,7 @@ sub daemonise {
         elsif ($tie_syslog) {
             my $name = $self->name;
             my $y = tie *STDOUT, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name STDOUT ", 'pid', 'unix';
+                "perl[$$]: queue=$name ", 'pid', 'unix';
             my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
                 "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
             $x->ExtendedSTDERR();
