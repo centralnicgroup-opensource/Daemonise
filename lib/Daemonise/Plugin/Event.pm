@@ -1,10 +1,11 @@
 package Daemonise::Plugin::Event;
 
+use 5.010;
+use experimental 'smartmatch';
 use Mouse::Role;
 
 # ABSTRACT: Daemonise Event plugin
 
-use feature 'switch';
 use Carp;
 
 BEGIN {
