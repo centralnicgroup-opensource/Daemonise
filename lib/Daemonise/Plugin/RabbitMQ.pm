@@ -1,8 +1,8 @@
 package Daemonise::Plugin::RabbitMQ;
 
 use 5.010;
-use experimental 'smartmatch';
 use Mouse::Role;
+use experimental 'smartmatch';
 
 # ABSTRACT: Daemonise RabbitMQ plugin
 
