@@ -2,8 +2,7 @@
 abstract: 'Daemonise - a general daemoniser for anything...'
 author:
   - 'Lenz Gschwendtner <norbu09@cpan.org>'
-build_requires:
-  Test::More: 0
+build_requires: {}
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
