@@ -1,12 +1,14 @@
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.54
+version 1.55
 
 =head1 SYNOPSIS
 
@@ -122,3 +124,4 @@ This software is copyright (c) 2013 by Lenz Gschwendtner.
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
+=cut
