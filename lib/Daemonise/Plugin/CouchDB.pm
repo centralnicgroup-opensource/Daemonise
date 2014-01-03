@@ -125,7 +125,7 @@ Daemonise::Plugin::CouchDB - Daemonise CouchDB plugin
 
 =head1 VERSION
 
-version 1.57
+version 1.58
 
 =head1 SYNOPSIS
 

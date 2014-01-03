@@ -6,7 +6,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.57'; # VERSION
+our $VERSION = '1.58'; # VERSION
 
 use Unix::Syslog;
 use Config::Any;
@@ -180,7 +180,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.57
+version 1.58
 
 =head1 SYNOPSIS
 
