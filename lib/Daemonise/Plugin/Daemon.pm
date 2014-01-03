@@ -454,7 +454,7 @@ Daemonise::Plugin::Daemon - Daemonise Daemon plugin handlind PID file, config fi
 
 =head1 VERSION
 
-version 1.56
+version 1.57
 
 =head1 SYNOPSIS
 
