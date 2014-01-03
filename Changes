@@ -1,0 +1,698 @@
+==================================================
+Changes from 2013-01-03 00:00:00 +0000 to present.
+==================================================
+
+-----------------------------------------
+version 1.53 at 2013-12-09 14:23:38 +0000
+-----------------------------------------
+
+  Change: e870c072b4daccf4220c93d46cba3befe39e55ea
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-12-10 03:23:38 +0000
+
+    don't print "STDOUT" 
+
+-----------------------------------------
+version 1.52 at 2013-12-09 14:13:45 +0000
+-----------------------------------------
+
+  Change: f644a3f8e31bcddad3683ff262a58780ab95145a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-12-10 03:13:45 +0000
+
+    fixed load order to silence warnings 
+
+-----------------------------------------
+version 1.51 at 2013-12-09 13:55:16 +0000
+-----------------------------------------
+
+  Change: 0bdd5673443ef83e6d864562549756ebc6921d9d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-12-10 02:55:16 +0000
+
+    prepared for perl 5.18, disabled smartmatch experimental warning 
+
+-----------------------------------------
+version 1.50 at 2013-11-30 01:17:42 +0000
+-----------------------------------------
+
+  Change: bdd1ff343c3e64aaeba5950a2c38cc2578f9c398
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-30 14:17:42 +0000
+
+    s/exit/return/ 
+
+-----------------------------------------
+version 1.49 at 2013-11-30 00:52:18 +0000
+-----------------------------------------
+
+  Change: b0231d00587a1f27bbfdbbcc0599c171aa121733
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-30 13:52:18 +0000
+
+    version bump 
+
+  Change: cb4e8636fc13042d2f94a8cdedd2a826d418d95a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-30 13:51:06 +0000
+
+    disable async calls for now due to bad frame read rabbitmq errors
+    being caused somehow 
+
+-----------------------------------------
+version 1.48 at 2013-11-29 04:53:50 +0000
+-----------------------------------------
+
+  Change: 4e5ad51bf7579ad45916546563e7e1dcaff34fc9
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 17:53:50 +0000
+
+    version bump 
+
+  Change: 122dfd55e3fdadd90c8bbc931915a87200e78f76
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 17:52:29 +0000
+
+    return instead of exit 
+
+-----------------------------------------
+version 1.47 at 2013-11-29 04:49:38 +0000
+-----------------------------------------
+
+  Change: b8a7f7403a578647e238ab33a068e8e567a9ad13
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 17:49:38 +0000
+
+    version bump 
+
+  Change: e74beabf50421207f2a54591bc83873660363002
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 17:49:14 +0000
+
+    graphite doesn't like to be forked at the moment 
+
+-----------------------------------------
+version 1.46 at 2013-11-29 04:06:17 +0000
+-----------------------------------------
+
+  Change: 5f1571ede682868d853a74717cb82d44372215b2
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 17:06:17 +0000
+
+    version bump 
+
+  Change: 3f6cb8285a984cfc000e533fb42dcc60530eed49
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 17:06:07 +0000
+
+    fixed perl critic 
+
+  Change: e891982fe6bcff2006be87a30f1e08ac0b42c6db
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 16:51:33 +0000
+
+    implemented simple fire and forget style async execution support 
+
+  Change: e2767841b59b8a4baa8bb0a71b582333a27ee285
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-11-29 16:50:30 +0000
+
+    implemented cron locking 
+
+-----------------------------------------
+version 1.45 at 2013-10-22 09:50:10 +0000
+-----------------------------------------
+
+  Change: 61b6b7a01069b7e6d7a297c09b19960198690f4e
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-22 22:50:10 +0000
+
+    version bump 
+
+  Change: 6fdcfbf57bf4e6f32c70ff0aea5357fa46b6dcb6
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-22 22:45:09 +0000
+
+    ignore admin messages not for this queue 
+
+-----------------------------------------
+version 1.44 at 2013-10-22 09:25:36 +0000
+-----------------------------------------
+
+  Change: a7b521a0de4c7a530e6097ef6a70fd66325f9067
+  Author: Tobias Kirschstein <lev@idegeo.com>
+  Date : 2013-10-22 22:25:36 +0000
+
+    version bump 
+
+  Change: ff78c80f977f79c5e0cc4a1c4d515de31ac3090c
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-22 22:23:14 +0000
+
+    only react to admin routing key or specific hostname routing key 
+
+-----------------------------------------
+version 1.43 at 2013-10-18 09:31:39 +0000
+-----------------------------------------
+
+  Change: 866485a10188b30772c50292e74ed933b80ee1a2
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-18 21:31:39 +0000
+
+    catching signal with local does not work, ignore critic 
+
+  Change: bde5cb4aa99599cb5553798259f3ad74b2cac98d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-18 21:23:55 +0000
+
+    version bump 
+
+  Change: 79cfd54b07caccdf2d4518fe64649e212784a89f
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-18 21:23:43 +0000
+
+    migrated restart handling to per worker admin queue, implemented
+    reconfigure capability 
+
+-----------------------------------------
+version 1.42 at 2013-10-17 05:33:18 +0000
+-----------------------------------------
+
+  Change: 20d3e910cb50ca593850ad139cef11e91d7b7d47
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-17 17:33:18 +0000
+
+    satisfied perlcritic 
+
+  Change: e1029934b93bab1d8d16c0a492ceb4309552351c
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-10-16 16:20:06 +0000
+
+    added a generic restart type to event plugin 
+
+  Change: e55cfeb67b33355c154f98a520c1ffcbbecd8c1a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 23:32:21 +0000
+
+    return status message, don't print it 
+
+  Change: 7af506e353458d415939936aeec2bd3ef7686101
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 22:25:38 +0000
+
+    reconfigure after forking 
+
+  Change: dff73e6d2f65078022a38d62df66e52784922afa
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 15:45:38 +0000
+
+    perltidy 
+
+  Change: 26c7371c9b307e7259efb90e3f3f0b31e867953a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 15:43:56 +0000
+
+    version bump 
+
+  Change: 527a63ee63793c1702a59b0651c9cca266dcfbbe
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 15:43:33 +0000
+
+    new restart handling using kyototycoon in Daemon plugin, catch
+    SIGTERM instead of INT 
+
+  Change: a12b3c8843f7349324dfd9185985ebfb7166acbd
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 15:42:39 +0000
+
+    simplified dequeue(), no need for a while loop, auto ack() on empty
+    status/keepalive message 
+
+  Change: 346ddfad9a4f1130a2e687af42b005058ba9d1a0
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 15:41:45 +0000
+
+    store timestamp of process starting time 
+
+  Change: e693ac5c22edd13c10427da7522328a2f71ce769
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-15 15:40:56 +0000
+
+    added automatic dependency plugin loading 
+
+  Change: f4f1359b6c90b6f8c0888f94a08ad791bcd0399c
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-14 18:28:18 +0000
+
+    v1.41 
+
+-----------------------------------------
+version 1.41 at 2013-10-14 05:24:05 +0000
+-----------------------------------------
+
+  Change: 0652169e335a3773a2dc4eb3cfb6d3a5662d6632
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-14 17:24:05 +0000
+
+    set testmode when running in debug mode 
+
+  Change: ca485e41f671226c10f7e65a59e49a38345ff6c9
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-08 14:51:59 +0000
+
+    v1.40 
+
+-----------------------------------------
+version 1.40 at 2013-10-08 01:48:03 +0000
+-----------------------------------------
+
+  Change: 6774869e55970a6c17f02dafcfc25f1331d9d6e8
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-08 14:48:03 +0000
+
+    turned message colour into severity value, moved hipchat token in
+    config 
+
+-----------------------------------------
+version 1.39 at 2013-10-08 00:04:39 +0000
+-----------------------------------------
+
+  Change: b5af56c4b49b36dc2c890fede90ff6decaf8656d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-08 13:04:39 +0000
+
+    removed auto generated cpanfiles and added to ignore 
+
+  Change: d60555b1a30673d065521e7b3ee0cb5884aba38b
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-10-08 12:52:04 +0000
+
+    log status_line and error message if post was not successful 
+
+  Change: 01cc13dfd4b998211b74e3e9895be90076cad5b7
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-10-03 12:26:27 +0000
+
+    added snapshot file 
+
+  Change: 5e3605adbc2458255728ca3fd758be49117927e7
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-10-03 12:15:22 +0000
+
+    added cpanfile 
+
+  Change: 400e497b339c2abafb16a167b9c49bd3584713c9
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-09-25 11:17:40 +0000
+
+    add support for environment variables if used with Config::General 
+
+  Change: a5cc7442b98c52159ab489c91e62a4a3dd24b099
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-09-16 16:36:54 +0000
+
+    fixed the feature i wanted to have in the last commit 
+
+  Change: b64d4635f1450d2ead5cafb52a2393fa5ee48cd9
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-09-16 12:52:29 +0000
+
+    Support local include directory trees for private plugins 
+
+-----------------------------------------
+version 1.38 at 2013-08-13 08:47:25 +0000
+-----------------------------------------
+
+  Change: dd2b9a9920e5382960b965d480f0d2251a1c88e6
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-08-13 10:47:25 +0000
+
+    check config file existence, version bump 
+
+-----------------------------------------
+version 1.37 at 2013-07-24 21:16:58 +0000
+-----------------------------------------
+
+  Change: 35177d56eb1516c4b144f320fe9928eaac7fd822
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-07-24 23:16:58 +0000
+
+    updated README 
+
+  Change: 772348dba93d79a16f74af8d51bc1d029a0c8cb9
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-07-24 23:16:58 +0000
+
+    little bit of error handling 
+
+  Change: c848671b530a21de7136e6e07a23721fcc24d15e
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-07-24 23:16:58 +0000
+
+    moved config file parsing back to main module 
+
+  Change: 8c23801877bceae7f0075948aa08da1b09754c97
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-07-24 23:16:58 +0000
+
+    separated out process forking, config and start/stop/status handling
+    into Daemon default plugin 
+
+  Change: 7c5af5edb4d84f8b24e57ffadcfaaf8a531d1362
+  Author: Lenz Gschwendtner <lenz@ideegeo.com>
+  Date : 2013-07-22 15:59:20 +0000
+
+    new Daemonise version 
+
+  Change: 1cc43683b9611c4a6767a6c19020f02316a06605
+  Author: Lenz Gschwendtner <lenz@ideegeo.com>
+  Date : 2013-07-22 15:57:22 +0000
+
+    changed handling of rabbit connection setup 
+
+-----------------------------------------
+version 1.36 at 2013-07-09 02:12:17 +0000
+-----------------------------------------
+
+  Change: 9eda5ca2f409f7b81b011fb2150e1b486386eefe
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-07-09 04:12:17 +0000
+
+    don't die when is not a reference 
+
+  Change: 79d10712d1a4d48bfefb802f752f5e8ce32cf218
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-06-24 19:01:21 +0000
+
+    fixed cache_del() of kyototycoon plugin, common way to set config
+    attributes with fewer crashes 
+
+  Change: 7a5f51ebd3711185e8dda35bd114b186e5fb93a1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-06-24 16:06:00 +0000
+
+    have to use set instead of replace 
+
+  Change: 02a16316a6c0cb3203c00c03b06582e8649f77db
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-06-10 11:48:05 +0000
+
+    make sure we have all config keys we want to set for hipchat 
+
+  Change: 5942cc01aefdd3be788122232f62780b8f67b119
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-06-10 08:55:08 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 44afe064b62b27f117e45f04162bd4612a71ca0f
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-30 17:44:20 +0000
+
+    don't ever alert in debug mode 
+
+  Change: d9ac64e690d272af06cd8b98ff81c4e524e7d997
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-30 14:08:10 +0000
+
+    changed external API's config path 
+
+  Change: b2dcc89aaf694f3232fde63f8fa2f7c1773d067e
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-05-29 18:29:45 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 13e72ee29c35cbc61517223dff65fe7ab34af95b
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2013-03-26 14:31:48 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: bdf96a1f459112b35402d659bfbb38832b48de9f
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-12-04 11:39:51 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: edb26e45a2eb3fa614bcda77b7f12f4d99836787
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-10-26 14:06:47 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: a4cf1279020d2e53394242c2f0c721d2833c0a0b
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-10-18 12:03:31 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: d187e813c36fface7a5f5b3e9e7eeca609325160
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-09-19 12:40:49 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 1dffe201d1acc4f0d5d3860cd9560d4f6efc44a1
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-09-17 15:04:25 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 2e4c23d048edeaa0e9b568561543ae22ee81114d
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-09-14 15:11:05 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 2dc5662ee1474b8e040cc55a0cf0bdc3fd9bf3ed
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-09-10 19:00:03 +0000
+
+    merge 
+
+  Change: 14d8ad8d6670c2007cc72a799d062506027f970d
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-08-03 15:13:37 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 53051cd045c1288c588c3ad16de126f4a0ab003c
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-05-31 16:52:34 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 01f89f095cfc1276de9c8ade86b87c268f979b85
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-04-30 20:20:42 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: 7c123f771d14a1464e5a71f9b192b39880ced7de
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2012-02-07 15:25:59 +0000
+
+    Merge branch 'master' of github.com:ideegeo/Daemonise 
+
+  Change: ad8ef9574b5b4defe2754c772f6642ce55c52d30
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2011-12-05 11:13:00 +0000
+
+    merge commit 
+
+  Change: fa89713f9b6831f153369be7bac50f9f3072308e
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2011-07-04 17:26:03 +0000
+
+    fixed error message 
+
+-----------------------------------------
+version 1.35 at 2013-05-29 06:23:13 +0000
+-----------------------------------------
+
+  Change: 416db5d2cc673eb9536a290a4edafc562d7542a1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 18:23:13 +0000
+
+    strict means strict :) 
+
+  Change: fcbd3a5470277c7c3930f7d51b128536944f0b80
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 18:22:12 +0000
+
+    version bump 
+
+  Change: 7bf24cac7d8d624a27848eedb301ba445a885c52
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 18:21:40 +0000
+
+    chomp hostname attribute 
+
+  Change: 246a351b00178de5aa1ff2dbfaa42ce3f89fe83a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 17:58:26 +0000
+
+    added missing service_key attribute, replaced pass with api_key 
+
+-----------------------------------------
+version 1.34 at 2013-05-29 05:52:48 +0000
+-----------------------------------------
+
+  Change: de433045be255b77bfb6d6658e441917cf9ffba1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 17:52:48 +0000
+
+    fixed send() and try to be more specific about service path 
+
+  Change: 44f205fce839f922c52d752612bfba20c26f0e69
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 17:40:43 +0000
+
+    undef qualifies as SCALAR, need to check defined as well 
+
+  Change: d108a4717f88f1144af28c3e42277c7d8903e11f
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 16:29:06 +0000
+
+    updated POD 
+
+  Change: 2cb8c1325126e5b0b25f89ef8af2d9664c285a81
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 16:28:58 +0000
+
+    new plugin Graphite 
+
+  Change: 09b4a5c366d52651f5eeaf8731c4916045eff66f
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 15:31:08 +0000
+
+    new plugin PagerDuty 
+
+  Change: 729abe128149219d3c619e26dd761f586e035fd0
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 15:30:46 +0000
+
+    improved error wording 
+
+  Change: e0b060f7edd7d02fb2c12e88e69d71d08c961d19
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 12:42:21 +0000
+
+    have Riemann provide a graph() method used for graphing engines,
+    making it conflicting with others for now 
+
+  Change: b2f47c44001afecc4ea89269e6d625972c1dd381
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-29 12:38:52 +0000
+
+    provide hostname attribute for convenience 
+
+  Change: e00cd37414c2e89572281e3bb61b6d15aa2f8c40
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-25 03:57:24 +0000
+
+    new plugin KyotoTycoon, added common methods for cache manipulation 
+
+  Change: a0eb26e19cad5963be0a186fb22f1d8280f73431
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-16 15:52:03 +0000
+
+    Dzil -> Dist::Zilla 
+
+-----------------------------------------
+version 1.33 at 2013-05-16 03:47:25 +0000
+-----------------------------------------
+
+  Change: c43ba396492e8392eeaa1d43aa096d39d2bb50e4
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-16 15:47:25 +0000
+
+    fixed puppet_add script 
+
+  Change: d99416855578132eba75309fa47a77d1c3588963
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-16 14:47:56 +0000
+
+    satisfied POD coverage and perl critic 
+
+  Change: f9ad6cb13feb63bb436de4114e5c1bb93dd20a7e
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-16 14:40:13 +0000
+
+    implemented find_all_jobs() to return array of all jobs found using
+    find_job() 
+
+  Change: d981ae04c885bfd936ddb0c32fbfb8cfeb026ba6
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-14 00:53:55 +0000
+
+    Dist::Zilla'ified the shit! 
+
+-----------------------------------------
+version 1.32 at 2013-05-01 04:28:52 +0000
+-----------------------------------------
+
+  Change: a6625badfd464195243fcb7e6b4c2fb67833db88
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-05-01 16:28:52 +0000
+
+    carp usage 
+
+  Change: 17acc57430cf505ddd7b5155333e56c674f13662
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-04-24 10:52:32 +0000
+
+    added stop_event() for convenience 
+
+-----------------------------------------
+version 1.31 at 2013-04-02 05:03:44 +0000
+-----------------------------------------
+
+  Change: a090cfda414b64824ca3c4422daf4118bb198684
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-04-02 18:03:44 +0000
+
+    Checking in changes prior to tagging of version 1.31.
+
+    Changelog diff is:
+
+    diff --git a/Changes b/Changes index ad5779c..aa07b5c 100644 ---
+    a/Changes +++ b/Changes @@ -1,5 +1,8 @@
+
+    Revision history for Daemonise
+
+    +1.31 2013-04-02T18:03:31 + add debug mark to notifications if in
+    debug mode +
+
+    1.30 2013-02-12T02:50:12
+
+    new plugin Riemann providing metric() method 
+
+  Change: 49de3fe6c906f24e10ede2c279ae2458bf07a0cd
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-04-02 18:02:40 +0000
+
+    add debug mark to notifications if in debug mode 
+
+  Change: 120582ab29bf59e582c1a2241a30714ef884f087
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-02-12 02:56:41 +0000
+
+    added missing required modules 
+
+  Change: 810152421b7187293ae8e5446621132faf2adaf7
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-02-12 02:50:49 +0000
+
+    version bump 
+
+  Change: 5d8338af4a9d8c2671e1b809e86eee5db5a3da07
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2013-02-12 02:47:10 +0000
+
+    new plugin Riemann for collecting stats 
+
+=================================================
+Plus 33 releases after 2013-01-03 00:00:00 +0000.
+=================================================
