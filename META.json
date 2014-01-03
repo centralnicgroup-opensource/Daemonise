@@ -4,7 +4,7 @@
       "Lenz Gschwendtner <norbu09@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300039, CPAN::Meta::Converter version 2.132661",
+   "generated_by" : "Dist::Zilla version 5.008, CPAN::Meta::Converter version 2.132661",
    "license" : [
       "perl_5"
    ],
@@ -72,6 +72,6 @@
          "web" : "https://github.com/ideegeo/Daemonise"
       }
    },
-   "version" : "1.54"
+   "version" : "1.55"
 }
 
