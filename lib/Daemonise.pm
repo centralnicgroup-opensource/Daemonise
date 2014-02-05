@@ -6,7 +6,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.59'; # VERSION
+our $VERSION = '1.60'; # VERSION
 
 use Unix::Syslog;
 use Config::Any;
@@ -126,6 +126,10 @@ sub configure {
 
     $self->config($conf);
 
+    ### install a signal handler as anchor for clean shutdowns in plugins
+    $SIG{TERM} = sub { $self->stop };    ## no critic
+    $SIG{INT}  = sub { $self->stop };    ## no critic
+
     return;
 }
 
@@ -159,10 +163,24 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $msg) = @_;
 
     chomp($msg);
+
+    # escape newlines when not running in debug mode for log parser convenience
+    $msg =~ s/\n/\\n/gs unless $self->debug;
+
+    Unix::Syslog::openlog('Daemonise', Unix::Syslog::LOG_PID, Unix::Syslog::LOG_USER);
     Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
         'queue=%s %s', $self->name, $msg);
 
     return;
+}
+
+
+sub stop {
+    my ($self) = @_;
+
+    $self->log("good bye cruel world!");
+
+    exit;
 }
 
 
@@ -180,11 +198,9 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.59
+version 1.60
 
 =head1 SYNOPSIS
-
-Example:
 
     use Daemonise;
     use File::Basename;
@@ -254,6 +270,8 @@ Example:
 =head2 async
 
 =head2 log
+
+=head2 stop
 
 =head1 BUGS
 

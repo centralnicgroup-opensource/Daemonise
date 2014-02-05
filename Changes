@@ -1,9 +1,87 @@
 ==================================================
-Changes from 2013-01-03 00:00:00 +0000 to present.
+Changes from 2013-02-05 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.59 at 2014-01-03 05:52:58 +0000
+version 1.60 at 2014-02-05 14:20:01 +0000
+-----------------------------------------
+
+  Change: 235725a9a998b6cc30043b1fcb58cccc2a951992
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 03:09:54 +0000
+
+    v1.60 
+
+  Change: abb08d05492388d56ad2e7c5aed7543994993cc1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 02:49:56 +0000
+
+    satisfied Perl::Critic 
+
+  Change: c44f2656b63bc6081666292755575ea45646fff1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 02:40:16 +0000
+
+    added paralleliser plugin to speed up simple parallel tasks 
+
+  Change: e239939614be5607b9034ffddc2ee9d327f41f74
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 02:36:38 +0000
+
+    die with lock failed message instead of nothing 
+
+  Change: b2a8bc1fd23850cd4d88691c623d1f5051ce7a76
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 02:36:13 +0000
+
+    fixed documentation 
+
+  Change: 8e8916c489c795828c7a3937750e18e8dcedc0e6
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 00:49:50 +0000
+
+    openlog needs facility, moved to new Tie::Syslog syntax and cleaned
+    up old code 
+
+  Change: 395ef38c4d5a8e2778a6ac14ffbec8cf84537fcb
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-06 00:00:05 +0000
+
+    fixed typo 
+
+  Change: 39a08699a5f5b2b8fb6ef870a35b7fee1e39b54e
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-05 23:58:53 +0000
+
+    get rid of newlines in syslog when not running in debug mode 
+
+  Change: 3760a281c9608fdc6e98173ec4dd50a5b3f9a255
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-05 22:55:54 +0000
+
+    trap INT and TERM signals with provided extendable stop() method and
+    do shutdown work in actual plugins 
+
+  Change: 327183889982ae0e867dbb015d15fe8d50d806ac
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-01-09 12:55:45 +0000
+
+    revert changes that were not meant to be 
+
+  Change: df68881def15721251b3c5c1b1f86c5f2a329ad9
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2014-01-03 18:59:26 +0000
+
+    automatically release a build branch on github 
+
+  Change: 2f20877b23e3e8554c523c0af9b19d0be6eb19d4
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2014-01-03 18:53:13 +0000
+
+    v1.59 
+
+-----------------------------------------
+version 1.59 at 2014-01-03 05:51:05 +0000
 -----------------------------------------
 
   Change: a6f10890b3e93c11af4a2291fa721220a2526d76
@@ -744,5 +822,5 @@ version 1.31 at 2013-04-02 05:03:44 +0000
     new plugin Riemann for collecting stats 
 
 =================================================
-Plus 33 releases after 2013-01-03 00:00:00 +0000.
+Plus 33 releases after 2013-02-05 00:00:00 +0000.
 =================================================

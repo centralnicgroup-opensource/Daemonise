@@ -124,13 +124,11 @@ Daemonise::Plugin::Riemann - Daemonise Riemann plugin
 
 =head1 VERSION
 
-version 1.59
+version 1.60
 
 =head1 SYNOPSIS
 
 This plugin conflicts with other plugins that provide graphing, like the Graphite plugin.
-
-Example:
 
     use Daemonise;
     

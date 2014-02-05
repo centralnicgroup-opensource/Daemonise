@@ -4,7 +4,7 @@
       "Lenz Gschwendtner <norbu09@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.008, CPAN::Meta::Converter version 2.132661",
+   "generated_by" : "Dist::Zilla version 5.012, CPAN::Meta::Converter version 2.130880",
    "license" : [
       "perl_5"
    ],
@@ -44,6 +44,7 @@
             "Net::Graphite" : "0",
             "Net::RabbitMQ" : "0",
             "POSIX" : "0",
+            "Parallel::ForkManager" : "0",
             "Redis" : "0",
             "Riemann::Client" : "0",
             "Scalar::Util" : "0",
@@ -72,6 +73,6 @@
          "web" : "https://github.com/ideegeo/Daemonise"
       }
    },
-   "version" : "1.59"
+   "version" : "1.60"
 }
 

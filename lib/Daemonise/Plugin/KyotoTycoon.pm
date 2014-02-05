@@ -82,11 +82,14 @@ after 'configure' => sub {
             db      => $self->tycoon_db,
         ));
 
+    # don't try to lock() again when reconfiguring
+    return if $reconfig;
+
     # lock cron for 24hours
     if ($self->is_cron) {
         my $expire = $self->tycoon_default_expire;
         $self->tycoon_default_expire(24 * 60 * 60);
-        die unless $self->lock;
+        die 'locking failed' unless $self->lock;
         $self->tycoon_default_expire($expire);
     }
 
@@ -191,6 +194,15 @@ sub unlock {
     }
 }
 
+
+before 'stop' => sub {
+    my ($self) = @_;
+
+    $self->unlock if $self->is_cron;
+
+    return;
+};
+
 sub DESTROY {
     my ($self) = @_;
 
@@ -215,7 +227,7 @@ Daemonise::Plugin::KyotoTycoon - Daemonise KyotoTycoon plugin
 
 =head1 VERSION
 
-version 1.59
+version 1.60
 
 =head1 SYNOPSIS
 
@@ -277,6 +289,8 @@ delete KyotoTycoon key
 =head2 lock
 
 =head2 unlock
+
+=head2 stop
 
 =head1 AUTHOR
 

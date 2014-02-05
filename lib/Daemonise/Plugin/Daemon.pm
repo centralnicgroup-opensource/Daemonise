@@ -2,7 +2,7 @@ package Daemonise::Plugin::Daemon;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Daemon plugin handlind PID file, config file, start, stop, syslog
+# ABSTRACT: Daemonise Daemon plugin handling PID file, forking, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 use Unix::Syslog;
@@ -98,6 +98,8 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
+    chomp($msg);
+
     if ($self->foreground) {
         print $self->name . ": $msg\n";
     }
@@ -109,9 +111,7 @@ around 'log' => sub {
         close $log_file;
     }
     else {
-        chomp($msg);
-        Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-            'queue=%s %s', $self->name, $msg);
+        $self->$orig($msg);
     }
 
     return;
@@ -241,13 +241,15 @@ sub daemonise {
         }
         elsif ($tie_syslog) {
             my $name = $self->name;
-            my $y = tie *STDOUT, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name ", 'pid', 'unix';
-            my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
-            $x->ExtendedSTDERR();
-            binmode(STDOUT, ":encoding(UTF-8)");
-            binmode(STDERR, ":encoding(UTF-8)");
+            $Tie::Syslog::ident = 'Daemonise';
+            tie *STDOUT, 'Tie::Syslog', {
+                facility => 'LOG_USER',
+                priority => 'LOG_INFO',
+                };
+            tie *STDERR, 'Tie::Syslog', {
+                facility => 'LOG_USER',
+                priority => 'LOG_ERR',
+                };
         }
         else {
             open(STDOUT, '>', '/dev/null')
@@ -263,14 +265,7 @@ sub daemonise {
         ### Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
 
-        if ($self->has_name) {
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started (" . $self->name . ") with pid: $$");
-        }
-        else {
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started with pid: $$");
-        }
+        $self->log("daemon started");
 
         ### install a signal handler to make sure
         ### SIGTERM's remove our pid_file
@@ -298,14 +293,13 @@ sub status {
 }
 
 
-sub stop {
+before 'stop' => sub {
     my ($self) = @_;
 
     unlink $self->pid_file if $self->has_pid_file;
-    $self->log("pid=$$ good bye cruel world!");
 
-    exit;
-}
+    return;
+};
 
 
 sub start {
@@ -450,11 +444,11 @@ __END__
 
 =head1 NAME
 
-Daemonise::Plugin::Daemon - Daemonise Daemon plugin handlind PID file, config file, start, stop, syslog
+Daemonise::Plugin::Daemon - Daemonise Daemon plugin handling PID file, forking, syslog
 
 =head1 VERSION
 
-version 1.59
+version 1.60
 
 =head1 SYNOPSIS
 
@@ -462,20 +456,18 @@ version 1.59
     
     my $d = Daemonise->new();
     $d->debug(1);
-    
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
     
     $d->configure;
     
     # fork and run in background (unless foreground is true)
-    $d->start;
+    $d->start(\&main);
     
-    # check if daemon is running already
-    $d->status;
-    
-    # stop daemon
-    $d->stop;
+    sub main {
+        # check if daemon is running already
+        $d->status;
+    }
 
 =head1 ATTRIBUTES
 

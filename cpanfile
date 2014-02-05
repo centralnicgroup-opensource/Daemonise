@@ -14,6 +14,7 @@ requires "Mouse::Role" => "0";
 requires "Net::Graphite" => "0";
 requires "Net::RabbitMQ" => "0";
 requires "POSIX" => "0";
+requires "Parallel::ForkManager" => "0";
 requires "Redis" => "0";
 requires "Riemann::Client" => "0";
 requires "Scalar::Util" => "0";
