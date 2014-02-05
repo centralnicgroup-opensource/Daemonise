@@ -251,7 +251,7 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     chomp($msg);
 
     # escape newlines when not running in debug mode for log parser convenience
-    $msg =~ s/\n/\\n/gs unless $d->debug;
+    $msg =~ s/\n/\\n/gs unless $self->debug;
 
     Unix::Syslog::openlog('Daemonise', Unix::Syslog::LOG_PID);
     Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
