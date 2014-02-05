@@ -142,7 +142,7 @@ after 'configure' => sub {
     if ($self->is_cron) {
         my $expire = $self->tycoon_default_expire;
         $self->tycoon_default_expire(24 * 60 * 60);
-        die unless $self->lock;
+        die 'locking failed' unless $self->lock;
         $self->tycoon_default_expire($expire);
     }
 
