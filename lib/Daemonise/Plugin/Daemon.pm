@@ -371,14 +371,13 @@ sub status {
 
 =cut
 
-sub stop {
+before 'stop' => sub {
     my ($self) = @_;
 
     unlink $self->pid_file if $self->has_pid_file;
-    $self->log("pid=$$ good bye cruel world!");
 
-    exit;
-}
+    return;
+};
 
 =head2 start
 

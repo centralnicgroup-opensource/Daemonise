@@ -1,14 +1,12 @@
 =pod
 
-=encoding UTF-8
-
 =head1 NAME
 
 Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.59
+version 1.60
 
 =head1 SYNOPSIS
 
@@ -83,6 +81,8 @@ Example:
 
 =head2 log
 
+=head2 stop
+
 =head1 BUGS
 
 Please report any bugs or feature requests on GitHub's issue tracker L<https://github.com/ideegeo/Daemonise/issues>.
@@ -124,4 +124,3 @@ This software is copyright (c) 2013 by Lenz Gschwendtner.
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
-=cut

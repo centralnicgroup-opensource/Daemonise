@@ -206,6 +206,10 @@ sub configure {
 
     $self->config($conf);
 
+    ### install a signal handler as anchor for clean shutdowns in plugins
+    $SIG{TERM} = sub { $self->stop };    ## no critic
+    $SIG{INT}  = sub { $self->stop };    ## no critic
+
     return;
 }
 
@@ -249,6 +253,18 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
         'queue=%s %s', $self->name, $msg);
 
     return;
+}
+
+=head2 stop
+
+=cut
+
+sub stop {
+    my ($self) = @_;
+
+    $self->log("pid=$$ good bye cruel world!");
+
+    exit;
 }
 
 =head1 BUGS

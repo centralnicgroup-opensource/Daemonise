@@ -135,6 +135,9 @@ after 'configure' => sub {
             db      => $self->tycoon_db,
         ));
 
+    # don't try to lock() again when reconfiguring
+    return if $reconfig;
+
     # lock cron for 24hours
     if ($self->is_cron) {
         my $expire = $self->tycoon_default_expire;
@@ -264,6 +267,18 @@ sub unlock {
         return 1;
     }
 }
+
+=head2 stop
+
+=cut
+
+before 'stop' => sub {
+    my ($self) = @_;
+
+    $self->unlock if $self->is_cron;
+
+    return;
+};
 
 sub DESTROY {
     my ($self) = @_;
