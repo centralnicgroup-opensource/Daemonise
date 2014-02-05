@@ -249,6 +249,11 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $msg) = @_;
 
     chomp($msg);
+
+    # escape newlines when not running in debug mode for log parser convenience
+    $msg =~ s/\n/\\n/gs unless $d->debug;
+
+    Unix::Syslog::openlog('Daemonise', Unix::Syslog::LOG_PID);
     Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
         'queue=%s %s', $self->name, $msg);
 
@@ -262,7 +267,7 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 sub stop {
     my ($self) = @_;
 
-    $self->log("pid=$$ good bye cruel world!");
+    $self->log("good bye cruel world!");
 
     exit;
 }

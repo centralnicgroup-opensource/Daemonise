@@ -159,6 +159,8 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
+    chomp($msg);
+
     if ($self->foreground) {
         print $self->name . ": $msg\n";
     }
@@ -170,9 +172,7 @@ around 'log' => sub {
         close $log_file;
     }
     else {
-        chomp($msg);
-        Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-            'queue=%s %s', $self->name, $msg);
+        $self->$orig($msg);
     }
 
     return;
