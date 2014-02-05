@@ -10,8 +10,6 @@ version 1.60
 
 =head1 SYNOPSIS
 
-Example:
-
     use Daemonise;
     use File::Basename;
     

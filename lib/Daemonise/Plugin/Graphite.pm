@@ -12,8 +12,6 @@ use Carp;
 
 This plugin conflicts with other plugins that provide graphing, like the Riemann plugin.
 
-Example:
-
     use Daemonise;
     
     my $d = Daemonise->new();

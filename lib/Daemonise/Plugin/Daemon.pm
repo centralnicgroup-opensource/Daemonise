@@ -2,7 +2,7 @@ package Daemonise::Plugin::Daemon;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Daemon plugin handlind PID file, config file, start, stop, syslog
+# ABSTRACT: Daemonise Daemon plugin handling PID file, forking, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 use Unix::Syslog;
@@ -14,20 +14,18 @@ use Scalar::Util qw(looks_like_number);
     
     my $d = Daemonise->new();
     $d->debug(1);
-    
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
     
     $d->configure;
     
     # fork and run in background (unless foreground is true)
-    $d->start;
+    $d->start(\&main);
     
-    # check if daemon is running already
-    $d->status;
-    
-    # stop daemon
-    $d->stop;
+    sub main {
+        # check if daemon is running already
+        $d->status;
+    }
 
 =head1 ATTRIBUTES
 

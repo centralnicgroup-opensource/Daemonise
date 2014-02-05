@@ -14,8 +14,6 @@ use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
 =head1 SYNOPSIS
 
-Example:
-
     use Daemonise;
     use File::Basename;
     

@@ -13,8 +13,6 @@ use Try::Tiny;
 
 =head1 SYNOPSIS
 
-Example:
-
     use Daemonise;
     
     my $d = Daemonise->new();

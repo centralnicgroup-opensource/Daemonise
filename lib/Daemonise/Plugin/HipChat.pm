@@ -17,8 +17,6 @@ my %colour = (
 
 =head1 SYNOPSIS
 
-Example:
-
     use Daemonise;
     
     my $d = Daemonise->new();
