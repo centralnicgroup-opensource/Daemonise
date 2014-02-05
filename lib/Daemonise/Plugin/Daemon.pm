@@ -308,13 +308,15 @@ sub daemonise {
         }
         elsif ($tie_syslog) {
             my $name = $self->name;
-            my $y = tie *STDOUT, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name ", 'pid', 'unix';
-            my $x = tie *STDERR, 'Tie::Syslog', 'local0.info',
-                "perl[$$]: queue=$name STDERR ", 'pid', 'unix';
-            $x->ExtendedSTDERR();
-            binmode(STDOUT, ":encoding(UTF-8)");
-            binmode(STDERR, ":encoding(UTF-8)");
+            $Tie::Syslog::ident = 'Daemonise';
+            tie *STDOUT, 'Tie::Syslog', {
+                facility => 'LOG_USER',
+                priority => 'LOG_INFO',
+                };
+            tie *STDERR, 'Tie::Syslog', {
+                facility => 'LOG_USER',
+                priority => 'LOG_ERR',
+                };
         }
         else {
             open(STDOUT, '>', '/dev/null')
@@ -330,14 +332,7 @@ sub daemonise {
         ### Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
 
-        if ($self->has_name) {
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started (" . $self->name . ") with pid: $$");
-        }
-        else {
-            Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-                "Daemon started with pid: $$");
-        }
+        $self->log("daemon started");
 
         ### install a signal handler to make sure
         ### SIGTERM's remove our pid_file
