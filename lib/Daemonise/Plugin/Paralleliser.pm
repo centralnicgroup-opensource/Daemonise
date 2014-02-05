@@ -78,8 +78,8 @@ sub parallelise {
         $self->configure(1);
 
         # do not respond to previously setup TERM and INT signal traps
-        $SIG{TERM} = 'IGNORE';
-        $SIG{INT}  = 'IGNORE';
+        $SIG{TERM} = 'IGNORE';    ## no critic
+        $SIG{INT}  = 'IGNORE';    ## no critic
 
         $code->($input);
 
