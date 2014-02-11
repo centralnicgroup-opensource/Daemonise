@@ -47,4 +47,4 @@ resources:
   bugtracker: https://github.com/ideegeo/Daemonise/issues
   homepage: https://github.com/ideegeo/Daemonise/wiki
   repository: git://github.com/ideegeo/Daemonise.git
-version: 1.60
+version: 1.61
