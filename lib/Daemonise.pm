@@ -106,6 +106,10 @@ sub load_plugin {
 sub configure {
     my ($self, $reconfig) = @_;
 
+    ### install a signal handler as anchor for clean shutdowns in plugins
+    $SIG{TERM} = sub { $self->stop };    ## no critic
+    $SIG{INT}  = sub { $self->stop };    ## no critic
+
     unless ($self->has_config_file) {
         $self->log("config_file unset, nothing to configure");
         return;
@@ -125,10 +129,6 @@ sub configure {
     $conf = $conf->[0]->{ $self->config_file } if $conf;
 
     $self->config($conf);
-
-    ### install a signal handler as anchor for clean shutdowns in plugins
-    $SIG{TERM} = sub { $self->stop };    ## no critic
-    $SIG{INT}  = sub { $self->stop };    ## no critic
 
     return;
 }
@@ -167,7 +167,8 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # escape newlines when not running in debug mode for log parser convenience
     $msg =~ s/\n/\\n/gs unless $self->debug;
 
-    Unix::Syslog::openlog('Daemonise', Unix::Syslog::LOG_PID, Unix::Syslog::LOG_USER);
+    Unix::Syslog::openlog('Daemonise', Unix::Syslog::LOG_PID,
+        Unix::Syslog::LOG_USER);
     Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
         'queue=%s %s', $self->name, $msg);
 
