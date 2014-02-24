@@ -124,7 +124,7 @@ Daemonise::Plugin::Riemann - Daemonise Riemann plugin
 
 =head1 VERSION
 
-version 1.62
+version 1.63
 
 =head1 SYNOPSIS
 
