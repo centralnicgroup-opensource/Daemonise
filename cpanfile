@@ -1,3 +1,4 @@
+requires "Basket::Calc" => "0";
 requires "Cache::KyotoTycoon" => "0";
 requires "Carp" => "0";
 requires "Config::Any" => "0";

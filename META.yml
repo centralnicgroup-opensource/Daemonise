@@ -13,6 +13,7 @@ meta-spec:
   version: '1.4'
 name: Daemonise
 requires:
+  Basket::Calc: '0'
   Cache::KyotoTycoon: '0'
   Carp: '0'
   Config::Any: '0'

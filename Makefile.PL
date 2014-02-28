@@ -21,6 +21,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Daemonise",
   "PREREQ_PM" => {
+    "Basket::Calc" => 0,
     "Cache::KyotoTycoon" => 0,
     "Carp" => 0,
     "Config::Any" => 0,
@@ -60,6 +61,7 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "Basket::Calc" => 0,
   "Cache::KyotoTycoon" => 0,
   "Carp" => 0,
   "Config::Any" => 0,

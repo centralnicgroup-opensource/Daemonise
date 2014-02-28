@@ -28,6 +28,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Basket::Calc" : "0",
             "Cache::KyotoTycoon" : "0",
             "Carp" : "0",
             "Config::Any" : "0",
