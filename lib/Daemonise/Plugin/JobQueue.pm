@@ -9,6 +9,8 @@ use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
 use Carp;
+use Basket::Calc;
+use Scalar::Util qw(looks_like_number);
 
 BEGIN {
     with("Daemonise::Plugin::CouchDB");
@@ -394,6 +396,77 @@ sub stop_here {
     $self->dont_reply if exists $self->job->{message}->{meta}->{id};
 
     return;
+}
+
+=head2 recalculate
+
+=cut
+
+sub recalculate {
+    my ($self) = @_;
+
+    unless (ref $self->job eq 'HASH') {
+        carp 'needs a job HashRef in the job attribute!';
+        return;
+    }
+
+    my $data = $self->job->{message}->{data}->{options};
+
+    unless (exists $data->{domains}
+        and scalar(@{ $data->{domains} || [] }) > 0)
+    {
+        carp 'no domains found, can\'t recalculate';
+        return;
+    }
+
+    $self->log("re-calculating total!");
+
+    my $old_total = $data->{total} || 0;
+
+    my $basket = Basket::Calc->new(
+        currency => ($data->{currency} || 'USD'),
+        debug => $self->debug,
+    );
+
+    # add tax if applicable
+    $basket->tax($data->{tax} / 100)
+        if (exists $data->{tax} and $data->{tax});
+
+    # add domains and prices
+    for my $dom (@{ $data->{domains} }) {
+        next unless exists $dom->{amount};
+        next unless looks_like_number($dom->{amount});
+        next unless $dom->{amount} > 0;
+
+        $basket->add_item({
+            price    => $dom->{amount},
+            quantity => ($dom->{interval} || 1),
+        });
+    }
+
+    # add discounts if applicable
+    # TODO: support for other discount types, e.g. fixed amount
+    $basket->add_discount(
+        { type => 'percent', value => $data->{discount} / 100 })
+        if (exists $data->{discount} and $data->{discount});
+
+    # calculate and update totals
+    my $result = $basket->calculate;
+    $data->{total} = $result->{value};
+
+    if ($result->{tax_amount}) {
+        $data->{tax_amount} = $result->{tax_amount};
+        $data->{net}        = $result->{net};
+    }
+
+    $self->log("new total: "
+            . $data->{total} . ' '
+            . $data->{currency}
+            . ' was: '
+            . $old_total . ' '
+            . $data->{currency});
+
+    return 1;
 }
 
 1;
