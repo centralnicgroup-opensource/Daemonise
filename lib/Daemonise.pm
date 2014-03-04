@@ -76,7 +76,7 @@ has 'hostname' => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { my $h = `hostname -a`; chomp $h; $h },
+    default => sub { my $h = `hostname -s`; chomp $h; $h },
 );
 
 =head2 config_file
