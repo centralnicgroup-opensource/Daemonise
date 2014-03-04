@@ -6,7 +6,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.63'; # VERSION
+our $VERSION = '1.64'; # VERSION
 
 use Unix::Syslog;
 use Config::Any;
@@ -24,7 +24,7 @@ has 'hostname' => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { my $h = `hostname -a`; chomp $h; $h },
+    default => sub { my $h = `hostname -s`; chomp $h; $h },
 );
 
 
@@ -199,7 +199,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.63
+version 1.64
 
 =head1 SYNOPSIS
 

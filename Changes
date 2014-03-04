@@ -1,9 +1,25 @@
 ==================================================
-Changes from 2013-02-28 00:00:00 +0000 to present.
+Changes from 2013-03-04 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.63 at 2014-02-28 06:12:51 +0000
+version 1.64 at 2014-03-04 03:20:10 +0000
+-----------------------------------------
+
+  Change: d68d3f4742b7c99fec2499d8e4733cc2a380f2e6
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-04 16:19:44 +0000
+
+    use short hostname for nicer queue names 
+
+  Change: 6a9281ec0b5971bda3099c4343a23824e6c2a26d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-02-28 19:18:45 +0000
+
+    re-enable puppet deploy until we get CPAN namespace 
+
+-----------------------------------------
+version 1.63 at 2014-02-28 06:12:18 +0000
 -----------------------------------------
 
   Change: 2092958cc1f4157f5a8fe0e98b6e2853d38dbc07
@@ -852,5 +868,5 @@ version 1.31 at 2013-04-02 05:03:44 +0000
     new plugin Riemann for collecting stats 
 
 =================================================
-Plus 33 releases after 2013-02-28 00:00:00 +0000.
+Plus 33 releases after 2013-03-04 00:00:00 +0000.
 =================================================
