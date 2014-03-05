@@ -129,7 +129,7 @@ sub notify {
         $self->hipchat_url . $self->hipchat_token, {
             room_id => $room || $self->hipchat_room,
             from    => $self->hipchat_from,
-            message => $msg,
+            message => $self->hostname . ': ' . $msg,
             message_format => 'text',
             notify         => 0,
             color          => $colour,
