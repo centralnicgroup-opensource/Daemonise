@@ -87,7 +87,7 @@ sub notify {
         $self->hipchat_url . $self->hipchat_token, {
             room_id => $room || $self->hipchat_room,
             from    => $self->hipchat_from,
-            message => $msg,
+            message => $self->hostname . ': ' . $msg,
             message_format => 'text',
             notify         => 0,
             color          => $colour,
@@ -115,7 +115,7 @@ Daemonise::Plugin::HipChat - Daemonise HipChat plugin
 
 =head1 VERSION
 
-version 1.64
+version 1.65
 
 =head1 SYNOPSIS
 

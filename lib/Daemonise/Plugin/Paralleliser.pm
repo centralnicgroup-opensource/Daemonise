@@ -67,7 +67,7 @@ Daemonise::Plugin::Paralleliser - Daemonise Daemon plugin to parallelise certain
 
 =head1 VERSION
 
-version 1.64
+version 1.65
 
 =head1 SYNOPSIS
 

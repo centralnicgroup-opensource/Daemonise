@@ -209,7 +209,7 @@ Daemonise::Plugin::Redis - Daemonise Redis plugin
 
 =head1 VERSION
 
-version 1.64
+version 1.65
 
 =head1 SYNOPSIS
 
