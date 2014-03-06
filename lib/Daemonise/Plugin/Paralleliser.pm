@@ -2,7 +2,7 @@ package Daemonise::Plugin::Paralleliser;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Daemon plugin to parallelise certain tasks easily
+# ABSTRACT: Daemonise plugin to parallelise certain tasks easily
 
 use Parallel::ForkManager;
 
@@ -29,7 +29,7 @@ use Parallel::ForkManager;
 
 =head1 ATTRIBUTES
 
-=head2 user
+=head2 worker
 
 =cut
 

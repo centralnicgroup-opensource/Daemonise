@@ -2,7 +2,7 @@ package Daemonise::Plugin::Daemon;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Daemon plugin handling PID file, forking, syslog
+# ABSTRACT: Daemonise plugin handling PID file, forking, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 use Unix::Syslog;
