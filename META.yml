@@ -37,6 +37,7 @@ requires:
   Storable: '0'
   Store::CouchDB: '0'
   Tie::Syslog: '0'
+  True::Truth: '1.1'
   Try::Tiny: '0'
   Unix::Syslog: '0'
   WebService::PagerDuty: '0'
@@ -48,4 +49,4 @@ resources:
   bugtracker: https://github.com/ideegeo/Daemonise/issues
   homepage: https://github.com/ideegeo/Daemonise/wiki
   repository: git://github.com/ideegeo/Daemonise.git
-version: '1.65'
+version: '1.66'

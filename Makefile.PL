@@ -45,6 +45,7 @@ my %WriteMakefileArgs = (
     "Storable" => 0,
     "Store::CouchDB" => 0,
     "Tie::Syslog" => 0,
+    "True::Truth" => "1.1",
     "Try::Tiny" => 0,
     "Unix::Syslog" => 0,
     "WebService::PagerDuty" => 0,
@@ -53,7 +54,7 @@ my %WriteMakefileArgs = (
     "lib" => 0
   },
   "TEST_REQUIRES" => {},
-  "VERSION" => "1.65",
+  "VERSION" => "1.66",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -85,6 +86,7 @@ my %FallbackPrereqs = (
   "Storable" => 0,
   "Store::CouchDB" => 0,
   "Tie::Syslog" => 0,
+  "True::Truth" => "1.1",
   "Try::Tiny" => 0,
   "Unix::Syslog" => 0,
   "WebService::PagerDuty" => 0,

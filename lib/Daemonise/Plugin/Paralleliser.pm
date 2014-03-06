@@ -2,7 +2,7 @@ package Daemonise::Plugin::Paralleliser;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise Daemon plugin to parallelise certain tasks easily
+# ABSTRACT: Daemonise plugin to parallelise certain tasks easily
 
 use Parallel::ForkManager;
 
@@ -63,11 +63,11 @@ __END__
 
 =head1 NAME
 
-Daemonise::Plugin::Paralleliser - Daemonise Daemon plugin to parallelise certain tasks easily
+Daemonise::Plugin::Paralleliser - Daemonise plugin to parallelise certain tasks easily
 
 =head1 VERSION
 
-version 1.65
+version 1.66
 
 =head1 SYNOPSIS
 
@@ -92,7 +92,7 @@ version 1.65
 
 =head1 ATTRIBUTES
 
-=head2 user
+=head2 worker
 
 =head2 pm
 

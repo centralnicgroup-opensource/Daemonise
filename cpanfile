@@ -22,6 +22,7 @@ requires "Scalar::Util" => "0";
 requires "Storable" => "0";
 requires "Store::CouchDB" => "0";
 requires "Tie::Syslog" => "0";
+requires "True::Truth" => "1.1";
 requires "Try::Tiny" => "0";
 requires "Unix::Syslog" => "0";
 requires "WebService::PagerDuty" => "0";
