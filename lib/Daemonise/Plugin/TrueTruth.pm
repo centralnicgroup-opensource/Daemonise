@@ -35,21 +35,34 @@ after 'configure' => sub {
 # expose True::Truth methods as ours for convenience
 
 
-sub add_true_truth { return (shift @_)->truth->add_true_truth(@_); }
-
-
-sub add_pending_truth { return (shift @_)->truth->add_pending_truth(@_); }
-
-
-sub persist_pending_truth {
-    return (shift @_)->truth->persist_pending_truth(@_);
+sub add_true_truth {
+    my $self = shift;
+    return $self->truth->add_true_truth(@_);
 }
 
 
-sub remove_pending_truth { return (shift @_)->truth->remove_pending_truth(@_); }
+sub add_pending_truth {
+    my $self = shift;
+    return $self->truth->add_pending_truth(@_);
+}
 
 
-sub get_true_truth { return (shift @_)->truth->get_true_truth(@_); }
+sub persist_pending_truth {
+    my $self = shift;
+    return $self->truth->persist_pending_truth(@_);
+}
+
+
+sub remove_pending_truth {
+    my $self = shift;
+    return $self->truth->remove_pending_truth(@_);
+}
+
+
+sub get_true_truth {
+    my $self = shift;
+    return $self->truth->get_true_truth(@_);
+}
 
 1;
 
