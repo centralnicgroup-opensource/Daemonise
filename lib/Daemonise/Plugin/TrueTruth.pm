@@ -36,32 +36,32 @@ after 'configure' => sub {
 
 
 sub add_true_truth {
-    my $self = shift;
-    return $self->truth->add_true_truth(@_);
+    my ($self, @args) = @_;
+    return $self->truth->add_true_truth(@args);
 }
 
 
 sub add_pending_truth {
-    my $self = shift;
-    return $self->truth->add_pending_truth(@_);
+    my ($self, @args) = @_;
+    return $self->truth->add_pending_truth(@args);
 }
 
 
 sub persist_pending_truth {
-    my $self = shift;
-    return $self->truth->persist_pending_truth(@_);
+    my ($self, @args) = @_;
+    return $self->truth->persist_pending_truth(@args);
 }
 
 
 sub remove_pending_truth {
-    my $self = shift;
-    return $self->truth->remove_pending_truth(@_);
+    my ($self, @args) = @_;
+    return $self->truth->remove_pending_truth(@args);
 }
 
 
 sub get_true_truth {
-    my $self = shift;
-    return $self->truth->get_true_truth(@_);
+    my ($self, @args) = @_;
+    return $self->truth->get_true_truth(@args);
 }
 
 1;
