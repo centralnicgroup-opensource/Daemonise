@@ -65,32 +65,45 @@ after 'configure' => sub {
 
 =cut
 
-sub add_true_truth { return (shift @_)->truth->add_true_truth(@_); }
+sub add_true_truth {
+    my ($self, @args) = @_;
+    return $self->truth->add_true_truth(@args);
+}
 
 =head2 add_pending_truth
 
 =cut
 
-sub add_pending_truth { return (shift @_)->truth->add_pending_truth(@_); }
+sub add_pending_truth {
+    my ($self, @args) = @_;
+    return $self->truth->add_pending_truth(@args);
+}
 
 =head2 persist_pending_truth
 
 =cut
 
 sub persist_pending_truth {
-    return (shift @_)->truth->persist_pending_truth(@_);
+    my ($self, @args) = @_;
+    return $self->truth->persist_pending_truth(@args);
 }
 
 =head2 remove_pending_truth
 
 =cut
 
-sub remove_pending_truth { return (shift @_)->truth->remove_pending_truth(@_); }
+sub remove_pending_truth {
+    my ($self, @args) = @_;
+    return $self->truth->remove_pending_truth(@args);
+}
 
 =head2 get_true_truth
 
 =cut
 
-sub get_true_truth { return (shift @_)->truth->get_true_truth(@_); }
+sub get_true_truth {
+    my ($self, @args) = @_;
+    return $self->truth->get_true_truth(@args);
+}
 
 1;
