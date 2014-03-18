@@ -392,7 +392,7 @@ sub start {
         }
         else {
             while (1) {
-                $code->();
+                { $code->(); }
             }
         }
     }
