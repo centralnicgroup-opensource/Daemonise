@@ -469,7 +469,7 @@ store rabbitMQ message in job attribute on receive
 
 =head2 ack (before)
 
-empty job attribute before acknowledging a rabbitMQ message 
+empty job attribute before acknowledging a rabbitMQ message
 
 =head2 get_job
 

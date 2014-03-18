@@ -3,6 +3,30 @@ Changes from 2013-03-18 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
+version 1.67 at 2014-03-18 16:27:35 +0000
+-----------------------------------------
+
+  Change: bc9238a932b0915df2d41e171699b42c9f8a68ec
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-19 05:27:19 +0000
+
+    version bump 
+
+  Change: 901fe99bc261ff63795c39c2efc5d8e88a3e7462
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-19 05:27:07 +0000
+
+    run code in it's own scope block to allow some memory to be freed
+    after each run 
+
+  Change: 8e07de19244b18160e011f69096e1628d9288b35
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-19 05:26:01 +0000
+
+    store message in job attribute when dequeueing it and remove it when
+    ack()ing the message 
+
+-----------------------------------------
 version 1.66 at 2014-03-06 19:23:24 +0000
 -----------------------------------------
 
