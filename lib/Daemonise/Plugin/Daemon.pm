@@ -318,7 +318,7 @@ sub start {
         }
         else {
             while (1) {
-                $code->();
+                eval {$code->();};
             }
         }
     }
