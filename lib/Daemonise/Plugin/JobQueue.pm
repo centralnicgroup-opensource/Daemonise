@@ -70,6 +70,25 @@ around 'log' => sub {
 };
 
 
+around 'dequeue' => sub {
+    my ($orig, $self, $tag) = @_;
+
+    my $msg = $self->$orig($tag);
+    $self->job({ message => $msg });
+
+    return $msg;
+};
+
+
+before 'ack' => sub {
+    my ($self) = @_;
+
+    $self->job({});
+
+    return;
+};
+
+
 sub get_job {
     my ($self, $id) = @_;
 
@@ -398,7 +417,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.66
+version 1.67
 
 =head1 SYNOPSIS
 
@@ -443,6 +462,14 @@ version 1.66
 =head2 configure
 
 =head2 log
+
+=head2 dequeue (around)
+
+store rabbitMQ message in job attribute on receive
+
+=head2 ack (before)
+
+empty job attribute before acknowledging a rabbitMQ message 
 
 =head2 get_job
 
