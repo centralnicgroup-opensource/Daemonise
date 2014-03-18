@@ -118,6 +118,35 @@ around 'log' => sub {
     return;
 };
 
+=head2 dequeue (around)
+
+store rabbitMQ message in job attribute on receive
+
+=cut
+
+around 'dequeue' => sub {
+    my ($orig, $self, $tag) = @_;
+
+    my $msg = $self->$orig($tag);
+    $self->job({ message => $msg });
+
+    return $msg;
+};
+
+=head2 ack (before)
+
+empty job attribute before acknowledging a rabbitMQ message
+
+=cut
+
+before 'ack' => sub {
+    my ($self) = @_;
+
+    $self->job({});
+
+    return;
+};
+
 =head2 get_job
 
 =cut
