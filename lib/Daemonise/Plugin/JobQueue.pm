@@ -128,7 +128,7 @@ around 'dequeue' => sub {
     my ($orig, $self, $tag) = @_;
 
     my $msg = $self->$orig($tag);
-    $self->job({ message => $msg });
+    $self->job({ message => $msg }) unless $tag;
 
     return $msg;
 };
@@ -211,6 +211,7 @@ sub create_job {
     my $job = $self->couchdb->get_doc({ id => $id });
     if ($job) {
         $self->log("found duplicate job: " . $job->{_id});
+        $self->job($job);
         return $job, 1;
     }
 
