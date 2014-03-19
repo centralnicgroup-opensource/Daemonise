@@ -74,7 +74,7 @@ around 'dequeue' => sub {
     my ($orig, $self, $tag) = @_;
 
     my $msg = $self->$orig($tag);
-    $self->job({ message => $msg });
+    $self->job({ message => $msg }) unless $tag;
 
     return $msg;
 };
