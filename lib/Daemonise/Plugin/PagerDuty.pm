@@ -127,7 +127,7 @@ Daemonise::Plugin::PagerDuty - Daemonise PagerDuty plugin
 
 =head1 VERSION
 
-version 1.67
+version 1.68
 
 =head1 SYNOPSIS
 

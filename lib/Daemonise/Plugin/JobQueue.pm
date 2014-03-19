@@ -146,6 +146,7 @@ sub create_job {
     my $job = $self->couchdb->get_doc({ id => $id });
     if ($job) {
         $self->log("found duplicate job: " . $job->{_id});
+        $self->job($job);
         return $job, 1;
     }
 
@@ -417,7 +418,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.67
+version 1.68
 
 =head1 SYNOPSIS
 
