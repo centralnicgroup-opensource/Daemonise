@@ -499,6 +499,10 @@ sub recalculate {
     return 1;
 }
 
+=head2 round
+
+=cut
+
 sub round {
     my ($self, $float) = @_;
 
