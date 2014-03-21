@@ -200,9 +200,9 @@ sub configure {
     }
 
     my $conf = Config::Any->load_files({
-            files       => [ $self->config_file ],
-            use_ext     => 1,
-            driver_args => { General => { -InterPolateEnv => 1 } },
+        files       => [ $self->config_file ],
+        use_ext     => 1,
+        driver_args => { General => { -InterPolateEnv => 1 } },
     });
     $conf = $conf->[0]->{ $self->config_file } if $conf;
 
@@ -269,6 +269,20 @@ sub stop {
     $self->log("good bye cruel world!");
 
     exit;
+}
+
+=head2 round
+
+=cut
+
+sub round {
+    my ($self, $float) = @_;
+
+    # some stupid perl versions on some platforms can't round correctly and i
+    # don't want to use more modules
+    $float += 0.001 if ($float =~ m/\.[0-9]{2}5/);
+
+    return sprintf('%.2f', sprintf('%.10f', $float)) + 0;
 }
 
 =head1 BUGS
