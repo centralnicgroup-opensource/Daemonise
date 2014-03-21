@@ -404,6 +404,12 @@ sub recalculate {
     return 1;
 }
 
+sub round {
+    my ($self, $float) = @_;
+
+    return Basket::Calc::_round($float);
+}
+
 1;
 
 __END__
@@ -418,7 +424,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.68
+version 1.69
 
 =head1 SYNOPSIS
 
