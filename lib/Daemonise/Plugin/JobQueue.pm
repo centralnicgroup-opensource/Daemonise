@@ -404,6 +404,7 @@ sub recalculate {
     return 1;
 }
 
+
 sub round {
     my ($self, $float) = @_;
 
@@ -501,6 +502,8 @@ empty job attribute before acknowledging a rabbitMQ message
 =head2 stop_here
 
 =head2 recalculate
+
+=head2 round
 
 =head1 AUTHOR
 

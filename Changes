@@ -3,8 +3,14 @@ Changes from 2013-03-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.69 at 2014-03-21 04:14:59 +0000
+version 1.69 at 2014-03-21 04:40:22 +0000
 -----------------------------------------
+
+  Change: 2e89df5401bb08cdb00ad70b1c5528e30e85b12b
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-21 17:40:11 +0000
+
+    satisfied POD coverage tests 
 
   Change: 4aad3e8dda8dfd85d0a7da22b9b753f50a4f0fd8
   Author: Tobias Kirschstein <lev@ideegeo.com>
