@@ -8,7 +8,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.69
+version 1.70
 
 =head1 SYNOPSIS
 
@@ -82,6 +82,8 @@ version 1.69
 =head2 log
 
 =head2 stop
+
+=head2 round
 
 =head1 BUGS
 
