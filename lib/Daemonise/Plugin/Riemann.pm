@@ -98,10 +98,10 @@ sub graph {
 
     eval {
         $self->riemann->send({
-                service     => $service,
-                state       => $state,
-                metric      => $metric,
-                description => $desc || "metric for $service",
+            service     => $service,
+            state       => $state,
+            metric      => $metric,
+            description => $desc || "metric for $service",
         });
     };
     carp "sending metric failed: $@" if $@;
@@ -124,7 +124,7 @@ Daemonise::Plugin::Riemann - Daemonise Riemann plugin
 
 =head1 VERSION
 
-version 1.70
+version 1.71
 
 =head1 SYNOPSIS
 

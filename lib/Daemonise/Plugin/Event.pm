@@ -9,6 +9,7 @@ use experimental 'smartmatch';
 use Carp;
 
 BEGIN {
+    with("Daemonise::Plugin::Graphite");
     with("Daemonise::Plugin::CouchDB");
     with("Daemonise::Plugin::RabbitMQ");
 }
@@ -113,20 +114,27 @@ sub create_event {
         $event->{raw}    = $data->{raw};
     }
 
-    # offset is number of hours
+    # offset is number of hours or unix timestamp
     if ($offset) {
-
-        # is it a timestamp of an offset?
         $event->{when} =
             length($offset) >= 10 ? int $offset : $now + ($offset * 60 * 60);
+
         my $old_db = $self->couchdb->db;
         $self->couchdb->db($self->event_db);
         my ($id, $rev) = $self->couchdb->put_doc({ doc => $event });
+        $self->couchdb->db($old_db);
+
         if ($self->couchdb->has_error) {
             $self->log("failed creating $type event: " . $self->couchdb->error);
             return;
         }
-        $self->couchdb->db($old_db);
+
+        # graph new event
+        my $service = join('.',
+            $event->{backend}, $event->{object},
+            $event->{action},  $event->{status});
+        $self->graph("event.$service", 'new', 1);
+
         return $id;
     }
     else {
@@ -168,6 +176,12 @@ sub stop_event {
             $self->couchdb->db($old_db);
 
             $self->log("stopped event $id");
+
+            # graph stopped event
+            my $service = join('.',
+                $event->{backend}, $event->{object},
+                $event->{action},  $event->{status});
+            $self->graph("event.$service", 'stopped', 1);
         }
 
         return 1;
@@ -192,7 +206,7 @@ Daemonise::Plugin::Event - Daemonise Event plugin
 
 =head1 VERSION
 
-version 1.70
+version 1.71
 
 =head1 SYNOPSIS
 

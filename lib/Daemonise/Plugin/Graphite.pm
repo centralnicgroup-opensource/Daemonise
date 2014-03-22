@@ -74,6 +74,8 @@ sub graph {
 
     unless (ref \$service eq 'SCALAR'
         and defined $service
+        and ref \$state eq 'SCALAR'
+        and defined $state
         and ref \$metric eq 'SCALAR'
         and defined $metric)
     {
@@ -94,13 +96,18 @@ sub graph {
     }
 
     if ($self->debug) {
-        $self->log("[graphite] $service: $metric");
+        $self->log("[graphite] $service.$state: $metric");
         return;
     }
 
     # $self->async and return;
 
-    eval { $self->graphite->send(path => $service, value => $metric); };
+    eval {
+        $self->graphite->send(
+            path  => "${service}.${state}",
+            value => $metric,
+        );
+    };
     carp "sending metric failed: $@" if $@;
 
     # exit; # async
@@ -121,7 +128,7 @@ Daemonise::Plugin::Graphite - Daemonise Graphite plugin
 
 =head1 VERSION
 
-version 1.70
+version 1.71
 
 =head1 SYNOPSIS
 
