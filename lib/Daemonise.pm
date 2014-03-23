@@ -205,7 +205,7 @@ sub round {
 sub dump {
     my ($self, $obj) = @_;
 
-    my %options = (use_prototypes => 1);
+    my %options;
     if ($self->debug) {
         $options{colored} = 1;
     }
@@ -215,13 +215,14 @@ sub dump {
     }
 
     require Data::Printer;
+    Data::Printer::import(%options);
 
     given (ref $obj) {
-        when ('SCALAR') { return Data::Printer::p($$obj, %options); }
-        when ('ARRAY')  { return Data::Printer::p(@$obj, %options); }
-        when ('HASH')   { return Data::Printer::p(%$obj, %options); }
-        when ('CODE')   { return Data::Printer::p(&$obj, %options); }
-        default         { return Data::Printer::p($obj,  %options); }
+        when ('SCALAR') { return p($$obj); }
+        when ('ARRAY')  { return p(@$obj); }
+        when ('HASH')   { return p(%$obj); }
+        when ('CODE')   { return p(&$obj); }
+        default         { return p($obj); }
     }
 }
 
