@@ -205,7 +205,7 @@ sub round {
 sub dump {
     my ($self, $obj) = @_;
 
-    my %options;
+    my %options = (use_prototypes => 1);
     if ($self->debug) {
         $options{colored} = 1;
     }
