@@ -215,7 +215,7 @@ sub dump {
     }
 
     require Data::Printer;
-    Data::Printer::import(%options);
+    Data::Printer->import(%options);
 
     given (ref $obj) {
         when ('SCALAR') { return p($$obj); }
