@@ -72,7 +72,6 @@ version 1.72
 =head1 SYNOPSIS
 
     use Daemonise;
-    use Data::Dump 'dump';
     
     my $d = Daemonise->new();
     $d->debug(1);
@@ -87,7 +86,7 @@ version 1.72
     $d->parallelise(\&loop, @input);
     
     sub loop {
-        print dump(@_);
+        print shift;
     }
 
 =head1 ATTRIBUTES

@@ -224,8 +224,7 @@ sub dequeue {
             unless (($frame->{consumer_tag} eq $tag)
                 or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
             {
-                require Data::Dump;
-                $self->log("LOSING MESSAGE: " . Data::Dump::dump($frame));
+                $self->log("LOSING MESSAGE: " . $self->dump($frame));
             }
         }
 

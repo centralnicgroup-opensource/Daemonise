@@ -3,6 +3,10 @@ package Daemonise;
 use Mouse;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
+use Exporter::Lite;    #debug
+
+# supply a general dumper method
+our @EXPORT = qw(dump);    #debug
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
@@ -196,6 +200,23 @@ sub round {
 }
 
 
+sub dump {
+    my ($self, $obj) = @_;
+
+    my %options;
+    if ($self->debug) {
+        $options{colored} = 1;
+    }
+    else {
+        $options{colored}   = 0;
+        $options{multiline} = 0;
+    }
+
+    require Data::Printer;
+    return Data::Printer::p(\$obj, %options);
+}
+
+
 1;    # End of Daemonise
 
 __END__
@@ -286,6 +307,8 @@ version 1.72
 =head2 stop
 
 =head2 round
+
+=head2 dump
 
 =head1 BUGS
 
