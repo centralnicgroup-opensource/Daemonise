@@ -201,7 +201,7 @@ sub round {
 
 
 sub dump {
-    my ($self, @obj) = @_;
+    my ($self, $obj) = @_;
 
     my %options;
     if ($self->debug) {
@@ -213,7 +213,7 @@ sub dump {
     }
 
     require Data::Printer;
-    return Data::Printer::p(@obj, %options);
+    return Data::Printer::p($$obj, %options);
 }
 
 
