@@ -213,7 +213,7 @@ sub dump {
     }
 
     require Data::Printer;
-    return Data::Printer::p(\$obj, %options);
+    return Data::Printer::p($obj, %options);
 }
 
 
