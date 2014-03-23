@@ -218,9 +218,9 @@ sub dump {
     Data::Printer->import(%options);
 
     given (ref $obj) {
-        when ('SCALAR') { return p($$obj); }
-        when ('ARRAY')  { return p(@$obj); }
-        when ('HASH')   { return p(%$obj); }
+        when ('SCALAR') { my $o = $$obj; return p($o); }
+        when ('ARRAY')  { my @o = @$obj; return p(@o); }
+        when ('HASH')   { my %o = %$obj; return p(%o); }
         when ('CODE')   { return p(&$obj); }
         default         { return p($obj); }
     }
