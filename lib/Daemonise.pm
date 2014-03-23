@@ -216,7 +216,7 @@ sub dump {
 
     require Data::Printer;
 
-    given ('test') {
+    given (ref $obj) {
         when ('SCALAR') { return Data::Printer::p($$obj, %options); }
         when ('ARRAY')  { return Data::Printer::p(@$obj, %options); }
         when ('HASH')   { return Data::Printer::p(%$obj, %options); }
