@@ -1,6 +1,8 @@
 package Daemonise;
 
 use Mouse;
+use feature 'switch';
+use experimental 'smartmatch';
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 use Exporter::Lite;    #debug
@@ -213,7 +215,14 @@ sub dump {
     }
 
     require Data::Printer;
-    return Data::Printer::p($$obj, %options);
+
+    given ('test') {
+        when ('SCALAR') { return Data::Printer::p($$obj, %options); }
+        when ('ARRAY')  { return Data::Printer::p(@$obj, %options); }
+        when ('HASH')   { return Data::Printer::p(%$obj, %options); }
+        when ('CODE')   { return Data::Printer::p(&$obj, %options); }
+        default         { return Data::Printer::p($obj,  %options); }
+    }
 }
 
 

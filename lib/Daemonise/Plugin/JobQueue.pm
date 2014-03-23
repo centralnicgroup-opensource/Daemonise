@@ -4,7 +4,6 @@ use Mouse::Role;
 
 # ABSTRACT: Daemonise JobQueue plugin
 
-use feature 'switch';
 use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
