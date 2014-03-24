@@ -6,7 +6,6 @@ requires "Data::Dumper" => "0";
 requires "Data::Printer" => "0";
 requires "DateTime" => "0";
 requires "Digest::MD5" => "0";
-requires "Exporter::Lite" => "0";
 requires "FindBin" => "0";
 requires "JSON" => "0";
 requires "LWP::UserAgent" => "0";
@@ -28,7 +27,6 @@ requires "Try::Tiny" => "0";
 requires "Unix::Syslog" => "0";
 requires "WebService::PagerDuty" => "0";
 requires "experimental" => "0";
-requires "feature" => "0";
 requires "lib" => "0";
 requires "perl" => "5.010";
 

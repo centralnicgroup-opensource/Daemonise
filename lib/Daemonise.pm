@@ -1,14 +1,8 @@
 package Daemonise;
 
 use Mouse;
-use feature 'switch';
-use experimental 'smartmatch';
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
-use Exporter::Lite;    #debug
-
-# supply a general dumper method
-our @EXPORT = qw(dump);    #debug
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
@@ -215,15 +209,17 @@ sub dump {
     }
 
     require Data::Printer;
-    Data::Printer->import(use_prototypes => 1, %options);
+    Data::Printer->import(%options);
 
-    given (ref $obj) {
-        when ('SCALAR') { my $o = $$obj; return p($o); }
-        when ('ARRAY')  { my @o = @$obj; return p(@o); }
-        when ('HASH')   { my %o = %$obj; return p(%o); }
-        when ('CODE')   { return p(&$obj); }
-        default         { return p($obj); }
+    my $dump;
+    if (ref $obj) {
+        $dump = p($obj);
     }
+    else {
+        $dump = p(\$obj);
+    }
+
+    return $dump;
 }
 
 

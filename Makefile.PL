@@ -29,7 +29,6 @@ my %WriteMakefileArgs = (
     "Data::Printer" => 0,
     "DateTime" => 0,
     "Digest::MD5" => 0,
-    "Exporter::Lite" => 0,
     "FindBin" => 0,
     "JSON" => 0,
     "LWP::UserAgent" => 0,
@@ -51,7 +50,6 @@ my %WriteMakefileArgs = (
     "Unix::Syslog" => 0,
     "WebService::PagerDuty" => 0,
     "experimental" => 0,
-    "feature" => 0,
     "lib" => 0
   },
   "TEST_REQUIRES" => {},
@@ -71,7 +69,6 @@ my %FallbackPrereqs = (
   "Data::Printer" => 0,
   "DateTime" => 0,
   "Digest::MD5" => 0,
-  "Exporter::Lite" => 0,
   "FindBin" => 0,
   "JSON" => 0,
   "LWP::UserAgent" => 0,
@@ -93,7 +90,6 @@ my %FallbackPrereqs = (
   "Unix::Syslog" => 0,
   "WebService::PagerDuty" => 0,
   "experimental" => 0,
-  "feature" => 0,
   "lib" => 0
 );
 
