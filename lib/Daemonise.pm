@@ -211,7 +211,7 @@ sub dump {
     $options{colored} = 0 if $no_color;
 
     require Data::Printer;
-    Data::Printer->import(%options);
+    Data::Printer->import(%options) unless __PACKAGE__->can('p');
 
     my $dump;
     if (ref $obj) {
