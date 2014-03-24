@@ -13,7 +13,6 @@ BEGIN {
 =head1 SYNOPSIS
 
     use Daemonise;
-    use Data::Dump 'dump';
     
     my $d = Daemonise->new();
     $d->debug(1);

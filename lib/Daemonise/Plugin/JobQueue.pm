@@ -4,7 +4,6 @@ use Mouse::Role;
 
 # ABSTRACT: Daemonise JobQueue plugin
 
-use feature 'switch';
 use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use DateTime;
@@ -273,7 +272,7 @@ sub start_job {
     $frame->{meta}->{created_by} = $self->job->{message}->{meta}->{id}
         if exists $self->job->{message}->{meta}->{id};
 
-    $self->log("starting '$workflow' workflow with:\n" . Dumper($frame))
+    $self->log("starting '$workflow' workflow with:\n" . $self->dump($frame))
         if $self->debug;
     $self->queue('workflow', $frame);
 

@@ -9,7 +9,6 @@ use Parallel::ForkManager;
 =head1 SYNOPSIS
 
     use Daemonise;
-    use Data::Dump 'dump';
     
     my $d = Daemonise->new();
     $d->debug(1);
@@ -24,7 +23,7 @@ use Parallel::ForkManager;
     $d->parallelise(\&loop, @input);
     
     sub loop {
-        print dump(@_);
+        print shift;
     }
 
 =head1 ATTRIBUTES

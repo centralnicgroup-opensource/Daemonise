@@ -285,6 +285,36 @@ sub round {
     return sprintf('%.2f', sprintf('%.10f', $float)) + 0;
 }
 
+=head2 dump
+
+=cut
+
+sub dump {
+    my ($self, $obj) = @_;
+
+    my %options;
+    if ($self->debug) {
+        $options{colored} = 1;
+    }
+    else {
+        $options{colored}   = 0;
+        $options{multiline} = 0;
+    }
+
+    require Data::Printer;
+    Data::Printer->import(%options);
+
+    my $dump;
+    if (ref $obj) {
+        $dump = p($obj);
+    }
+    else {
+        $dump = p(\$obj);
+    }
+
+    return $dump;
+}
+
 =head1 BUGS
 
 Please report any bugs or feature requests on GitHub's issue tracker L<https://github.com/ideegeo/Daemonise/issues>.
