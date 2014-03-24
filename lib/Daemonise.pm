@@ -192,7 +192,7 @@ sub round {
     # don't want to use more modules
     $float += 0.001 if ($float =~ m/\.[0-9]{2}5/);
 
-    return sprintf('%.2f', sprintf('%.10f', $float)) + 0;
+    return sprintf('%.2f', sprintf('%.10f', $float + 0)) + 0;
 }
 
 

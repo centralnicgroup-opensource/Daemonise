@@ -3,8 +3,20 @@ Changes from 2013-03-24 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.72 at 2014-03-24 13:30:54 +0000
+version 1.72 at 2014-03-24 17:08:45 +0000
 -----------------------------------------
+
+  Change: 635c769e6b6ed6e1406bf5ae5fd9666668ad28c5
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-25 03:33:51 +0000
+
+    add 0 to float in case it's undef or an empty string 
+
+  Change: eb3447b24c2d376cc4211cf326a6cd0f01e5cc76
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-25 03:33:14 +0000
+
+    no need to quote view keys anymore, yay 
 
   Change: 72afd76aebed81c96a6804d32ffb27012f68c952
   Author: Tobias Kirschstein <lev@ideegeo.com>
