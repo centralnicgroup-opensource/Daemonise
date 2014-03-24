@@ -215,10 +215,10 @@ sub dump {
 
     my $dump;
     if (ref $obj) {
-        $dump = p($obj);
+        $dump = p($obj, %options);
     }
     else {
-        $dump = p(\$obj);
+        $dump = p(\$obj, %options);
     }
 
     return $dump;
