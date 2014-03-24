@@ -290,7 +290,7 @@ sub round {
 =cut
 
 sub dump {
-    my ($self, $obj) = @_;
+    my ($self, $obj, $no_color) = @_;
 
     my %options;
     if ($self->debug) {
@@ -301,8 +301,10 @@ sub dump {
         $options{multiline} = 0;
     }
 
+    $options{colored} = 0 if $no_color;
+
     require Data::Printer;
-    Data::Printer->import(%options);
+    Data::Printer->import(%options) unless __PACKAGE__->can('p');
 
     my $dump;
     if (ref $obj) {
