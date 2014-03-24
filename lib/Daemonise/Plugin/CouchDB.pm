@@ -95,7 +95,7 @@ sub lookup {
         my $platform = $path[0];
         my $view     = {
             view => $self->couch_view,
-            opts => { key => '"' . $platform . '"' },
+            opts => { key => $platform },
         };
         my $config = $self->couchdb->get_view($view);
         while (my $part = shift(@path)) {
