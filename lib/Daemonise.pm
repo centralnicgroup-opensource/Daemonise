@@ -196,7 +196,7 @@ sub round {
 }
 
 
-sub dump {
+sub dump {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $obj, $no_color) = @_;
 
     my %options;
