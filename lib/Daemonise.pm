@@ -290,18 +290,16 @@ sub round {
 =cut
 
 sub dump {    ## no critic (ProhibitBuiltinHomonyms)
-    my ($self, $obj, $no_color) = @_;
+    my ($self, $obj, $nocolor_multiline) = @_;
 
     my %options;
     if ($self->debug) {
-        $options{colored} = 1;
+        $options{colored} = $nocolor_multiline ? 0 : 1;
     }
     else {
-        $options{colored}   = 0;
-        $options{multiline} = 0;
+        $options{colored} = 0;
+        $options{multiline} = $nocolor_multiline ? 1 : 0;
     }
-
-    $options{colored} = 0 if $no_color;
 
     require Data::Printer;
     Data::Printer->import(%options) unless __PACKAGE__->can('p');
