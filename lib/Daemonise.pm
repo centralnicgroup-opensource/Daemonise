@@ -6,7 +6,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.72'; # VERSION
+our $VERSION = '1.73'; # VERSION
 
 use Unix::Syslog;
 use Config::Any;
@@ -197,18 +197,16 @@ sub round {
 
 
 sub dump {    ## no critic (ProhibitBuiltinHomonyms)
-    my ($self, $obj, $no_color) = @_;
+    my ($self, $obj, $nocolor_multiline) = @_;
 
     my %options;
     if ($self->debug) {
-        $options{colored} = 1;
+        $options{colored} = $nocolor_multiline ? 0 : 1;
     }
     else {
-        $options{colored}   = 0;
-        $options{multiline} = 0;
+        $options{colored} = 0;
+        $options{multiline} = $nocolor_multiline ? 1 : 0;
     }
-
-    $options{colored} = 0 if $no_color;
 
     require Data::Printer;
     Data::Printer->import(%options) unless __PACKAGE__->can('p');
@@ -239,7 +237,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.72
+version 1.73
 
 =head1 SYNOPSIS
 
