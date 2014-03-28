@@ -87,11 +87,11 @@ has 'tycoon_timeout' => (
     default => sub { 5 },
 );
 
-=head2 tycoon_default_expire
+=head2 cache_default_expire
 
 =cut
 
-has 'tycoon_default_expire' => (
+has 'cache_default_expire' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
@@ -120,11 +120,14 @@ after 'configure' => sub {
     $self->log("configuring KyotoTycoon plugin") if $self->debug;
 
     if (ref($self->config->{kyoto_tycoon}) eq 'HASH') {
-        foreach my $conf_key ('host', 'port', 'timeout', 'default_expire') {
+        foreach my $conf_key ('host', 'port', 'timeout') {
             my $attr = "tycoon_" . $conf_key;
             $self->$attr($self->config->{kyoto_tycoon}->{$conf_key})
                 if defined $self->config->{kyoto_tycoon}->{$conf_key};
         }
+        $self->cache_default_expire(
+            $self->config->{kyoto_tycoon}->{default_expire})
+            if defined $self->config->{kyoto_tycoon}->{default_expire};
     }
 
     $self->tycoon(
@@ -140,10 +143,10 @@ after 'configure' => sub {
 
     # lock cron for 24hours
     if ($self->is_cron) {
-        my $expire = $self->tycoon_default_expire;
-        $self->tycoon_default_expire(24 * 60 * 60);
+        my $expire = $self->cache_default_expire;
+        $self->cache_default_expire(24 * 60 * 60);
         die 'locking failed' unless $self->lock;
-        $self->tycoon_default_expire($expire);
+        $self->cache_default_expire($expire);
     }
 
     return;
@@ -188,7 +191,7 @@ sub cache_set {
     $self->tycoon->set(
         $key,
         encode_base64(nfreeze($data)),
-        ($expire || $self->tycoon_default_expire));
+        ($expire || $self->cache_default_expire));
 
     return 1;
 }
@@ -221,7 +224,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
 
     if (my $pid = $self->tycoon->get($lock)) {
         if ($pid == $$) {
-            $self->tycoon->replace($lock, $$, $self->tycoon_default_expire);
+            $self->tycoon->replace($lock, $$, $self->cache_default_expire);
             $self->log("locking time extended") if $self->debug;
             return 1;
         }
@@ -231,7 +234,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
         }
     }
     else {
-        $self->tycoon->set($lock, $$, $self->tycoon_default_expire);
+        $self->tycoon->set($lock, $$, $self->cache_default_expire);
         $self->log("lock acquired") if $self->debug;
         return 1;
     }

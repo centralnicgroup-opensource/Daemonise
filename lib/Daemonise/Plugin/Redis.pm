@@ -85,11 +85,11 @@ has 'redis_connect_rate' => (
     default => sub { 500 },
 );
 
-=head2 redis_default_expire
+=head2 cache_default_expire
 
 =cut
 
-has 'redis_default_expire' => (
+has 'cache_default_expire' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
@@ -123,16 +123,14 @@ after 'configure' => sub {
     $self->log("configuring Redis plugin") if $self->debug;
 
     if (ref($self->config->{redis}) eq 'HASH') {
-        foreach my $conf_key (
-            'host',            'port',
-            'connect_timeout', 'connect_rate',
-            'default_expire'
-            )
+        foreach my $conf_key ('host', 'port', 'connect_timeout', 'connect_rate')
         {
             my $attr = "redis_" . $conf_key;
             $self->$attr($self->config->{redis}->{$conf_key})
                 if defined $self->config->{redis}->{$conf_key};
         }
+        $self->cache_default_expire($self->config->{redis}->{default_expire})
+            if defined $self->config->{redis}->{default_expire};
     }
 
     $self->redis(
@@ -145,10 +143,10 @@ after 'configure' => sub {
 
     # lock cron for 24hours
     if ($self->is_cron) {
-        my $expire = $self->redis_default_expire;
-        $self->redis_default_expire(24 * 60 * 60);
+        my $expire = $self->cache_default_expire;
+        $self->cache_default_expire(24 * 60 * 60);
         die unless $self->lock;
-        $self->redis_default_expire($expire);
+        $self->cache_default_expire($expire);
     }
 
     return;
@@ -179,7 +177,7 @@ sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
     $self->redis->set($key => encode_base64(nfreeze($data)));
-    $self->redis->expire($key, ($expire || $self->tycoon_default_expire));
+    $self->redis->expire($key, ($expire || $self->cache_default_expire));
 
     return 1;
 }
@@ -212,7 +210,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
 
     if (my $pid = $self->redis->get($lock)) {
         if ($pid == $$) {
-            $self->redis->expire($lock, $self->redis_default_expire);
+            $self->redis->expire($lock, $self->cache_default_expire);
             $self->log("locking time extended") if $self->debug;
             return 1;
         }
@@ -223,7 +221,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     }
     else {
         $self->redis->set($lock => $$);
-        $self->redis->expire($lock, $self->redis_default_expire);
+        $self->redis->expire($lock, $self->cache_default_expire);
         $self->log("lock acquired") if $self->debug;
         return 1;
     }
