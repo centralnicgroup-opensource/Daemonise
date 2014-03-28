@@ -174,6 +174,19 @@ sub create_event {
                 job_id  => $key,
             };
         }
+        when ('backend_call') {
+
+            # include all keys from $data hash first here to have "command",
+            # "queue" and "data" available later
+            $event = {
+                %$data,
+                %$event,
+                backend => 'internal',
+                object  => 'none',
+                action  => 'call',
+                status  => 'none',
+            };
+        }
         default {
             $self->log("unsupported event type: $type");
             return;
