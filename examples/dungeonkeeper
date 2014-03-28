@@ -1,0 +1,166 @@
+#!/usr/bin/env perl
+
+use 5.014;
+use experimental 'smartmatch';
+use Daemonise;
+use Getopt::Long;
+use File::Find::Rule;
+use File::Basename;
+use JSON;
+
+# PODNAME: dungeonkeeper
+
+my $debug;
+my $conf = '/etc/daemonise/dungeonkeeper.conf';
+my $foreground;
+my $queue = basename($0);
+my $pid   = '/var/run/' . $queue . '.pid';
+
+my $command = pop(@ARGV);
+die "$0 (start|stop|restart|status)" unless $command;
+
+GetOptions(
+    "debug|d"      => \$debug,
+    "config|c=s"   => \$conf,
+    "foreground|f" => \$foreground,
+) or die;
+
+my $d = Daemonise->new();
+$d->name($queue . '.' . $d->hostname);
+$d->debug(1)      if $debug;
+$d->debug(1)      if ($d->hostname =~ m/devel/);
+$d->foreground(1) if $foreground;
+$d->pid_file($pid);
+$d->config_file($conf);
+$d->configure;
+$d->load_plugin('RabbitMQ');
+$d->admin_queue(0);
+
+given ($command) {
+    when ("start") { $d->is_worker(1); $d->start(\&main); }
+    when ("stop") { stop(); }
+    when ("restart") { restart(); }
+    when ("status")  { status(); }
+    default          { die "unknown command: $command"; }
+}
+
+sub main {
+    my $base    = $d->config->{defaults}->{binbase};
+    my $pidbase = $d->config->{defaults}->{pidbase};
+
+    # create PID dir and ensure correct owner/group/permissions
+    mkdir($pidbase, 0755) unless (-e $pidbase);
+    my (undef, undef, $uid) = getpwnam($d->config->{main}->{user});
+    my (undef, undef, $gid) = getgrnam($d->config->{main}->{group});
+    chown($uid, $gid, $pidbase) if ($uid or $gid);
+
+    my $frame;
+    eval {
+        $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
+    };
+
+    if ($frame) {
+        $d->log('received message: ' . $d->dump($frame)) if $d->debug;
+
+        $d->mq->ack($d->rabbit_channel, $frame->{delivery_tag});
+
+        my $msg =
+            JSON->new->utf8->allow_blessed->convert_blessed->allow_nonref
+            ->decode($frame->{body} || '{}');
+
+        if ($frame->{routing_key} =~ m/^$queue/) {
+            given ($msg->{command}) {
+                when ('configure') {
+                    $d->log("reconfiguring");
+                    $d->configure('reconfig');
+                }
+                when ('deploy') {
+                    $d->log("deploying");
+                    $d->log(qx{git pull});
+                    restart();
+                    $d->configure('reconfig');
+                }
+                when ('stop') {
+                    restart();
+                    $d->stop;
+                }
+            }
+        }
+    }
+
+    my $amount = rabbits();
+
+    foreach my $rabbit (keys %{ $d->config->{daemons} }) {
+        my $num = $amount->{$rabbit} || 0;
+        if ($num < $d->config->{daemons}->{$rabbit}) {
+            $d->log(  "Daemon $rabbit.rabbit needed ($num:"
+                    . $d->config->{daemons}->{$rabbit}
+                    . ")");
+            $num++;
+            my $pid_file =
+                $pidbase . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+
+            # find a non existent pidfile
+            while (-f $pid_file) {
+                $num++;
+                $pid_file =
+                    $pidbase . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+            }
+
+            # fork the new rabbit
+            system("cd $base && bin/$rabbit.rabbit -p $pid_file");
+        }
+    }
+
+    sleep($d->config->{defaults}->{sleep} || 1);
+}
+
+sub rabbits {
+    my $pidbase = $d->config->{defaults}->{pidbase};
+    my $amount  = {};
+    my $files   = File::Find::Rule->new->file->name('*.pid')->start($pidbase);
+
+    while (defined(my $pid_file = $files->match)) {
+
+        # exract rabbit name from PID file
+        $pid_file =~ m{$pidbase/(.*)\.rabbit\.\d+\.pid$};
+        my $rabbit = $1;
+
+        $amount->{$rabbit} = 0 unless (exists $amount->{$rabbit});
+
+        # check if daemon is running and increase counter
+        my $daemon = Daemonise->new();
+        $daemon->pid_file($pid_file);
+        my $status = $daemon->status;
+        $amount->{$rabbit} += 1 if ($status);
+    }
+
+    return $amount;
+}
+
+sub stop {
+    $d->configure;
+    $d->phase('status');
+    $d->check_pid_file;
+    restart();
+    kill(15, $d->running) if $d->running;
+
+    return;
+}
+
+sub restart {
+    $d->log("stopping all backend daemons");
+    $d->queue(
+        'admin.' . $d->hostname,
+        { command => 'restart' },
+        undef, 'amq.fanout'
+    );
+
+    return;
+}
+
+sub status {
+    my $s = $d->status();
+    if   ($s) { print $s . $/;         exit; }
+    else      { print "not running\n"; exit 1; }
+}

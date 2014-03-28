@@ -1,9 +1,38 @@
 ==================================================
-Changes from 2013-03-27 00:00:00 +0000 to present.
+Changes from 2013-03-28 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.73 at 2014-03-27 13:32:51 +0000
+version 1.74 at 2014-03-28 10:50:07 +0000
+-----------------------------------------
+
+  Change: 2f342aab74153954e3f3920be9d1c96250decb79
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-28 23:49:24 +0000
+
+    added examples for basic workfow engine and event system including
+    documentation templates for rabbit workers and crons 
+
+  Change: 930c1d83cbb9e54a9673772883c7e405b7cc3ac4
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-28 23:45:32 +0000
+
+    support generic backend_call event type 
+
+  Change: d513bc729be6aba066b5f8932ecb74bf72a4d93a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-28 23:44:51 +0000
+
+    added input validation for create_event() 
+
+  Change: ee14450cec137a2440f6db78d886dc0919b78784
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-28 23:40:40 +0000
+
+    use cache_default_expire as unified key across caching plugins 
+
+-----------------------------------------
+version 1.73 at 2014-03-27 13:31:32 +0000
 -----------------------------------------
 
   Change: bf987dacece828a49d3119c8687e9d5fec95896e
@@ -1058,5 +1087,5 @@ version 1.31 at 2013-04-02 05:03:44 +0000
     new plugin Riemann for collecting stats 
 
 =================================================
-Plus 33 releases after 2013-03-27 00:00:00 +0000.
+Plus 33 releases after 2013-03-28 00:00:00 +0000.
 =================================================

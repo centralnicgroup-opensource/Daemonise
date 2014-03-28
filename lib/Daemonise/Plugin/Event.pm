@@ -3,6 +3,7 @@ package Daemonise::Plugin::Event;
 use 5.010;
 use Mouse::Role;
 use experimental 'smartmatch';
+use Scalar::Util qw(looks_like_number);
 
 # ABSTRACT: Daemonise Event plugin
 
@@ -53,6 +54,34 @@ after 'configure' => sub {
 sub create_event {
     my ($self, $type, $platform, $key, $offset, $data) = @_;
 
+    unless (ref \$type eq 'SCALAR') {
+        $self->log("event type must be a string!");
+        return;
+    }
+
+    unless (ref \$platform eq 'SCALAR') {
+        $self->log("platform must be a string!");
+        return;
+    }
+
+    unless (ref \$key eq 'SCALAR') {
+        $self->log("key must be a string!");
+        return;
+    }
+
+    unless (ref \$offset eq 'SCALAR' and looks_like_number($offset)) {
+        $self->log("offset must be a number!");
+        return;
+    }
+
+    # $data is optional, but if it's defined it has to be a hashref
+    if ($data) {
+        unless (ref $data eq 'HASH') {
+            $self->log("data must be a hashref!");
+            return;
+        }
+    }
+
     # base event keys/values
     my $now   = time;
     my $event = {
@@ -101,6 +130,19 @@ sub create_event {
                 action  => 'restart',
                 status  => 'none',
                 job_id  => $key,
+            };
+        }
+        when ('backend_call') {
+
+            # include all keys from $data hash first here to have "command",
+            # "queue" and "data" available later
+            $event = {
+                %$data,
+                %$event,
+                backend => 'internal',
+                object  => 'none',
+                action  => 'call',
+                status  => 'none',
             };
         }
         default {
@@ -206,7 +248,7 @@ Daemonise::Plugin::Event - Daemonise Event plugin
 
 =head1 VERSION
 
-version 1.73
+version 1.74
 
 =head1 SYNOPSIS
 

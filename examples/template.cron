@@ -1,0 +1,33 @@
+#!/usr/bin/env perl
+
+use 5.014;
+use Daemonise;
+use Getopt::Long;
+use File::Basename;
+
+my $debug;
+my $conf = '/etc/daemonise/bunny.conf';
+my ($queue) = basename($0) =~ m/^(.*)\.cron$/;
+
+GetOptions(
+    "debug|d"    => \$debug,
+    "config|c=s" => \$conf,
+) or die;
+
+my $d = Daemonise->new(is_cron => 1);
+$d->name($queue);
+$d->debug(1) if $debug;
+$d->debug(1) if ($d->hostname =~ m/devel/);
+$d->config_file($conf);
+
+# SEE template.rabbit for list of all possible plugins
+$d->load_plugin('JobQueue');
+
+$d->configure;
+
+END {
+    # because in perl 5.18 DESTROY is called in DESTRUCT global phase for whatever reason
+    $d->unlock;
+}
+
+# SEE template.rabbit for documentation of possible methods

@@ -6,8 +6,15 @@ META.json
 META.yml
 Makefile.PL
 README
+bunny.conf
 cpanfile
 dist.ini
+dungeonkeeper.conf
+examples/dungeonkeeper
+examples/tatort.rabbit
+examples/template.cron
+examples/template.rabbit
+examples/workflow.rabbit
 lib/Daemonise.pm
 lib/Daemonise/Plugin/CouchDB.pm
 lib/Daemonise/Plugin/Daemon.pm
