@@ -205,6 +205,8 @@ sub create_event {
 sub stop_event {
     my ($self, $id, $reason) = @_;
 
+    return unless $id;
+
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->event_db);
     my $event = $self->couchdb->get_doc({ id => $id });
@@ -212,7 +214,7 @@ sub stop_event {
     if ($event) {
         unless (exists $event->{processed} and $event->{processed}) {
             $event->{processed} = time;
-            $event->{error} = $reason || 'stopped';
+            $event->{error} = $reason || ('stopped by ' . $self->name);
 
             $self->couchdb->put_doc({ doc => $event });
             $self->couchdb->db($old_db);
@@ -231,7 +233,7 @@ sub stop_event {
 
     $self->couchdb->db($old_db);
 
-    return 0;
+    return;
 }
 
 1;
@@ -248,7 +250,7 @@ Daemonise::Plugin::Event - Daemonise Event plugin
 
 =head1 VERSION
 
-version 1.75
+version 1.76
 
 =head1 SYNOPSIS
 

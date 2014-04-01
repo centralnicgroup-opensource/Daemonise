@@ -1,9 +1,26 @@
 ==================================================
-Changes from 2013-03-28 00:00:00 +0000 to present.
+Changes from 2013-04-01 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.75 at 2014-03-28 13:57:18 +0000
+version 1.76 at 2014-04-01 03:05:49 +0000
+-----------------------------------------
+
+  Change: 52d1a6675c32070170e3bf82439a1c1163c6e874
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-01 16:05:20 +0000
+
+    return if no event ID was given, include daemonise name in default
+    reason for stopping events 
+
+  Change: 11f9eb84e50e875370497b34607b974c48974a97
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-03-29 02:58:09 +0000
+
+    v1.75 
+
+-----------------------------------------
+version 1.75 at 2014-03-28 11:13:18 +0000
 -----------------------------------------
 
   Change: 2d3550423ca7d1cc9b59f739d7d59cac2f40111d
@@ -1097,5 +1114,5 @@ version 1.31 at 2013-04-02 05:03:44 +0000
     new plugin Riemann for collecting stats 
 
 =================================================
-Plus 33 releases after 2013-03-28 00:00:00 +0000.
+Plus 33 releases after 2013-04-01 00:00:00 +0000.
 =================================================

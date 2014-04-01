@@ -115,7 +115,7 @@ Daemonise::Plugin::HipChat - Daemonise HipChat plugin
 
 =head1 VERSION
 
-version 1.75
+version 1.76
 
 =head1 SYNOPSIS
 
