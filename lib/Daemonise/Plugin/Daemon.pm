@@ -5,7 +5,7 @@ use Mouse::Role;
 # ABSTRACT: Daemonise plugin handling PID file, forking, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
-use Unix::Syslog;
+use Sys::Syslog;
 use Scalar::Util qw(looks_like_number);
 
 
@@ -258,7 +258,7 @@ sub daemonise {
                 my $s = shift;
                 warn "Cannot PRINT to a closed filehandle!"
                     unless $s->{'is_open'};
-                map { $_ =~ s/\n/\\n/ } @_;    ## no critic
+                map { $_ =~ s/\n/\\n/gs } @_;    ## no critic
                 eval { syslog($s->facility . "|" . $s->priority, "@_") };
                 die "PRINT failed with errors: $@"
                     if $@;

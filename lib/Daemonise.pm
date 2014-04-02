@@ -8,7 +8,7 @@ use lib "$Bin/../lib";
 
 our $VERSION = '1.77'; # VERSION
 
-use Unix::Syslog;
+use Sys::Syslog qw(:standard :macros);
 use Config::Any;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
@@ -167,10 +167,8 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # escape newlines when not running in debug mode for log parser convenience
     $msg =~ s/\n/\\n/gs unless $self->debug;
 
-    Unix::Syslog::openlog('Daemonise', Unix::Syslog::LOG_PID,
-        Unix::Syslog::LOG_USER);
-    Unix::Syslog::syslog(Unix::Syslog::LOG_NOTICE(),
-        'queue=%s %s', $self->name, $msg);
+    openlog('Daemonise', LOG_PID, LOG_USER);
+    syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
     return;
 }
