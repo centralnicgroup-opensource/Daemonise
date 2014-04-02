@@ -240,6 +240,16 @@ sub daemonise {
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
         elsif ($tie_syslog) {
+            my $name = $self->name;
+            $Tie::Syslog::ident = 'Daemonise';
+            tie *STDOUT, 'Tie::Syslog', {
+                facility => 'LOG_USER',
+                priority => 'LOG_INFO',
+                };
+            tie *STDERR, 'Tie::Syslog', {
+                facility => 'LOG_USER',
+                priority => 'LOG_ERR',
+                };
 
             # inject our own PRINT function into Tie::Syslog so we can escape
             # newlines when not in debug mode
@@ -256,16 +266,6 @@ sub daemonise {
 
             # }
 
-            my $name = $self->name;
-            $Tie::Syslog::ident = 'Daemonise';
-            tie *STDOUT, 'Tie::Syslog', {
-                facility => 'LOG_USER',
-                priority => 'LOG_INFO',
-                };
-            tie *STDERR, 'Tie::Syslog', {
-                facility => 'LOG_USER',
-                priority => 'LOG_ERR',
-                };
         }
         else {
             open(STDOUT, '>', '/dev/null')
