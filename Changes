@@ -3,7 +3,17 @@ Changes from 2013-04-02 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.77 at 2014-04-02 14:06:58 +0000
+version 1.78 at 2014-04-02 14:24:47 +0000
+-----------------------------------------
+
+  Change: 77c38ca828965ec9af2f27fcc1d2edfbb591c665
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-03 03:24:34 +0000
+
+    remove newlines instead of escaping them for better readability 
+
+-----------------------------------------
+version 1.77 at 2014-04-02 14:05:16 +0000
 -----------------------------------------
 
   Change: bb8e57e62f41272e5e94d5c6b6e41f7a2e31f859

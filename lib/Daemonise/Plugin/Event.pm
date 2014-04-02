@@ -250,7 +250,7 @@ Daemonise::Plugin::Event - Daemonise Event plugin
 
 =head1 VERSION
 
-version 1.77
+version 1.78
 
 =head1 SYNOPSIS
 

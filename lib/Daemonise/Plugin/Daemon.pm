@@ -250,7 +250,7 @@ sub daemonise {
                 priority => 'LOG_ERR',
                 };
 
-            # inject our own PRINT function into Tie::Syslog so we can escape
+            # inject our own PRINT function into Tie::Syslog so we can remove
             # newlines when not in debug mode so syslog feeds splunk with nice
             # single lines not losing the context
             unless ($self->debug) {
@@ -261,7 +261,7 @@ sub daemonise {
                     warn "Cannot PRINT to a closed filehandle!"
                         unless $s->{'is_open'};
 
-                    map { $_ =~ s/\n/\\n/gs } @_;    ## no critic
+                    map { $_ =~ s/\s*\n\s*/ /gs } @_;    ## no critic
 
                     eval {
                         Sys::Syslog::syslog($s->facility . "|" . $s->priority,
@@ -469,7 +469,7 @@ Daemonise::Plugin::Daemon - Daemonise plugin handling PID file, forking, syslog
 
 =head1 VERSION
 
-version 1.77
+version 1.78
 
 =head1 SYNOPSIS
 
