@@ -240,6 +240,22 @@ sub daemonise {
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
         elsif ($tie_syslog) {
+
+            # inject our own PRINT function into Tie::Syslog so we can escape
+            # newlines when not in debug mode
+            # unless ($self->debug) {
+            *Tie::Syslog::PRINT = sub {
+                my $s = shift;
+                warn "Cannot PRINT to a closed filehandle!"
+                    unless $s->{'is_open'};
+                map { $_ =~ s/\n/\\n/ } @_;
+                eval { syslog $s->facility . "|" . $s->priority, "@_" };
+                die "PRINT failed with errors: $@"
+                    if $@;
+            };
+
+            # }
+
             my $name = $self->name;
             $Tie::Syslog::ident = 'Daemonise';
             tie *STDOUT, 'Tie::Syslog', {
