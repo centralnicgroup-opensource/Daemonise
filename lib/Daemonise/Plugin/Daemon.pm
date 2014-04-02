@@ -5,7 +5,6 @@ use Mouse::Role;
 # ABSTRACT: Daemonise plugin handling PID file, forking, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
-use Sys::Syslog;
 use Scalar::Util qw(looks_like_number);
 
 
@@ -254,12 +253,16 @@ sub daemonise {
             # inject our own PRINT function into Tie::Syslog so we can escape
             # newlines when not in debug mode
             # unless ($self->debug) {
+            require Sys::Syslog;
             *Tie::Syslog::PRINT = sub {
                 my $s = shift;
                 warn "Cannot PRINT to a closed filehandle!"
                     unless $s->{'is_open'};
                 map { $_ =~ s/\n/\\n/gs } @_;    ## no critic
-                eval { syslog($s->facility . "|" . $s->priority, "@_") };
+                eval {
+                    Sys::Syslog::syslog($s->facility . "|" . $s->priority,
+                        "@_");
+                };
                 die "PRINT failed with errors: $@"
                     if $@;
             };
