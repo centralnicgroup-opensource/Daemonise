@@ -167,7 +167,7 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # escape newlines when not running in debug mode for log parser convenience
     $msg =~ s/\n/\\n/gs unless $self->debug;
 
-    openlog('Daemonise', LOG_PID, LOG_USER);
+    openlog('Daemonise', 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
     return;
