@@ -251,23 +251,25 @@ sub daemonise {
                 };
 
             # inject our own PRINT function into Tie::Syslog so we can escape
-            # newlines when not in debug mode
-            # unless ($self->debug) {
-            require Sys::Syslog;
-            *Tie::Syslog::PRINT = sub {
-                my $s = shift;
-                warn "Cannot PRINT to a closed filehandle!"
-                    unless $s->{'is_open'};
-                map { $_ =~ s/\n/\\n/gs } @_;    ## no critic
-                eval {
-                    Sys::Syslog::syslog($s->facility . "|" . $s->priority,
-                        "@_");
-                };
-                die "PRINT failed with errors: $@"
-                    if $@;
-            };
+            # newlines when not in debug mode so syslog feeds splunk with nice
+            # single lines not losing the context
+            unless ($self->debug) {
+                require Sys::Syslog;
+                *Tie::Syslog::PRINT = sub {
+                    my $s = shift;
 
-            # }
+                    warn "Cannot PRINT to a closed filehandle!"
+                        unless $s->{'is_open'};
+
+                    map { $_ =~ s/\n/\\n/gs } @_;    ## no critic
+
+                    eval {
+                        Sys::Syslog::syslog($s->facility . "|" . $s->priority,
+                            "@_");
+                    };
+                    die "PRINT failed with errors: $@" if $@;
+                };
+            }
 
         }
         else {

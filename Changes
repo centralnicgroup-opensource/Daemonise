@@ -3,8 +3,16 @@ Changes from 2013-04-02 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.77 at 2014-04-02 13:56:38 +0000
+version 1.77 at 2014-04-02 14:05:32 +0000
 -----------------------------------------
+
+  Change: bb8e57e62f41272e5e94d5c6b6e41f7a2e31f859
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-03 03:05:16 +0000
+
+    use Sys::Syslog instead of Unix::Syslog, inject custom print method
+    into Tie::Syslog to escape newlines in non-debug prints to
+    STDOUT/STDERR 
 
   Change: 7e2ff2b3f6e0df061f4f88af42ddcb2622daf144
   Author: Tobias Kirschstein <lev@ideegeo.com>
