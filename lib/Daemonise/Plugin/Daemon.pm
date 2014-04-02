@@ -248,7 +248,7 @@ sub daemonise {
                 my $s = shift;
                 warn "Cannot PRINT to a closed filehandle!"
                     unless $s->{'is_open'};
-                map { $_ =~ s/\n/\\n/ } @_;
+                map { $_ =~ s/\n/\\n/ } @_; ## no critic
                 eval { syslog $s->facility . "|" . $s->priority, "@_" };
                 die "PRINT failed with errors: $@"
                     if $@;
