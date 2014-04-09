@@ -185,6 +185,7 @@ sub configure {
     my ($self, $reconfig) = @_;
 
     ### install a signal handler as anchor for clean shutdowns in plugins
+    $SIG{QUIT} = sub { $self->stop };    ## no critic
     $SIG{TERM} = sub { $self->stop };    ## no critic
     $SIG{INT}  = sub { $self->stop };    ## no critic
 

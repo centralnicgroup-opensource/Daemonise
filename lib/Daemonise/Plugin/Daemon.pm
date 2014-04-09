@@ -353,8 +353,8 @@ sub daemonise {
 
         $self->log("daemon started");
 
-        ### install a signal handler to make sure
-        ### SIGTERM's remove our pid_file
+        ### install signal handlers to make sure we shut down gracefully
+        $SIG{QUIT} = sub { $self->stop };    ## no critic
         $SIG{TERM} = sub { $self->stop };    ## no critic
         $SIG{INT}  = sub { $self->stop };    ## no critic
 

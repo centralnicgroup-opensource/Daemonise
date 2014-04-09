@@ -77,6 +77,7 @@ sub parallelise {
         $self->configure(1);
 
         # do not respond to previously setup TERM and INT signal traps
+        $SIG{QUIT} = 'IGNORE';    ## no critic
         $SIG{TERM} = 'IGNORE';    ## no critic
         $SIG{INT}  = 'IGNORE';    ## no critic
 
