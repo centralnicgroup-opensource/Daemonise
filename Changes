@@ -1,9 +1,25 @@
 ==================================================
-Changes from 2013-04-02 00:00:00 +0000 to present.
+Changes from 2013-04-09 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.78 at 2014-04-02 14:24:47 +0000
+version 1.79 at 2014-04-09 15:13:44 +0000
+-----------------------------------------
+
+  Change: de32b2bf7b3f7a3c1cdaa190e6bce1b4412d99a5
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-10 03:12:47 +0000
+
+    react to SIGQUIT the same way as INT and TERM 
+
+  Change: e1c8df23efbbc2a5c45e2cbe630fdb13b73eee37
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-03 03:25:18 +0000
+
+    v1.78 
+
+-----------------------------------------
+version 1.78 at 2014-04-02 14:24:34 +0000
 -----------------------------------------
 
   Change: 77c38ca828965ec9af2f27fcc1d2edfbb591c665
@@ -1093,54 +1109,6 @@ version 1.32 at 2013-05-01 04:28:52 +0000
 
     added stop_event() for convenience 
 
------------------------------------------
-version 1.31 at 2013-04-02 05:03:44 +0000
------------------------------------------
-
-  Change: a090cfda414b64824ca3c4422daf4118bb198684
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-04-02 18:03:44 +0000
-
-    Checking in changes prior to tagging of version 1.31.
-
-    Changelog diff is:
-
-    diff --git a/Changes b/Changes index ad5779c..aa07b5c 100644 ---
-    a/Changes +++ b/Changes @@ -1,5 +1,8 @@
-
-    Revision history for Daemonise
-
-    +1.31 2013-04-02T18:03:31 + add debug mark to notifications if in
-    debug mode +
-
-    1.30 2013-02-12T02:50:12
-
-    new plugin Riemann providing metric() method 
-
-  Change: 49de3fe6c906f24e10ede2c279ae2458bf07a0cd
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-04-02 18:02:40 +0000
-
-    add debug mark to notifications if in debug mode 
-
-  Change: 120582ab29bf59e582c1a2241a30714ef884f087
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-02-12 02:56:41 +0000
-
-    added missing required modules 
-
-  Change: 810152421b7187293ae8e5446621132faf2adaf7
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-02-12 02:50:49 +0000
-
-    version bump 
-
-  Change: 5d8338af4a9d8c2671e1b809e86eee5db5a3da07
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-02-12 02:47:10 +0000
-
-    new plugin Riemann for collecting stats 
-
 =================================================
-Plus 33 releases after 2013-04-02 00:00:00 +0000.
+Plus 34 releases after 2013-04-09 00:00:00 +0000.
 =================================================

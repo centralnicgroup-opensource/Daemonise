@@ -41,6 +41,7 @@ sub parallelise {
         $self->configure(1);
 
         # do not respond to previously setup TERM and INT signal traps
+        $SIG{QUIT} = 'IGNORE';    ## no critic
         $SIG{TERM} = 'IGNORE';    ## no critic
         $SIG{INT}  = 'IGNORE';    ## no critic
 
@@ -67,7 +68,7 @@ Daemonise::Plugin::Paralleliser - Daemonise plugin to parallelise certain tasks 
 
 =head1 VERSION
 
-version 1.78
+version 1.79
 
 =head1 SYNOPSIS
 

@@ -288,8 +288,8 @@ sub daemonise {
 
         $self->log("daemon started");
 
-        ### install a signal handler to make sure
-        ### SIGTERM's remove our pid_file
+        ### install signal handlers to make sure we shut down gracefully
+        $SIG{QUIT} = sub { $self->stop };    ## no critic
         $SIG{TERM} = sub { $self->stop };    ## no critic
         $SIG{INT}  = sub { $self->stop };    ## no critic
 
@@ -469,7 +469,7 @@ Daemonise::Plugin::Daemon - Daemonise plugin handling PID file, forking, syslog
 
 =head1 VERSION
 
-version 1.78
+version 1.79
 
 =head1 SYNOPSIS
 

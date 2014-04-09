@@ -361,7 +361,7 @@ Daemonise::Plugin::RabbitMQ - Daemonise RabbitMQ plugin
 
 =head1 VERSION
 
-version 1.78
+version 1.79
 
 =head1 SYNOPSIS
 
