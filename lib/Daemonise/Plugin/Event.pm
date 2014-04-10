@@ -52,7 +52,7 @@ after 'configure' => sub {
 
 
 sub create_event {
-    my ($self, $type, $platform, $key, $offset, $data) = @_;
+    my ($self, $type, $platform, $offset, $data) = @_;
 
     unless (ref \$type eq 'SCALAR') {
         $self->log("event type must be a string!");
@@ -64,20 +64,15 @@ sub create_event {
         return;
     }
 
-    unless (ref \$key eq 'SCALAR') {
-        $self->log("key must be a string!");
-        return;
-    }
-
     unless (ref \$offset eq 'SCALAR' and looks_like_number($offset)) {
         $self->log("offset must be a number!");
         return;
     }
 
-    # $data is optional, but if it's defined it has to be a hashref
+    # data is optional but has to be a hash ref if exists
     if ($data) {
         unless (ref $data eq 'HASH') {
-            $self->log("data must be a hashref!");
+            $self->log("data must be a hash ref!");
             return;
         }
     }
@@ -93,46 +88,74 @@ sub create_event {
     # add mapped stuff
     given ($type) {
         when ('restart_billing') {
+            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
+                $self->log('data->key missing or not a scalar');
+                return;
+            }
+
             $event = {
                 %$event,
                 backend => 'internal',
                 object  => 'billing',
                 action  => 'restart',
                 status  => 'none',
-                job_id  => $key,
+                job_id  => $data->{key},
             };
         }
         when ('start_billing') {
+            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
+                $self->log('data->key missing or not a scalar');
+                return;
+            }
+
             $event = {
                 %$event,
                 backend => 'internal',
                 object  => 'billing',
                 action  => 'start',
                 status  => 'none',
-                job_id  => $key,
+                job_id  => $data->{key},
             };
         }
         when ('continue') {
+            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
+                $self->log('data->key missing or not a scalar');
+                return;
+            }
+
             $event = {
                 %$event,
                 backend => 'internal',
                 object  => 'none',
                 action  => 'continue',
                 status  => 'none',
-                job_id  => $key,
+                job_id  => $data->{key},
             };
         }
         when ('restart') {
+            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
+                $self->log('data->key missing or not a scalar');
+                return;
+            }
+
             $event = {
                 %$event,
                 backend => 'internal',
                 object  => 'none',
                 action  => 'restart',
                 status  => 'none',
-                job_id  => $key,
+                job_id  => $data->{key},
             };
         }
         when ('backend_call') {
+            unless (exists $data->{queue}
+                and exists $data->{command}
+                and exists $data->{data})
+            {
+                $self->log(
+                    '"queue", "command" and "data" keys must be present');
+                return;
+            }
 
             # include all keys from $data hash first here to have "command",
             # "queue" and "data" available later
@@ -250,7 +273,7 @@ Daemonise::Plugin::Event - Daemonise Event plugin
 
 =head1 VERSION
 
-version 1.80
+version 1.81
 
 =head1 SYNOPSIS
 
