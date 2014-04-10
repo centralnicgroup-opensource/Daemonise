@@ -65,7 +65,8 @@ after 'configure' => sub {
             if defined $self->config->{api}->{hipchat}->{room};
     }
 
-    $self->hipchat_from($self->name);
+    # truncate name to 15 characters as that's the limit for the "From" field...
+    $self->hipchat_from(substr($self->name, 0, 15));
 
     return;
 };
@@ -115,7 +116,7 @@ Daemonise::Plugin::HipChat - Daemonise HipChat plugin
 
 =head1 VERSION
 
-version 1.79
+version 1.80
 
 =head1 SYNOPSIS
 

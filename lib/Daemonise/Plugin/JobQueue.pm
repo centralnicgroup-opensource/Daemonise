@@ -417,7 +417,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.79
+version 1.80
 
 =head1 SYNOPSIS
 

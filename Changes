@@ -1,9 +1,25 @@
 ==================================================
-Changes from 2013-04-09 00:00:00 +0000 to present.
+Changes from 2013-04-10 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.79 at 2014-04-09 15:13:44 +0000
+version 1.80 at 2014-04-10 01:53:15 +0000
+-----------------------------------------
+
+  Change: 0e3549cb996b1711c826467570d82a2c42687a49
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-10 13:52:29 +0000
+
+    truncate hipchat_from field to 15 chars due to their limitation... 
+
+  Change: ae0d0d7ad66f3696d1ca7dfd02e37adadb98c5e7
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-10 03:14:27 +0000
+
+    v1.79 
+
+-----------------------------------------
+version 1.79 at 2014-04-09 15:12:47 +0000
 -----------------------------------------
 
   Change: de32b2bf7b3f7a3c1cdaa190e6bce1b4412d99a5
@@ -1110,5 +1126,5 @@ version 1.32 at 2013-05-01 04:28:52 +0000
     added stop_event() for convenience 
 
 =================================================
-Plus 34 releases after 2013-04-09 00:00:00 +0000.
+Plus 34 releases after 2013-04-10 00:00:00 +0000.
 =================================================
