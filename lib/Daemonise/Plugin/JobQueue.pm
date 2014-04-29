@@ -33,6 +33,22 @@ has 'job' => (
 );
 
 
+has 'items_key' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'domains' },
+);
+
+
+has 'item_key' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'domain' },
+);
+
+
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
@@ -297,10 +313,10 @@ sub log_worker {
 sub find_job {
     my ($self, $how, $key, $all) = @_;
 
-    my $result;
+    my @result;
     my $old_db = $self->couchdb->db;
     $self->couchdb->db($self->jobqueue_db);
-    $result = $self->couchdb->get_array_view({
+    @result = $self->couchdb->get_view_array({
             view => "find/$how",
             opts => {
                 key          => $key,
@@ -309,11 +325,11 @@ sub find_job {
         });
     $self->couchdb->db($old_db);
 
-    if ($result->[0]) {
-        return @{$result} if $all;
+    if (@result) {
+        return @result if $all;
 
-        $self->job($result->[0]);
-        return $result->[0];
+        $self->job($result[0]);
+        return $result[0];
     }
 
     return;
@@ -346,10 +362,10 @@ sub recalculate {
 
     my $data = $self->job->{message}->{data}->{options};
 
-    unless (exists $data->{domains}
-        and scalar(@{ $data->{domains} || [] }) > 0)
+    unless (exists $data->{ $self->items_key }
+        and scalar(@{ $data->{ $self->items_key } || [] }) > 0)
     {
-        carp 'no domains found, can\'t recalculate';
+        carp 'no ' . $self->items_key . ' found, can\'t recalculate';
         return;
     }
 
@@ -366,15 +382,15 @@ sub recalculate {
     $basket->tax($data->{tax} / 100)
         if (exists $data->{tax} and $data->{tax});
 
-    # add domains and prices
-    for my $dom (@{ $data->{domains} }) {
-        next unless exists $dom->{amount};
-        next unless looks_like_number($dom->{amount});
-        next unless $dom->{amount} > 0;
+    # add item prices
+    for my $item (@{ $data->{ $self->items_key } }) {
+        next unless exists $item->{amount};
+        next unless looks_like_number($item->{amount});
+        next unless $item->{amount} > 0;
 
         $basket->add_item({
-            price    => $dom->{amount},
-            quantity => ($dom->{interval} || 1),
+            price    => $item->{amount},
+            quantity => ($item->{interval} || 1),
         });
     }
 
@@ -403,6 +419,45 @@ sub recalculate {
     return 1;
 }
 
+
+sub find_item_index {
+    my ($self, $data, $item) = @_;
+
+    for (my $i = 0; $i <= $#{ $data->{ $self->items_key } }; $i++) {
+        if ($data->{ $self->items_key }->[$i]->{ $self->item_key } eq $item) {
+            return $i;
+        }
+    }
+
+    return;
+}
+
+
+sub remove_items {
+    my ($self, $data, @items_to_remove) = @_;
+
+    my @removed;
+    my $dest_key = 'removed_' . $self->items_key;
+
+    foreach (@items_to_remove) {
+        my $i = $self->find_item_index($data, $_);
+
+        # remove this item from job
+        push(@removed, splice(@{ $data->{ $self->items_key } }, $i, 1))
+            if defined $i;
+    }
+
+    # store removed items in removed_items key for record
+    if (exists $data->{$dest_key} and ref $data->{$dest_key} eq 'ARRAY') {
+        push(@{ $data->{$dest_key} }, $_) for (@removed);
+    }
+    elsif (@removed) {
+        $data->{$dest_key} = \@removed;
+    }
+
+    return @removed;
+}
+
 1;
 
 __END__
@@ -417,7 +472,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.81
+version 1.82
 
 =head1 SYNOPSIS
 
@@ -448,14 +503,27 @@ version 1.81
     # if you REALLY have to persist something in jobqueue right now, rather don't
     $d->update_job($d->job->{message} || $job->{message});
     
+    # mark job as done and persist
+    $d->job_done($d->job->{message});
+    
     # stops workflow here if it is a job (if it has a message->meta->job_id)
     $d->stop_here;
+    
+    # recalculate totals
+    $d->recalculate;
+    
+    # remove items from a job
+    $d->remove_items($d->job->{message}->{data}->{options}, qw(item1 item2 item3));
 
 =head1 ATTRIBUTES
 
 =head2 jobqueue_db
 
 =head2 job
+
+=head2 items_key
+
+=head2 item_key
 
 =head1 SUBROUTINES/METHODS provided
 
@@ -494,6 +562,21 @@ empty job attribute before acknowledging a rabbitMQ message
 =head2 stop_here
 
 =head2 recalculate
+
+=head2 find_item_index
+
+Find the index of a particular item name in the C<$data->{items_key}> array.
+
+Return undef if not found.
+
+=head2 remove_items
+
+Given a list of item names to remove, remove them from C<$data->{$self->items_key}>
+array and save them in C<$data->{'removed_'  . $self->items_key}> array.
+
+If item isn't found, it is silently ignored.
+
+Return value is an array of removed item hashes.
 
 =head1 AUTHOR
 
