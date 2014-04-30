@@ -3,8 +3,15 @@ Changes from 2013-04-30 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.82 at 2014-04-30 04:50:15 +0000
+version 1.82 at 2014-04-30 04:53:08 +0000
 -----------------------------------------
+
+  Change: 698795a2c2b8bda59a331c9f14e7c0995cd26520
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-04-30 16:51:19 +0000
+
+    added first little test for JobQueue find_item_index() and
+    remove_items() 
 
   Change: 4d589baee8a967b419605cc5b7f60b8486e8e6cf
   Author: Tobias Kirschstein <lev@ideegeo.com>
