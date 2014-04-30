@@ -53,6 +53,11 @@ sub process {
     my $command = $msg->{meta}->{workflow} || $msg->{data}->{command};
     my $platform = $msg->{meta}->{platform};
 
+    # make sure meta->workflow always exists from now on
+    $msg->{meta}->{workflow} = $command
+        unless exists $msg->{meta}->{workflow}
+        and defined $msg->{meta}->{workflow};
+
     unless ($command and $platform) {
         $msg->{error} = "workflow or platform parameter missing";
         $d->update_job($msg);
