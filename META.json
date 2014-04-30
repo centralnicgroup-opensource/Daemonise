@@ -60,6 +60,12 @@
             "lib" : "0",
             "perl" : "5.010"
          }
+      },
+      "test" : {
+         "requires" : {
+            "Test::Deep" : "0",
+            "Test::More" : "0"
+         }
       }
    },
    "release_status" : "stable",

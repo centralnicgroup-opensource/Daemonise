@@ -52,7 +52,10 @@ my %WriteMakefileArgs = (
     "experimental" => 0,
     "lib" => 0
   },
-  "TEST_REQUIRES" => {},
+  "TEST_REQUIRES" => {
+    "Test::Deep" => 0,
+    "Test::More" => 0
+  },
   "VERSION" => "1.82",
   "test" => {
     "TESTS" => "t/*.t"
@@ -85,6 +88,8 @@ my %FallbackPrereqs = (
   "Storable" => 0,
   "Store::CouchDB" => 0,
   "Sys::Syslog" => 0,
+  "Test::Deep" => 0,
+  "Test::More" => 0,
   "Tie::Syslog" => 0,
   "True::Truth" => "1.1",
   "Try::Tiny" => 0,
