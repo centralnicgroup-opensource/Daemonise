@@ -6,7 +6,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.82'; # VERSION
+our $VERSION = '1.83'; # VERSION
 
 use Sys::Syslog qw(:standard :macros);
 use Config::Any;
@@ -168,6 +168,9 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # escape newlines when not running in debug mode for log parser convenience
     $msg =~ s/\s*\n\s*/ /gs unless $self->debug;
 
+    # encode wide characters as UTF-8
+    $msg = encode_utf8($msg);
+
     openlog('Daemonise', 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
@@ -236,7 +239,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.82
+version 1.83
 
 =head1 SYNOPSIS
 
