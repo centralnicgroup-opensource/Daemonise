@@ -169,7 +169,7 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     $msg =~ s/\s*\n\s*/ /gs unless $self->debug;
 
     # encode wide characters as UTF-8
-    $msg = encode_utf8($msg);
+    utf8::encode($msg);
 
     openlog('Daemonise', 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
