@@ -252,6 +252,9 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # escape newlines when not running in debug mode for log parser convenience
     $msg =~ s/\s*\n\s*/ /gs unless $self->debug;
 
+    # encode wide characters as UTF-8
+    utf8::encode($msg);
+
     openlog('Daemonise', 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
