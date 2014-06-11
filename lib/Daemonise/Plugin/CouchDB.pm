@@ -32,14 +32,6 @@ has 'couch_db' => (
 );
 
 
-has 'couch_view' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { 'config/backend' },
-);
-
-
 has 'couch_user' => (
     is  => 'rw',
     isa => 'Str',
@@ -86,31 +78,6 @@ after 'configure' => sub {
     return;
 };
 
-
-sub lookup {
-    my ($self, $key) = @_;
-
-    if ($key) {
-        my @path     = split(/\//, $key);
-        my $platform = $path[0];
-        my $view     = {
-            view => $self->couch_view,
-            opts => { key => $platform },
-        };
-        my $config = $self->couchdb->get_view($view);
-        while (my $part = shift(@path)) {
-            return unless $config->{$part};
-            $config = $config->{$part};
-        }
-        return $config || undef;
-    }
-    else {
-        carp "You have to provide a key to look up!";
-    }
-
-    return;
-}
-
 1;
 
 __END__
@@ -151,8 +118,6 @@ version 1.83
 
 =head2 couch_db
 
-=head2 couch_view
-
 =head2 couch_user
 
 =head2 couch_pass
@@ -160,8 +125,6 @@ version 1.83
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
-
-=head2 lookup
 
 =head1 AUTHOR
 

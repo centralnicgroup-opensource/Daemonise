@@ -64,10 +64,9 @@ sub main {
 sub process {
     my ($msg) = @_;
 
-    my $platform = $msg->{meta}->{platform};
-    my $command  = $msg->{data}->{command};
+    my $command = $msg->{data}->{command};
 
-    $d->log("[$platform]: $command");
+    $d->log("[$command]");
 
     given ($command) {
         when ('object_action') { return action($msg); }
@@ -84,8 +83,7 @@ sub action {
     my ($msg) = @_;
 
     # do stuff here
-    my $platform = $msg->{meta}->{platform};
-    my $data     = $msg->{data}->{options};
+    my $data = $msg->{data}->{options};
 
     # fetch job from jobqueue couchdb and put it in $d->job
     my $job_id = '585675aab87f878c9e98779e9e9c9ccadff';
@@ -96,7 +94,7 @@ sub action {
 
     # starts new job by sending a new job message to workflow worker
     # options = data->options part of a message only
-    $d->start_job('workflow_name', $platform, $data);
+    $d->start_job('workflow_name', $data);
 
     # searches for job in couchdb using view 'find/by_something' and key provided
     my $something = 'some_key';
@@ -134,8 +132,7 @@ sub action {
         parsed => [ 'some', 'parsed', 'response' ],
         raw    => 'some%20raw%20response',
     };
-    my $event_id =
-        $d->create_event('pre_defined_type', $platform, $key, $when, $options);
+    my $event_id = $d->create_event('pre_defined_type', $key, $when, $options);
 
     # hipchat notify, room defaults to 'development' when undef
     # severity can be debug, info, warning, critical, error, defaults to 'info'
