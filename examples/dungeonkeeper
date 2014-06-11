@@ -16,14 +16,14 @@ my $foreground;
 my $queue = basename($0);
 my $pid   = '/var/run/' . $queue . '.pid';
 
-my $command = pop(@ARGV);
-die "$0 (start|stop|restart|status)" unless $command;
-
 GetOptions(
     "debug|d"      => \$debug,
     "config|c=s"   => \$conf,
     "foreground|f" => \$foreground,
 ) or die;
+
+my $command = pop(@ARGV);
+die "$0 (start|stop|restart|status) [daemon1 daemon2 ...]" unless $command;
 
 my $d = Daemonise->new();
 $d->name($queue . '.' . $d->hostname);
@@ -38,20 +38,24 @@ $d->admin_queue(0);
 
 given ($command) {
     when ("start") { $d->is_worker(1); $d->start(\&main); }
-    when ("stop") { stop(); }
-    when ("restart") { restart(); }
-    when ("status")  { status(); }
+    when ("stop") { stop(@ARGV); }
+    when ("restart") { restart(@ARGV); }
+    when ("status")  { status(@ARGV); }
     default          { die "unknown command: $command"; }
 }
 
 sub main {
-    my $base    = $d->config->{defaults}->{binbase};
-    my $pidbase = $d->config->{defaults}->{pidbase};
+    check_config($d->config, 1);
+
+    my $base    = $d->config->{main}->{binbase};
+    my $pidbase = $d->config->{main}->{pidbase};
+    my $user    = $d->config->{main}->{user};
+    my $group   = $d->config->{main}->{group};
 
     # create PID dir and ensure correct owner/group/permissions
     mkdir($pidbase, 0755) unless (-e $pidbase);
-    my (undef, undef, $uid) = getpwnam($d->config->{main}->{user});
-    my (undef, undef, $gid) = getgrnam($d->config->{main}->{group});
+    my (undef, undef, $uid) = getpwnam($user);
+    my (undef, undef, $gid) = getgrnam($group);
     chown($uid, $gid, $pidbase) if ($uid or $gid);
 
     my $frame;
@@ -71,6 +75,31 @@ sub main {
         if ($frame->{routing_key} =~ m/^$queue/) {
             given ($msg->{command}) {
                 when ('configure') {
+                    if (exists $msg->{config}
+                        and check_config($msg->{config}))
+                    {
+                        $d->log("updating in-memory config");
+
+                        # find daemons that need to be stopped
+                        # either daemon name disappeared or daemon count is <= 0
+                        my @daemons;
+                        for (keys %{ $d->config->{daemons} }) {
+                            if (exists $msg->{config}->{daemons}->{$_}) {
+                                push(@daemons, $_)
+                                    if $msg->{config}->{daemons}->{$_} <= 0;
+                            }
+                            else {
+                                push(@daemons, $_);
+                            }
+                        }
+
+                        # stop all non-existing daemons if needed
+                        restart(@daemons) if @daemons;
+
+                        # store new config and keep going
+                        $d->config($msg->{config});
+                    }
+
                     $d->log("reconfiguring");
                     $d->configure('reconfig');
                 }
@@ -93,7 +122,7 @@ sub main {
     foreach my $rabbit (keys %{ $d->config->{daemons} }) {
         my $num = $amount->{$rabbit} || 0;
         if ($num < $d->config->{daemons}->{$rabbit}) {
-            $d->log(  "Daemon $rabbit.rabbit needed ($num:"
+            $d->log(  "daemon $rabbit needed ($num:"
                     . $d->config->{daemons}->{$rabbit}
                     . ")");
             $num++;
@@ -112,11 +141,11 @@ sub main {
         }
     }
 
-    sleep($d->config->{defaults}->{sleep} || 1);
+    sleep($d->config->{main}->{sleep} || 1);
 }
 
 sub rabbits {
-    my $pidbase = $d->config->{defaults}->{pidbase};
+    my $pidbase = $d->config->{main}->{pidbase};
     my $amount  = {};
     my $files   = File::Find::Rule->new->file->name('*.pid')->start($pidbase);
 
@@ -139,6 +168,20 @@ sub rabbits {
 }
 
 sub stop {
+    my (@daemons) = @_;
+
+    if (@daemons) {
+        $d->log('requesting to stop daemons: [' . join(' ', @daemons) . ']');
+
+        for (@daemons) {
+            delete $d->config->{daemons}->{$_}
+                if exists $d->config->{daemons}->{$_};
+        }
+
+        $d->queue($queue, { command => 'configure', config => $d->config });
+        return;
+    }
+
     $d->configure;
     $d->phase('status');
     $d->check_pid_file;
@@ -149,10 +192,23 @@ sub stop {
 }
 
 sub restart {
-    $d->log("stopping all backend daemons");
+    my (@daemons) = @_;
+
+    if (@daemons) {
+        $d->log('stopping daemons: [' . join(' ', @daemons) . ']');
+
+        $d->queue(
+            'admin.' . $d->hostname,
+            { command => 'stop', daemons => \@daemons },
+            undef, 'amq.fanout'
+        );
+        return;
+    }
+
+    $d->log("stopping all daemons");
     $d->queue(
         'admin.' . $d->hostname,
-        { command => 'restart' },
+        { command => 'stop' },
         undef, 'amq.fanout'
     );
 
@@ -163,4 +219,35 @@ sub status {
     my $s = $d->status();
     if   ($s) { print $s . $/;         exit; }
     else      { print "not running\n"; exit 1; }
+}
+
+sub check_config {
+    my ($config, $die) = @_;
+
+    my $valid = 1;
+
+    $valid = 0 unless ref $config eq 'HASH';
+    $valid = 0 unless exists $config->{main};
+    $valid = 0 unless ref $config->{main} eq 'HASH';
+    $valid = 0
+        unless exists $config->{main}->{user}
+        and defined $config->{main}->{user};
+    $valid = 0
+        unless exists $config->{main}->{group}
+        and defined $config->{main}->{group};
+    $valid = 0
+        unless exists $config->{main}->{binbase}
+        and defined $config->{main}->{binbase};
+    $valid = 0
+        unless exists $config->{main}->{pidbase}
+        and defined $config->{main}->{pidbase};
+    $valid = 0
+        unless ref $config->{daemons} eq 'HASH'
+        and keys %{ $config->{daemons} };
+
+    return 1 if $valid;
+
+    return unless $die;
+
+    die('config misses mandatory entries');
 }
