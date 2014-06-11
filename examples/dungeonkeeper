@@ -37,26 +37,20 @@ $d->load_plugin('RabbitMQ');
 $d->admin_queue(0);
 
 given ($command) {
-    when ("start") { $d->is_worker(1); $d->start(\&main); }
-    when ("stop") { stop(@ARGV); }
+    when ("start") {
+        $d->is_worker(1);
+        check_config($d->config, 1);
+        $d->start(\&main);
+    }
+    when ("stop")    { stop(@ARGV); }
     when ("restart") { restart(@ARGV); }
     when ("status")  { status(@ARGV); }
     default          { die "unknown command: $command"; }
 }
 
 sub main {
-    check_config($d->config, 1);
-
     my $base    = $d->config->{main}->{binbase};
     my $pidbase = $d->config->{main}->{pidbase};
-    my $user    = $d->config->{main}->{user};
-    my $group   = $d->config->{main}->{group};
-
-    # create PID dir and ensure correct owner/group/permissions
-    mkdir($pidbase, 0755) unless (-e $pidbase);
-    my (undef, undef, $uid) = getpwnam($user);
-    my (undef, undef, $gid) = getgrnam($group);
-    chown($uid, $gid, $pidbase) if ($uid or $gid);
 
     my $frame;
     eval {
@@ -244,6 +238,21 @@ sub check_config {
     $valid = 0
         unless ref $config->{daemons} eq 'HASH'
         and keys %{ $config->{daemons} };
+
+    if ($valid and $die) {
+        my $binbase = $config->{main}->{binbase};
+        my $pidbase = $config->{main}->{pidbase};
+        my $user    = $config->{main}->{user};
+        my $group   = $config->{main}->{group};
+
+        # create PID dir and ensure correct owner/group/permissions
+        mkdir($pidbase, 0755) unless (-d $pidbase);
+        my (undef, undef, $uid) = getpwnam($user);
+        my (undef, undef, $gid) = getgrnam($group);
+        chown($uid, $gid, $pidbase) if ($uid or $gid);
+
+        die("not a directory: $binbase") unless (-d $binbase);
+    }
 
     return 1 if $valid;
 
