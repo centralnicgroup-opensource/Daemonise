@@ -64,18 +64,18 @@ sub process {
     }
 
     $d->couchdb->db('workflow');
-    my $view = $d->couchdb->get_array_view({
-        view => 'workflow/by_name_user',
+    my $wf = $d->couchdb->get_view({
+        view => 'workflow/name',
         opts => { key => $command },
     });
 
-    if (!$view->[0]) {
+    unless ($wf and exists $wf->{$command}) {
         $msg->{error} = "Could not find a workflow for [$command]";
         $d->update_job($msg);
         return $msg;
     }
 
-    my $wf = $view->[0];
+    $wf = $wf->{$command};
     my $next_hop;
 
     if ($msg->{meta}->{log}) {
@@ -147,24 +147,25 @@ sub process {
     $d->log("next worker: $next_hop");
 
     $d->couchdb->db('workflow');
-    $view = $d->couchdb->get_array_view({
-        view => 'worker/by_name',
+    my $worker = $d->couchdb->get_view({
+        view => 'worker/name',
         opts => { key => $next_hop },
     });
-    if (!$view->[0]) {
+    unless ($worker and exists $worker->{$next_hop}) {
         $msg->{error} = "Could not find worker [$next_hop]";
         $d->update_job($msg);
 
         return $msg;
     }
+    $worker = $worker->{$next_hop};
 
     $msg->{meta}->{worker}   = $next_hop;
     $msg->{meta}->{workflow} = $msg->{data}->{command}
         unless $msg->{meta}->{workflow};
-    $msg->{data}->{command} = $view->[0]->{command};
+    $msg->{data}->{command} = $worker->{command};
 
     # send to next worker
-    $d->queue($view->[0]->{location}, $msg, 'workflow');
+    $d->queue($worker->{queue}, $msg, 'workflow');
 
     return $msg;
 }
