@@ -54,6 +54,9 @@ sub main {
 
     my $frame;
     eval {
+        # also bind to "$queue"
+        $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.fanout', $queue);
+        
         $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
         $frame = $d->mq->get($d->rabbit_channel, $queue,   { no_ack => 0 })
             unless $frame;
@@ -166,6 +169,8 @@ sub rabbits {
 sub stop {
     my (@daemons) = @_;
 
+    $d->configure;
+
     if (@daemons) {
         $d->log('requesting to stop daemons: [' . join(' ', @daemons) . ']');
 
@@ -174,11 +179,10 @@ sub stop {
                 if exists $d->config->{daemons}->{$_};
         }
 
-        $d->queue($queue, { command => 'configure', config => $d->config });
+        $d->queue($d->name, { command => 'configure', config => $d->config });
         return;
     }
 
-    $d->configure;
     $d->phase('status');
     $d->check_pid_file;
     restart();

@@ -82,6 +82,8 @@ after 'configure' => sub {
     }
 
     foreach my $key (keys %{ $self->config->{main} }) {
+        next unless $key =~ m/^(user|group)$/;
+
         my $val = $self->config->{main}->{$key};
 
         # set properties if they exist but don't die if they don't
