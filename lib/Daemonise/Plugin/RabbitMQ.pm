@@ -115,9 +115,10 @@ has 'reply_queue' => (
 
 
 has 'mq' => (
-    is       => 'rw',
-    isa      => 'Net::AMQP::RabbitMQ',
-    required => 1,
+    is      => 'rw',
+    isa     => 'Net::AMQP::RabbitMQ',
+    lazy    => 1,
+    default => sub { Net::AMQP::RabbitMQ->new },
 );
 
 
@@ -128,6 +129,7 @@ after 'configure' => sub {
         $self->log("closing channel " . $self->rabbit_channel) if $self->debug;
         $self->mq->channel_close($self->rabbit_channel);
         $self->mq->disconnect;
+        $self->mq(Net::AMQP::RabbitMQ->new);
     }
 
     $self->log("configuring RabbitMQ plugin") if $self->debug;
@@ -290,7 +292,6 @@ sub _setup_rabbit_connection {
     }
 
     eval {
-        $self->mq(Net::AMQP::RabbitMQ->new);
         $self->mq->connect(
             $self->rabbit_host, {
                 user     => $self->rabbit_user,
