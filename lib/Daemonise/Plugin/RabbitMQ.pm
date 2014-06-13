@@ -115,10 +115,9 @@ has 'reply_queue' => (
 
 
 has 'mq' => (
-    is      => 'rw',
-    isa     => 'Net::AMQP::RabbitMQ',
-    lazy    => 1,
-    default => sub { Net::AMQP::RabbitMQ->new },
+    is       => 'rw',
+    isa      => 'Net::AMQP::RabbitMQ',
+    required => 1,
 );
 
 
@@ -291,6 +290,7 @@ sub _setup_rabbit_connection {
     }
 
     eval {
+        $self->mq(Net::AMQP::RabbitMQ->new);
         $self->mq->connect(
             $self->rabbit_host, {
                 user     => $self->rabbit_user,
