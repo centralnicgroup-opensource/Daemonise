@@ -55,16 +55,12 @@ sub main {
     my $frame;
     eval {
         # also bind to "$queue"
-        # $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.fanout', $queue);
+        $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.fanout', $queue);
         
         $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
-        # $frame = $d->mq->get($d->rabbit_channel, $queue,   { no_ack => 0 })
-        #     unless $frame;
+        $frame = $d->mq->get($d->rabbit_channel, $queue,   { no_ack => 0 })
+            unless $frame;
     };
-    my $err = $@;
-    if ($err) {
-        $d->log("error: $err");
-    }
 
     if ($frame) {
         $d->log('received message: ' . $d->dump($frame)) if $d->debug;

@@ -125,14 +125,15 @@ has 'mq' => (
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
+    $self->log("configuring RabbitMQ plugin") if $self->debug;
+
     if ($reconfig) {
         $self->log("closing channel " . $self->rabbit_channel) if $self->debug;
         $self->mq->channel_close($self->rabbit_channel);
+        $self->log("disconnect from rabbitMQ server: " . $self->rabbit_host) if $self->debug;
         $self->mq->disconnect;
         $self->mq(Net::AMQP::RabbitMQ->new);
     }
-
-    $self->log("configuring RabbitMQ plugin") if $self->debug;
 
     $self->_setup_rabbit_connection;
 
