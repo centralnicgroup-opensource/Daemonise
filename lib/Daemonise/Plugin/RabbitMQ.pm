@@ -6,7 +6,7 @@ use experimental 'smartmatch';
 
 # ABSTRACT: Daemonise RabbitMQ plugin
 
-use Net::RabbitMQ;
+use Net::AMQP::RabbitMQ;
 use Carp;
 use JSON;
 use Try::Tiny;
@@ -116,9 +116,9 @@ has 'reply_queue' => (
 
 has 'mq' => (
     is      => 'rw',
-    isa     => 'Net::RabbitMQ',
+    isa     => 'Net::AMQP::RabbitMQ',
     lazy    => 1,
-    default => sub { Net::RabbitMQ->new },
+    default => sub { Net::AMQP::RabbitMQ->new },
 );
 
 
