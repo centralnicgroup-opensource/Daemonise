@@ -128,6 +128,7 @@ after 'configure' => sub {
     if ($reconfig) {
         $self->log("closing channel " . $self->rabbit_channel) if $self->debug;
         $self->mq->channel_close($self->rabbit_channel);
+        $self->mq->disconnect;
     }
 
     $self->log("configuring RabbitMQ plugin") if $self->debug;
