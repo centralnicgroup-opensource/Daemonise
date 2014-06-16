@@ -338,12 +338,12 @@ sub dequeue {
         if (   ($frame->{routing_key} eq 'admin')
             or ($frame->{routing_key} eq 'admin.' . $self->hostname))
         {
-            given ($msg->{command} || 'restart') {
+            given ($msg->{command} || 'stop') {
                 when ('configure') {
                     $self->log("reconfiguring");
                     $self->configure('reconfig');
                 }
-                when ('restart') {
+                when ('stop') {
                     my $name = $self->name;
                     if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
                         $self->stop;
