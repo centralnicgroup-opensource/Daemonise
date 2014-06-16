@@ -6,7 +6,7 @@ use experimental 'smartmatch';
 
 # ABSTRACT: Daemonise RabbitMQ plugin
 
-use Net::RabbitMQ;
+use Net::AMQP::RabbitMQ;
 use Carp;
 use JSON;
 use Try::Tiny;
@@ -195,9 +195,9 @@ has 'reply_queue' => (
 
 has 'mq' => (
     is      => 'rw',
-    isa     => 'Net::RabbitMQ',
+    isa     => 'Net::AMQP::RabbitMQ',
     lazy    => 1,
-    default => sub { Net::RabbitMQ->new },
+    default => sub { Net::AMQP::RabbitMQ->new },
 );
 
 =head1 SUBROUTINES/METHODS provided
@@ -209,12 +209,16 @@ has 'mq' => (
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
+    $self->log("configuring RabbitMQ plugin") if $self->debug;
+
     if ($reconfig) {
         $self->log("closing channel " . $self->rabbit_channel) if $self->debug;
         $self->mq->channel_close($self->rabbit_channel);
+        $self->log("disconnecting from rabbitMQ server: " . $self->rabbit_host)
+            if $self->debug;
+        $self->mq->disconnect;
+        $self->mq(Net::AMQP::RabbitMQ->new);
     }
-
-    $self->log("configuring RabbitMQ plugin") if $self->debug;
 
     $self->_setup_rabbit_connection;
 
