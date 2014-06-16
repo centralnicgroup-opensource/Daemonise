@@ -59,17 +59,6 @@ has 'couch_db' => (
     default => sub { 'test' },
 );
 
-=head2 couch_view
-
-=cut
-
-has 'couch_view' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { 'config/backend' },
-);
-
 =head2 couch_user
 
 =cut
@@ -127,33 +116,5 @@ after 'configure' => sub {
 
     return;
 };
-
-=head2 lookup
-
-=cut
-
-sub lookup {
-    my ($self, $key) = @_;
-
-    if ($key) {
-        my @path     = split(/\//, $key);
-        my $platform = $path[0];
-        my $view     = {
-            view => $self->couch_view,
-            opts => { key => $platform },
-        };
-        my $config = $self->couchdb->get_view($view);
-        while (my $part = shift(@path)) {
-            return unless $config->{$part};
-            $config = $config->{$part};
-        }
-        return $config || undef;
-    }
-    else {
-        carp "You have to provide a key to look up!";
-    }
-
-    return;
-}
 
 1;
