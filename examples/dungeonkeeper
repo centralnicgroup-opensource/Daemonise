@@ -49,14 +49,14 @@ given ($command) {
 }
 
 sub main {
-    my $base    = $d->config->{main}->{binbase};
-    my $pidbase = $d->config->{main}->{pidbase};
+    my $base    = $d->config->{daemon}->{bin_dir};
+    my $pid_dir = $d->config->{daemon}->{pid_dir};
 
     my $frame;
     eval {
         # also bind to "$queue"
         $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.fanout', $queue);
-        
+
         $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
         $frame = $d->mq->get($d->rabbit_channel, $queue,   { no_ack => 0 })
             unless $frame;
@@ -74,18 +74,15 @@ sub main {
         if ($frame->{routing_key} =~ m/^$queue/) {
             given ($msg->{command}) {
                 when ('configure') {
-                    if (exists $msg->{config}
-                        and check_config($msg->{config}))
-                    {
+                    if (exists $msg->{bunnies} and ref $msg->{bunnies} eq 'HASH') {
                         $d->log("updating in-memory config");
 
                         # find daemons that need to be stopped
                         # either daemon name disappeared or daemon count is <= 0
                         my @daemons;
-                        for (keys %{ $d->config->{daemons} }) {
-                            if (exists $msg->{config}->{daemons}->{$_}) {
-                                push(@daemons, $_)
-                                    if $msg->{config}->{daemons}->{$_} <= 0;
+                        for (keys %{ $d->config->{bunnies} }) {
+                            if (exists $msg->{bunnies}->{$_}) {
+                                push(@daemons, $_) if $msg->{bunnies}->{$_} < $d->config->{bunnies}->{$_};
                             }
                             else {
                                 push(@daemons, $_);
@@ -96,7 +93,7 @@ sub main {
                         restart(@daemons) if @daemons;
 
                         # store new config and keep going
-                        $d->config($msg->{config});
+                        $d->config->{bunnies} = $msg->{bunnies};
                     }
 
                     $d->log("reconfiguring");
@@ -126,13 +123,13 @@ sub main {
                     . ")");
             $num++;
             my $pid_file =
-                $pidbase . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+                $pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
 
             # find a non existent pidfile
             while (-f $pid_file) {
                 $num++;
                 $pid_file =
-                    $pidbase . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+                    $pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
             }
 
             # fork the new rabbit
@@ -140,18 +137,18 @@ sub main {
         }
     }
 
-    sleep($d->config->{main}->{sleep} || 1);
+    sleep($d->config->{daemon}->{sleep} || 1);
 }
 
 sub rabbits {
-    my $pidbase = $d->config->{main}->{pidbase};
+    my $pid_dir = $d->config->{daemon}->{pid_dir};
     my $amount  = {};
-    my $files   = File::Find::Rule->new->file->name('*.pid')->start($pidbase);
+    my $files   = File::Find::Rule->new->file->name('*.pid')->start($pid_dir);
 
     while (defined(my $pid_file = $files->match)) {
 
         # exract rabbit name from PID file
-        $pid_file =~ m{$pidbase/(.*)\.rabbit\.\d+\.pid$};
+        $pid_file =~ m{$pid_dir/(.*)\.rabbit\.\d+\.pid$};
         my $rabbit = $1;
 
         $amount->{$rabbit} = 0 unless (exists $amount->{$rabbit});
@@ -227,37 +224,37 @@ sub check_config {
     my $valid = 1;
 
     $valid = 0 unless ref $config eq 'HASH';
-    $valid = 0 unless exists $config->{main};
-    $valid = 0 unless ref $config->{main} eq 'HASH';
+    $valid = 0 unless exists $config->{daemon};
+    $valid = 0 unless ref $config->{daemon} eq 'HASH';
     $valid = 0
-        unless exists $config->{main}->{user}
-        and defined $config->{main}->{user};
+        unless exists $config->{daemon}->{user}
+        and defined $config->{daemon}->{user};
     $valid = 0
-        unless exists $config->{main}->{group}
-        and defined $config->{main}->{group};
+        unless exists $config->{daemon}->{group}
+        and defined $config->{daemon}->{group};
     $valid = 0
-        unless exists $config->{main}->{binbase}
-        and defined $config->{main}->{binbase};
+        unless exists $config->{daemon}->{bin_dir}
+        and defined $config->{damon}->{bin_dir};
     $valid = 0
-        unless exists $config->{main}->{pidbase}
-        and defined $config->{main}->{pidbase};
+        unless exists $config->{daemon}->{pid_dir}
+        and defined $config->{daemon}->{pid_dir};
     $valid = 0
-        unless ref $config->{daemons} eq 'HASH'
-        and keys %{ $config->{daemons} };
+        unless ref $config->{bunnies} eq 'HASH'
+        and keys %{ $config->{bunnies} };
 
     if ($valid and $die) {
-        my $binbase = $config->{main}->{binbase};
-        my $pidbase = $config->{main}->{pidbase};
-        my $user    = $config->{main}->{user};
-        my $group   = $config->{main}->{group};
+        my $bin_dir = $config->{daemon}->{bin_dir};
+        my $pid_dir = $config->{daemon}->{pid_dir};
+        my $user    = $config->{daemon}->{user};
+        my $group   = $config->{daemon}->{group};
 
         # create PID dir and ensure correct owner/group/permissions
-        mkdir($pidbase, 0755) unless (-d $pidbase);
+        mkdir($pid_dir, 0755) unless (-d $pid_dir);
         my (undef, undef, $uid) = getpwnam($user);
         my (undef, undef, $gid) = getgrnam($group);
-        chown($uid, $gid, $pidbase) if ($uid or $gid);
+        chown($uid, $gid, $pid_dir) if ($uid or $gid);
 
-        die("not a directory: $binbase") unless (-d $binbase);
+        die("not a directory: $bin_dir") unless (-d $bin_dir);
     }
 
     return 1 if $valid;

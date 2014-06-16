@@ -69,22 +69,44 @@ has 'dont_loop' => (
 );
 
 
+has 'pid_dir' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '/var/run/bunny' },
+);
+
+
+has 'bin_dir' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '/usr/local/bunny' },
+);
+
+
+has 'interval' => (
+    is      => 'rw',
+    isa     => 'Int',
+    lazy    => 1,
+    default => sub { 5 },
+);
+
+
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
     $self->log("configuring Daemon plugin") if $self->debug;
 
-    unless (exists $self->config->{main}
-        and ref $self->config->{main} eq 'HASH')
+    unless (exists $self->config->{daemon}
+        and ref $self->config->{daemon} eq 'HASH')
     {
-        warn "'main' config section missing!";
+        warn "'daemon' plugin config section missing!";
         return;
     }
 
-    foreach my $key (keys %{ $self->config->{main} }) {
-        next unless $key =~ m/^(user|group)$/;
-
-        my $val = $self->config->{main}->{$key};
+    foreach my $key (keys %{ $self->config->{daemon} }) {
+        my $val = $self->config->{daemon}->{$key};
 
         # set properties if they exist but don't die if they don't
         eval { $self->$key($val) };
@@ -513,6 +535,12 @@ version 1.83
 =head2 foreground
 
 =head2 dont_loop
+
+=head2 pid_dir
+
+=head2 bin_dir
+
+=head2 interval
 
 =head1 SUBROUTINES/METHODS provided
 

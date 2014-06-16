@@ -37,11 +37,11 @@ after 'configure' => sub {
 
     $self->log("configuring Events plugin") if $self->debug;
 
-    if (ref($self->config->{events}) eq 'HASH') {
+    if (ref($self->config->{event}) eq 'HASH') {
         foreach my $conf_key ('db', 'queue') {
             my $attr = "event_" . $conf_key;
-            $self->$attr($self->config->{events}->{$conf_key})
-                if defined $self->config->{events}->{$conf_key};
+            $self->$attr($self->config->{event}->{$conf_key})
+                if defined $self->config->{event}->{$conf_key};
         }
     }
 
