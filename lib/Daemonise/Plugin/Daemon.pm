@@ -119,6 +119,39 @@ has 'dont_loop' => (
     default => sub { 0 },
 );
 
+=head2 pid_dir
+
+=cut
+
+has 'pid_dir' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '/var/run/bunny' },
+);
+
+=head2 bin_dir
+
+=cut
+
+has 'bin_dir' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '/usr/local/bunny' },
+);
+
+=head2 interval
+
+=cut
+
+has 'interval' => (
+    is      => 'rw',
+    isa     => 'Int',
+    lazy    => 1,
+    default => sub { 5 },
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -130,15 +163,15 @@ after 'configure' => sub {
 
     $self->log("configuring Daemon plugin") if $self->debug;
 
-    unless (exists $self->config->{main}
-        and ref $self->config->{main} eq 'HASH')
+    unless (exists $self->config->{daemon}
+        and ref $self->config->{daemon} eq 'HASH')
     {
-        warn "'main' config section missing!";
+        warn "'daemon' plugin config section missing!";
         return;
     }
 
-    foreach my $key (keys %{ $self->config->{main} }) {
-        my $val = $self->config->{main}->{$key};
+    foreach my $key (keys %{ $self->config->{daemon} }) {
+        my $val = $self->config->{daemon}->{$key};
 
         # set properties if they exist but don't die if they don't
         eval { $self->$key($val) };

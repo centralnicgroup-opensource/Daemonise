@@ -16,14 +16,14 @@ my $foreground;
 my $queue = basename($0);
 my $pid   = '/var/run/' . $queue . '.pid';
 
-my $command = pop(@ARGV);
-die "$0 (start|stop|restart|status)" unless $command;
-
 GetOptions(
     "debug|d"      => \$debug,
     "config|c=s"   => \$conf,
     "foreground|f" => \$foreground,
 ) or die;
+
+my $command = shift @ARGV;
+die "$0 (start|stop|restart|status) [daemon1 daemon2 ...]" unless $command;
 
 my $d = Daemonise->new();
 $d->name($queue . '.' . $d->hostname);
@@ -37,32 +37,30 @@ $d->load_plugin('RabbitMQ');
 $d->admin_queue(0);
 
 given ($command) {
-    when ("start") { $d->is_worker(1); $d->start(\&main); }
-    when ("stop") { stop(); }
-    when ("restart") { restart(); }
-    when ("status")  { status(); }
+    when ("start")   { start(@ARGV); }
+    when ("stop")    { stop(@ARGV); }
+    when ("restart") { restart(@ARGV); }
+    when ("status")  { status(@ARGV); }
     default          { die "unknown command: $command"; }
 }
 
 sub main {
-    my $base    = $d->config->{defaults}->{binbase};
-    my $pidbase = $d->config->{defaults}->{pidbase};
-
-    # create PID dir and ensure correct owner/group/permissions
-    mkdir($pidbase, 0755) unless (-e $pidbase);
-    my (undef, undef, $uid) = getpwnam($d->config->{main}->{user});
-    my (undef, undef, $gid) = getgrnam($d->config->{main}->{group});
-    chown($uid, $gid, $pidbase) if ($uid or $gid);
-
     my $frame;
     eval {
+        # TODO: bind to some topic queue for all hase dungeonkeepers
+        # $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.topic', $queue);
+
         $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
     };
+    my $err = $@;
+    if ($err) {
+        $d->log("rabbitMQ error: $err");
+    }
 
     if ($frame) {
         $d->log('received message: ' . $d->dump($frame)) if $d->debug;
 
-        $d->mq->ack($d->rabbit_channel, $frame->{delivery_tag});
+        eval { $d->mq->ack($d->rabbit_channel, $frame->{delivery_tag}); };
 
         my $msg =
             JSON->new->utf8->allow_blessed->convert_blessed->allow_nonref
@@ -70,60 +68,49 @@ sub main {
 
         if ($frame->{routing_key} =~ m/^$queue/) {
             given ($msg->{command}) {
-                when ('configure') {
-                    $d->log("reconfiguring");
-                    $d->configure('reconfig');
-                }
-                when ('deploy') {
-                    $d->log("deploying");
-                    $d->log(qx{git pull});
-                    restart();
-                    $d->configure('reconfig');
-                }
-                when ('stop') {
-                    restart();
-                    $d->stop;
-                }
+                when ('configure') { _reconfigure($msg); }
+                when ('deploy')    { _deploy($msg); }
+                when ('stop')      { _stop($msg); }
             }
         }
     }
 
     my $amount = rabbits();
 
-    foreach my $rabbit (keys %{ $d->config->{daemons} }) {
+    foreach my $rabbit (keys %{ $d->config->{bunnies} }) {
         my $num = $amount->{$rabbit} || 0;
-        if ($num < $d->config->{daemons}->{$rabbit}) {
-            $d->log(  "Daemon $rabbit.rabbit needed ($num:"
-                    . $d->config->{daemons}->{$rabbit}
+        if ($num < $d->config->{bunnies}->{$rabbit}) {
+            $d->log(  "bunny $rabbit needed ($num:"
+                    . $d->config->{bunnies}->{$rabbit}
                     . ")");
             $num++;
             my $pid_file =
-                $pidbase . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+                $d->pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
 
             # find a non existent pidfile
             while (-f $pid_file) {
                 $num++;
                 $pid_file =
-                    $pidbase . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+                    $d->pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
             }
 
             # fork the new rabbit
-            system("cd $base && bin/$rabbit.rabbit -p $pid_file");
+            system("cd " . $d->bin_dir . " && bin/$rabbit.rabbit -p $pid_file");
         }
     }
 
-    sleep($d->config->{defaults}->{sleep} || 1);
+    sleep($d->interval || 2);
 }
 
 sub rabbits {
-    my $pidbase = $d->config->{defaults}->{pidbase};
-    my $amount  = {};
-    my $files   = File::Find::Rule->new->file->name('*.pid')->start($pidbase);
+    my $amount = {};
+    my $files  = File::Find::Rule->new->file->name('*.pid')->start($d->pid_dir);
 
     while (defined(my $pid_file = $files->match)) {
 
         # exract rabbit name from PID file
-        $pid_file =~ m{$pidbase/(.*)\.rabbit\.\d+\.pid$};
+        my $pid_dir = $d->pid_dir;
+        $pid_file =~ m{$pid_dir/(.*)\.rabbit\.\d+\.pid$};
         my $rabbit = $1;
 
         $amount->{$rabbit} = 0 unless (exists $amount->{$rabbit});
@@ -138,21 +125,74 @@ sub rabbits {
     return $amount;
 }
 
+sub start {
+    my (@daemons) = @_;
+
+    # TODO: handle starting of individual bunnies
+
+    $d->is_worker(1);
+
+    # create PID dir and ensure correct owner/group/permissions
+    mkdir($d->pid_dir, 0755) unless (-d $d->pid_dir);
+    my (undef, undef, $uid) = getpwnam($d->user);
+    my (undef, undef, $gid) = getgrnam($d->group);
+    chown($uid, $gid, $d->pid_dir) if ($uid or $gid);
+
+    die("not a directory: " . $d->bin_dir) unless (-d $d->bin_dir);
+
+    $d->start(\&main);
+
+    return;
+}
+
 sub stop {
-    $d->configure;
-    $d->phase('status');
-    $d->check_pid_file;
-    restart();
-    kill(15, $d->running) if $d->running;
+    my (@daemons) = @_;
+
+    $d->configure unless $d->mq->is_connected;
+
+    if (@daemons) {
+        $d->log('requesting to stop daemons: [' . join(' ', @daemons) . ']');
+
+        for (@daemons) {
+            delete $d->config->{daemons}->{$_}
+                if exists $d->config->{daemons}->{$_};
+        }
+
+        $d->queue($d->name, { command => 'configure', config => $d->config });
+        return;
+    }
+
+    $d->queue($d->name, { command => 'stop' });
+
+    # $d->phase('status');
+    # $d->check_pid_file;
+    # restart();
+    # kill(15, $d->running) if $d->running;
 
     return;
 }
 
 sub restart {
-    $d->log("stopping all backend daemons");
+    my (@daemons) = @_;
+
+    if (@daemons) {
+        $d->log('stopping daemons: [' . join(' ', @daemons) . ']');
+
+        $d->queue(
+            'admin.' . $d->hostname,
+            { command => 'stop', daemons => \@daemons },
+            undef, 'amq.fanout'
+        );
+        return;
+    }
+
+    # re-read config to make sure all daemons get started again
+    $d->configure($d->mq->is_connected);
+
+    $d->log("stopping all daemons");
     $d->queue(
         'admin.' . $d->hostname,
-        { command => 'restart' },
+        { command => 'stop' },
         undef, 'amq.fanout'
     );
 
@@ -163,4 +203,59 @@ sub status {
     my $s = $d->status();
     if   ($s) { print $s . $/;         exit; }
     else      { print "not running\n"; exit 1; }
+}
+
+sub _reconfigure {
+    my ($msg) = @_;
+
+    if (exists $msg->{bunnies} and ref $msg->{bunnies} eq 'HASH') {
+
+        # find daemons that need to be stopped
+        # either daemon name disappeared or daemon count is < original count
+        my @daemons;
+        for (keys %{ $d->config->{bunnies} }) {
+            if (exists $msg->{bunnies}->{$_}) {
+                push(@daemons, $_)
+                    if $msg->{bunnies}->{$_} < $d->config->{bunnies}->{$_};
+            }
+            else {
+                push(@daemons, $_);
+            }
+        }
+
+        # store new config
+        $d->log("updating in-memory config");
+        $d->config->{bunnies} = $msg->{bunnies};
+
+        # stop all non-existing daemons if needed
+        restart(@daemons) if @daemons;
+    }
+
+    return;
+}
+
+sub _deploy {
+    my ($msg) = @_;
+
+    $d->log("deploying");
+    $d->log(qx{su - hase -s /bin/bash -c "git pull"});
+    restart();
+
+    # read new config file and reconnect to rabbitMQ/CouchDB
+    $d->configure('reconfig');
+
+    # TODO: restart myself in case dungeonkeeper code has changed as well
+    # e.g. fork a child that waits until old dungeonkeeper has disappeared
+    # and becomes the new one
+
+    return;
+}
+
+sub _stop {
+    my ($msg) = @_;
+
+    restart();
+    $d->stop;
+
+    return;
 }
