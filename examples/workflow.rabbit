@@ -75,13 +75,13 @@ sub process {
         return $msg;
     }
 
-    $wf = $wf->{$command};
+    my $path = $wf->{$command};
     my $next_hop;
 
     if ($msg->{meta}->{log}) {
         my @log  = @{ $msg->{meta}->{log} };
         my $last = pop(@log);
-        my @path = @{ $wf->{path} };
+        my @path = @$path;
 
         # if we removed the first step, make sure to start from beginning
         if (defined $last) {
@@ -113,7 +113,7 @@ sub process {
         }
     }
     else {
-        $next_hop = $wf->{path}->[0];
+        $next_hop = $path->[0];
         my ($job, $duplicate) = $d->create_job($msg);
         $msg = $job->{message};
 
