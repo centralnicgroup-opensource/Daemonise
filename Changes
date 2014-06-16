@@ -3,8 +3,47 @@ Changes from 2013-06-16 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.83 at 2014-06-16 02:36:07 +0000
+version 1.83 at 2014-06-16 03:08:39 +0000
 -----------------------------------------
+
+  Change: 70140e5964916aa9b661d9eb476fc1f9a2f9b3f7
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 15:08:27 +0000
+
+    use lower-case plugin names as config file sections, support
+    start/stop/restart of individual bunnies 
+
+  Change: 8eb7a2d194acd8c6c42f6a44948a75ec28f2d295
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 14:57:06 +0000
+
+    fixed worker path parsing, the view now returns only the path
+    directly 
+
+  Change: fcd9301a537be26b136669fab9319b65d6842218
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 14:48:37 +0000
+
+    removed platform parameter 
+
+  Change: 67bdfb8d96ba4ad4403a0cd413c5bcc01bacdb3a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 14:44:42 +0000
+
+    react on stop command instead of restart, which is more ovious 
+
+  Change: 5c0ddb47bc07cafa739a3177cb4c1d7d6f10cf00
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 14:44:16 +0000
+
+    replaced low level rabbitMQ library with newer Net::AMQP::RabbitMQ to
+    use AMQP protocol 0-9-1 
+
+  Change: 5f57cb6b07e302bd4a7559d584e8bc188d8633a4
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 14:40:59 +0000
+
+    removed old misleading code 
 
   Change: 5f8dcf6318c3f9301d5c170e457fb9d3ce88ae45
   Author: Tobias Kirschstein <lev@ideegeo.com>

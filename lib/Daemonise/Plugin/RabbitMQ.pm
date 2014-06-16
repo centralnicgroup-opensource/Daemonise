@@ -130,7 +130,8 @@ after 'configure' => sub {
     if ($reconfig) {
         $self->log("closing channel " . $self->rabbit_channel) if $self->debug;
         $self->mq->channel_close($self->rabbit_channel);
-        $self->log("disconnect from rabbitMQ server: " . $self->rabbit_host) if $self->debug;
+        $self->log("disconnecting from rabbitMQ server: " . $self->rabbit_host)
+            if $self->debug;
         $self->mq->disconnect;
         $self->mq(Net::AMQP::RabbitMQ->new);
     }
