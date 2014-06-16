@@ -319,7 +319,7 @@ sub start_workflow {
         }
     }
 
-    $d->start_job($def->{workflow}, $event->{platform}, $data) if ref $data;
+    $d->start_job($def->{workflow}, $data) if ref $data;
 
     return 1;
 }
@@ -375,9 +375,6 @@ sub backend_call {
     }
 
     my $msg = {
-        meta => {
-            platform => $event->{platform},
-        },
         data => {
             command => $event->{command},
             data    => $event->{data},

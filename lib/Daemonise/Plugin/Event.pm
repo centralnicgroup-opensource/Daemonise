@@ -35,7 +35,7 @@ BEGIN {
         parsed => 'some parsed response',
         raw    => 'some%20raw%20response',
     };
-    my $event_id = $d->create_event('pre_defined_type', "platform_identifier", "job_id", $when, $options);
+    my $event_id = $d->create_event('pre_defined_type', "job_id", $when, $options);
     
     # stop an event
     $d->stop_event($event_id);
@@ -94,15 +94,10 @@ after 'configure' => sub {
 =cut
 
 sub create_event {
-    my ($self, $type, $platform, $offset, $data) = @_;
+    my ($self, $type, $offset, $data) = @_;
 
     unless (ref \$type eq 'SCALAR') {
         $self->log("event type must be a string!");
-        return;
-    }
-
-    unless (ref \$platform eq 'SCALAR') {
-        $self->log("platform must be a string!");
         return;
     }
 
@@ -123,7 +118,6 @@ sub create_event {
     my $now   = time;
     my $event = {
         type      => 'event',
-        platform  => $platform,
         timestamp => $now,
     };
 
@@ -246,10 +240,6 @@ sub create_event {
     }
     else {
         my $frame = {
-            meta => {
-                platform => $event->{platform},
-                lang     => 'en',
-            },
             data => {
                 command => "event_add",
                 options => $event,

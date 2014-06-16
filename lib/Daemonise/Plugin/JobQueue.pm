@@ -37,7 +37,7 @@ BEGIN {
     $job = $d->create_job({ some => { structured => 'hash' } });
     
     # starts new job by sending a new job message to workflow worker
-    $d->start_job('workflow_name', "some platform identifier", { user => "kevin", command => "play" });
+    $d->start_job('workflow_name', { user => "kevin", command => "play" });
     
     # searches for job in couchdb using view 'find/by_something' and key provided
     $job = $d->find_job('by_bottles', "bottle_id");
@@ -139,9 +139,6 @@ around 'log' => sub {
     $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
         if (exists $self->job->{message}->{meta}->{id}
         and defined $self->job->{message}->{meta}->{id});
-    $msg = 'platform=' . $self->job->{message}->{meta}->{platform} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{platform}
-        and defined $self->job->{message}->{meta}->{platform});
 
     $self->$orig($msg);
 
@@ -212,10 +209,8 @@ sub get_job {
 sub create_job {
     my ($self, $msg) = @_;
 
-    unless ((ref($msg) eq 'HASH')
-        and (exists $msg->{meta}->{platform}))
-    {
-        carp "{meta}->{platform} is missing, can't create job";
+    unless (ref $msg eq 'HASH') {
+        carp "msg must be a HASH";
         return;
     }
 
@@ -247,12 +242,11 @@ sub create_job {
 
     $msg->{meta}->{id} = $id;
     $job = {
-        _id      => $id,
-        created  => $created,
-        updated  => $created,
-        message  => $msg,
-        platform => $msg->{meta}->{platform},
-        status   => 'new',
+        _id     => $id,
+        created => $created,
+        updated => $created,
+        message => $msg,
+        status  => 'new',
     };
 
     $id = $self->couchdb->put_doc({ doc => $job });
@@ -273,15 +267,10 @@ sub create_job {
 =cut
 
 sub start_job {
-    my ($self, $workflow, $platform, $options) = @_;
+    my ($self, $workflow, $options) = @_;
 
     unless ($workflow) {
         carp 'workflow not defined';
-        return;
-    }
-
-    unless ($platform) {
-        carp 'platform not defined';
         return;
     }
 
@@ -289,9 +278,8 @@ sub start_job {
 
     my $frame = {
         meta => {
-            platform => $platform,
-            lang     => 'en',
-            user     => $options->{user_id} || undef,
+            lang => 'en',
+            user => $options->{user_id} || undef,
         },
         data => {
             command => $workflow,
