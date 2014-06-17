@@ -108,7 +108,7 @@ sub rabbits {
 
     while (defined(my $pid_file = $files->match)) {
 
-        # exract rabbit name from PID file
+        # extract rabbit name from PID file
         my $pid_dir = $d->pid_dir;
         $pid_file =~ m{$pid_dir/(.*)\.rabbit\.\d+\.pid$};
         my $rabbit = $1;
