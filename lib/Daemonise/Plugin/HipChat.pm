@@ -112,11 +112,20 @@ after 'configure' => sub {
 
 =head2 notify
 
+    Arguments: 
+
+    $msg is the message to send.
+    $room is the room to send to.
+    $severity is the type of message.
+    $notify_users is whether the message will mark the room as having unread messages.
+    $message_format indicates the format of the message. "html" or "text".
+
+    More details at https://www.hipchat.com/docs/api/method/rooms/message
 =cut
 
 sub notify {
-    my ($self, $msg, $room, $severity) = @_;
-
+    my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
+    
     $self->log($msg);
 
     $msg = '[debug] ' . $msg if $self->debug;
@@ -131,8 +140,8 @@ sub notify {
             room_id => $room || $self->hipchat_room,
             from    => $self->hipchat_from,
             message => $self->hostname . ': ' . $msg,
-            message_format => 'text',
-            notify         => 0,
+            message_format => $message_format || 'text',
+            notify         => $notify_users || 0,
             color          => $colour,
         });
 
