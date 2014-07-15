@@ -1,10 +1,22 @@
 ==================================================
-Changes from 2013-06-16 00:00:00 +0000 to present.
+Changes from 2013-07-15 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.83 at 2014-06-16 03:08:39 +0000
+version 1.83 at 2014-07-15 11:39:52 +0000
 -----------------------------------------
+
+  Change: 3c382ded39993936d3cf78e06c036489a413e9c3
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-17 17:11:08 +0000
+
+    renamed config section to lowercase plugin name for consistency 
+
+  Change: 819216a09f7aa7c8ea01e94b444cde4b56b361c9
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-06-16 15:53:25 +0000
+
+    fixed config daemons -> bunnies 
 
   Change: 70140e5964916aa9b661d9eb476fc1f9a2f9b3f7
   Author: Tobias Kirschstein <lev@ideegeo.com>
@@ -940,143 +952,6 @@ version 1.37 at 2013-07-24 21:16:58 +0000
 
     changed handling of rabbit connection setup 
 
------------------------------------------
-version 1.36 at 2013-07-09 02:12:17 +0000
------------------------------------------
-
-  Change: 9eda5ca2f409f7b81b011fb2150e1b486386eefe
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-07-09 04:12:17 +0000
-
-    don't die when is not a reference 
-
-  Change: 79d10712d1a4d48bfefb802f752f5e8ce32cf218
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-06-24 19:01:21 +0000
-
-    fixed cache_del() of kyototycoon plugin, common way to set config
-    attributes with fewer crashes 
-
-  Change: 7a5f51ebd3711185e8dda35bd114b186e5fb93a1
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-06-24 16:06:00 +0000
-
-    have to use set instead of replace 
-
-  Change: 02a16316a6c0cb3203c00c03b06582e8649f77db
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-06-10 11:48:05 +0000
-
-    make sure we have all config keys we want to set for hipchat 
-
-  Change: 5942cc01aefdd3be788122232f62780b8f67b119
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-06-10 08:55:08 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 44afe064b62b27f117e45f04162bd4612a71ca0f
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-05-30 17:44:20 +0000
-
-    don't ever alert in debug mode 
-
-  Change: d9ac64e690d272af06cd8b98ff81c4e524e7d997
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-05-30 14:08:10 +0000
-
-    changed external API's config path 
-
-  Change: b2dcc89aaf694f3232fde63f8fa2f7c1773d067e
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-05-29 18:29:45 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 13e72ee29c35cbc61517223dff65fe7ab34af95b
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-03-26 14:31:48 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: bdf96a1f459112b35402d659bfbb38832b48de9f
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-12-04 11:39:51 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: edb26e45a2eb3fa614bcda77b7f12f4d99836787
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-10-26 14:06:47 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: a4cf1279020d2e53394242c2f0c721d2833c0a0b
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-10-18 12:03:31 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: d187e813c36fface7a5f5b3e9e7eeca609325160
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-09-19 12:40:49 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 1dffe201d1acc4f0d5d3860cd9560d4f6efc44a1
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-09-17 15:04:25 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 2e4c23d048edeaa0e9b568561543ae22ee81114d
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-09-14 15:11:05 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 2dc5662ee1474b8e040cc55a0cf0bdc3fd9bf3ed
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-09-10 19:00:03 +0000
-
-    merge 
-
-  Change: 14d8ad8d6670c2007cc72a799d062506027f970d
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-08-03 15:13:37 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 53051cd045c1288c588c3ad16de126f4a0ab003c
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-05-31 16:52:34 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 01f89f095cfc1276de9c8ade86b87c268f979b85
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-04-30 20:20:42 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: 7c123f771d14a1464e5a71f9b192b39880ced7de
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2012-02-07 15:25:59 +0000
-
-    Merge branch 'master' of github.com:ideegeo/Daemonise 
-
-  Change: ad8ef9574b5b4defe2754c772f6642ce55c52d30
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2011-12-05 11:13:00 +0000
-
-    merge commit 
-
-  Change: fa89713f9b6831f153369be7bac50f9f3072308e
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2011-07-04 17:26:03 +0000
-
-    fixed error message 
-
 =================================================
-Plus 38 releases after 2013-06-16 00:00:00 +0000.
+Plus 39 releases after 2013-07-15 00:00:00 +0000.
 =================================================

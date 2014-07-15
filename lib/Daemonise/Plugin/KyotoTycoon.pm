@@ -66,15 +66,15 @@ after 'configure' => sub {
 
     $self->log("configuring KyotoTycoon plugin") if $self->debug;
 
-    if (ref($self->config->{kyoto_tycoon}) eq 'HASH') {
+    if (ref($self->config->{kyototycoon}) eq 'HASH') {
         foreach my $conf_key ('host', 'port', 'timeout') {
             my $attr = "tycoon_" . $conf_key;
-            $self->$attr($self->config->{kyoto_tycoon}->{$conf_key})
-                if defined $self->config->{kyoto_tycoon}->{$conf_key};
+            $self->$attr($self->config->{kyototycoon}->{$conf_key})
+                if defined $self->config->{kyototycoon}->{$conf_key};
         }
         $self->cache_default_expire(
-            $self->config->{kyoto_tycoon}->{default_expire})
-            if defined $self->config->{kyoto_tycoon}->{default_expire};
+            $self->config->{kyototycoon}->{default_expire})
+            if defined $self->config->{kyototycoon}->{default_expire};
     }
 
     $self->tycoon(
