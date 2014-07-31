@@ -186,8 +186,10 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
+    my $json = $js->encode($hash);
+    utf8::encode($json);
     my $err =
-        $self->mq->publish($self->rabbit_channel, $queue, $js->encode($hash),
+        $self->mq->publish($self->rabbit_channel, $queue, $json,
         $options, $props);
 
     if ($err) {
@@ -365,7 +367,7 @@ Daemonise::Plugin::RabbitMQ - Daemonise RabbitMQ plugin
 
 =head1 VERSION
 
-version 1.83
+version 1.84
 
 =head1 SYNOPSIS
 

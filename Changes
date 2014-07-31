@@ -1,9 +1,32 @@
 ==================================================
-Changes from 2013-07-15 00:00:00 +0000 to present.
+Changes from 2013-07-31 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.83 at 2014-07-15 11:39:52 +0000
+version 1.84 at 2014-07-31 15:06:11 +0000
+-----------------------------------------
+
+  Change: 14f6d553f72c1f910ae47bfb40e882caac96cbdf
+  Author: Joel Pitt <joel@joelpitt.com>
+  Date : 2014-07-29 10:03:37 +0000
+
+    ignore vim undo files 
+
+  Change: d466c2cfe15e4f619df2ad4531260ebda7c3300e
+  Author: Joel Pitt <joel@joelpitt.com>
+  Date : 2014-07-29 10:03:37 +0000
+
+    support optionally specifying message format and whether to notify
+    people in hipchat 
+
+  Change: 1350ce88add609086e6426b8ad77f4b890be8f73
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2014-07-17 21:03:47 +0000
+
+    utf8 encode anything before trying to make JSON out of it 
+
+-----------------------------------------
+version 1.83 at 2014-06-17 05:11:38 +0000
 -----------------------------------------
 
   Change: 3c382ded39993936d3cf78e06c036489a413e9c3
@@ -911,47 +934,6 @@ version 1.38 at 2013-08-13 08:47:25 +0000
 
     check config file existence, version bump 
 
------------------------------------------
-version 1.37 at 2013-07-24 21:16:58 +0000
------------------------------------------
-
-  Change: 35177d56eb1516c4b144f320fe9928eaac7fd822
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-07-24 23:16:58 +0000
-
-    updated README 
-
-  Change: 772348dba93d79a16f74af8d51bc1d029a0c8cb9
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-07-24 23:16:58 +0000
-
-    little bit of error handling 
-
-  Change: c848671b530a21de7136e6e07a23721fcc24d15e
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-07-24 23:16:58 +0000
-
-    moved config file parsing back to main module 
-
-  Change: 8c23801877bceae7f0075948aa08da1b09754c97
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-07-24 23:16:58 +0000
-
-    separated out process forking, config and start/stop/status handling
-    into Daemon default plugin 
-
-  Change: 7c5af5edb4d84f8b24e57ffadcfaaf8a531d1362
-  Author: Lenz Gschwendtner <lenz@ideegeo.com>
-  Date : 2013-07-22 15:59:20 +0000
-
-    new Daemonise version 
-
-  Change: 1cc43683b9611c4a6767a6c19020f02316a06605
-  Author: Lenz Gschwendtner <lenz@ideegeo.com>
-  Date : 2013-07-22 15:57:22 +0000
-
-    changed handling of rabbit connection setup 
-
 =================================================
-Plus 39 releases after 2013-07-15 00:00:00 +0000.
+Plus 40 releases after 2013-07-31 00:00:00 +0000.
 =================================================
