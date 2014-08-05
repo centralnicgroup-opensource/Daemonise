@@ -1,10 +1,16 @@
 ==================================================
-Changes from 2013-07-31 00:00:00 +0000 to present.
+Changes from 2013-08-05 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.84 at 2014-07-31 15:06:11 +0000
+version 1.84 at 2014-08-05 23:01:38 +0000
 -----------------------------------------
+
+  Change: e202f8eb783ab8b1d12ae877236467fe0c1ffb25
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-08-06 00:00:51 +0000
+
+    removed unused module 
 
   Change: 14f6d553f72c1f910ae47bfb40e882caac96cbdf
   Author: Joel Pitt <joel@joelpitt.com>
@@ -935,5 +941,5 @@ version 1.38 at 2013-08-13 08:47:25 +0000
     check config file existence, version bump 
 
 =================================================
-Plus 40 releases after 2013-07-31 00:00:00 +0000.
+Plus 40 releases after 2013-08-05 00:00:00 +0000.
 =================================================
