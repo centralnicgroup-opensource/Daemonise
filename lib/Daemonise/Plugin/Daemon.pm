@@ -5,7 +5,6 @@ use Mouse::Role;
 # ABSTRACT: Daemonise plugin handling PID file, forking, syslog
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
-use Scalar::Util qw(looks_like_number);
 
 =head1 SYNOPSIS
 
