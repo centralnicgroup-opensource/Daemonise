@@ -6,9 +6,9 @@ build_requires:
   Test::Deep: '0'
   Test::More: '0'
 configure_requires:
-  ExtUtils::MakeMaker: '6.30'
+  ExtUtils::MakeMaker: '0'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.013, CPAN::Meta::Converter version 2.133380'
+generated_by: 'Dist::Zilla version 5.020, CPAN::Meta::Converter version 2.142060'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -50,4 +50,4 @@ resources:
   bugtracker: https://github.com/ideegeo/Daemonise/issues
   homepage: https://github.com/ideegeo/Daemonise/wiki
   repository: git://github.com/ideegeo/Daemonise.git
-version: '1.84'
+version: '1.85'

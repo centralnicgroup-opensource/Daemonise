@@ -492,7 +492,7 @@ Daemonise::Plugin::Daemon - Daemonise plugin handling PID file, forking, syslog
 
 =head1 VERSION
 
-version 1.84
+version 1.85
 
 =head1 SYNOPSIS
 
