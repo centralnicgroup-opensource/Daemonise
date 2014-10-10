@@ -11,6 +11,7 @@ use lib "$Bin/../lib";
 use Sys::Syslog qw(:standard :macros);
 use Config::Any;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
+use Data::Printer;
 
 =head1 SYNOPSIS
 
@@ -303,16 +304,9 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
         $options{multiline} = $nocolor_multiline ? 1 : 0;
     }
 
-    require Data::Printer;
     Data::Printer->import(%options) unless __PACKAGE__->can('p');
 
-    my $dump;
-    if (ref $obj) {
-        $dump = p($obj, %options);
-    }
-    else {
-        $dump = p(\$obj, %options);
-    }
+    my $dump = p($obj, %options);
 
     return $dump;
 }
