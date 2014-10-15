@@ -3,8 +3,14 @@ Changes from 2013-10-15 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.85 at 2014-10-15 12:18:43 +0000
+version 1.85 at 2014-10-15 12:52:18 +0000
 -----------------------------------------
+
+  Change: 4b133348c91a3a9cc1b398cf1b8a09071eec9923
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-10-16 01:51:30 +0000
+
+    leave DESTROY{} if is_cron is not true 
 
   Change: 0496c3d599202fb326261992af8ea43f282d4c14
   Author: Tobias Kirschstein <lev@ideegeo.com>
