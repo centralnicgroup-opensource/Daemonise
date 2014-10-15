@@ -262,7 +262,7 @@ sub DESTROY {
     my ($self) = @_;
 
     return unless ref $self;
-    return unless $self->is_cron;
+    return unless $self->{is_cron};
 
     # the Redis object was already destroyed to we need to create
     # a new one with the existing config
