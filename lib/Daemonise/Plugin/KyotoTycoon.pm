@@ -286,7 +286,17 @@ before 'stop' => sub {
 sub DESTROY {
     my ($self) = @_;
 
-    return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+    return unless ref $self;
+
+    # the Cache::KyotoTycoon object was already destroyed to we need to create
+    # a new one with the existing config
+    $self->tycoon(
+        Cache::KyotoTycoon->new(
+            host    => $self->tycoon_host,
+            port    => $self->tycoon_port,
+            timeout => $self->tycoon_timeout,
+            db      => $self->tycoon_db,
+        ));
 
     $self->unlock if $self->is_cron;
 
