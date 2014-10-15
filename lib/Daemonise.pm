@@ -1,5 +1,6 @@
 package Daemonise;
 
+use Modern::Perl;
 use Mouse;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
@@ -223,6 +224,19 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
 
     return $dump;
 }
+
+sub DEMOLISH {
+    my ($self) = @_;
+
+    say ${^GLOBAL_PHASE};
+
+    # return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+
+    $self->unlock if $self->is_cron;
+
+    return;
+}
+
 
 
 1;    # End of Daemonise

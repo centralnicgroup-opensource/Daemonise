@@ -1,5 +1,6 @@
 package Daemonise::Plugin::KyotoTycoon;
 
+use Modern::Perl;
 use Mouse::Role;
 
 # ABSTRACT: Daemonise KyotoTycoon plugin
@@ -205,18 +206,6 @@ before 'stop' => sub {
 
     return;
 };
-
-sub DEMOLISH {
-    my ($self) = @_;
-     $DB::single = 1;
-    say "" . ${^GLOBAL_PHASE};
-
-    return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
-
-    $self->unlock if $self->is_cron;
-
-    return;
-}
 
 1;
 

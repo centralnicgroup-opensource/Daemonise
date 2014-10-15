@@ -1,6 +1,5 @@
 package Daemonise::Plugin::Event;
 
-use 5.010;
 use Mouse::Role;
 use experimental 'smartmatch';
 use Scalar::Util qw(looks_like_number);

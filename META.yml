@@ -27,6 +27,7 @@ requires:
   JSON: '0'
   LWP::UserAgent: '0'
   MIME::Base64: '0'
+  Modern::Perl: '0'
   Mouse: '0'
   Mouse::Role: '0'
   Net::AMQP::RabbitMQ: '0'
@@ -45,7 +46,6 @@ requires:
   WebService::PagerDuty: '0'
   experimental: '0'
   lib: '0'
-  perl: '5.010'
 resources:
   bugtracker: https://github.com/ideegeo/Daemonise/issues
   homepage: https://github.com/ideegeo/Daemonise/wiki

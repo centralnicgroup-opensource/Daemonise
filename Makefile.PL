@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use 5.010;
+
 
 use ExtUtils::MakeMaker ;
 
@@ -32,6 +32,7 @@ my %WriteMakefileArgs = (
     "JSON" => 0,
     "LWP::UserAgent" => 0,
     "MIME::Base64" => 0,
+    "Modern::Perl" => 0,
     "Mouse" => 0,
     "Mouse::Role" => 0,
     "Net::AMQP::RabbitMQ" => 0,
@@ -75,6 +76,7 @@ my %FallbackPrereqs = (
   "JSON" => 0,
   "LWP::UserAgent" => 0,
   "MIME::Base64" => 0,
+  "Modern::Perl" => 0,
   "Mouse" => 0,
   "Mouse::Role" => 0,
   "Net::AMQP::RabbitMQ" => 0,
