@@ -61,6 +61,8 @@ has 'tycoon' => (
     required => 1,
 );
 
+my $tycoon;
+
 
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
@@ -78,13 +80,13 @@ after 'configure' => sub {
             if defined $self->config->{kyototycoon}->{default_expire};
     }
 
-    $self->tycoon(
-        Cache::KyotoTycoon->new(
-            host    => $self->tycoon_host,
-            port    => $self->tycoon_port,
-            timeout => $self->tycoon_timeout,
-            db      => $self->tycoon_db,
-        ));
+    $tycoon = Cache::KyotoTycoon->new(
+        host    => $self->tycoon_host,
+        port    => $self->tycoon_port,
+        timeout => $self->tycoon_timeout,
+        db      => $self->tycoon_db,
+    );
+    $self->tycoon($tycoon);
 
     # don't try to lock() again when reconfiguring
     return if $reconfig;
@@ -206,6 +208,20 @@ before 'stop' => sub {
 
     return;
 };
+
+sub DESTROY {
+    my ($self) = @_;
+
+    print ${^GLOBAL_PHASE} . $/;
+    print $self;
+
+    # return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+
+    $self->unlock if $self->is_cron;
+
+    return;
+}
+
 
 1;
 
