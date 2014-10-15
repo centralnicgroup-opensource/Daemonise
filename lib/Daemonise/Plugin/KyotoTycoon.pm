@@ -206,7 +206,7 @@ before 'stop' => sub {
     return;
 };
 
-sub DESTROY {
+sub DEMOLISH {
     my ($self) = @_;
 
     return if (${^GLOBAL_PHASE} eq 'DESTRUCT');

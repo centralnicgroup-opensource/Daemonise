@@ -1,5 +1,5 @@
 ==================================================
-Changes from 2013-09-28 00:00:00 +0000 to present.
+Changes from 2013-10-15 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
@@ -857,79 +857,6 @@ version 1.42 at 2013-10-17 05:33:18 +0000
 
     v1.41 
 
------------------------------------------
-version 1.41 at 2013-10-14 05:24:05 +0000
------------------------------------------
-
-  Change: 0652169e335a3773a2dc4eb3cfb6d3a5662d6632
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-14 17:24:05 +0000
-
-    set testmode when running in debug mode 
-
-  Change: ca485e41f671226c10f7e65a59e49a38345ff6c9
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-08 14:51:59 +0000
-
-    v1.40 
-
------------------------------------------
-version 1.40 at 2013-10-08 01:48:03 +0000
------------------------------------------
-
-  Change: 6774869e55970a6c17f02dafcfc25f1331d9d6e8
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-08 14:48:03 +0000
-
-    turned message colour into severity value, moved hipchat token in
-    config 
-
------------------------------------------
-version 1.39 at 2013-10-08 00:04:39 +0000
------------------------------------------
-
-  Change: b5af56c4b49b36dc2c890fede90ff6decaf8656d
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-08 13:04:39 +0000
-
-    removed auto generated cpanfiles and added to ignore 
-
-  Change: d60555b1a30673d065521e7b3ee0cb5884aba38b
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-08 12:52:04 +0000
-
-    log status_line and error message if post was not successful 
-
-  Change: 01cc13dfd4b998211b74e3e9895be90076cad5b7
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-10-03 12:26:27 +0000
-
-    added snapshot file 
-
-  Change: 5e3605adbc2458255728ca3fd758be49117927e7
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-10-03 12:15:22 +0000
-
-    added cpanfile 
-
-  Change: 400e497b339c2abafb16a167b9c49bd3584713c9
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-09-25 11:17:40 +0000
-
-    add support for environment variables if used with Config::General 
-
-  Change: a5cc7442b98c52159ab489c91e62a4a3dd24b099
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-09-16 16:36:54 +0000
-
-    fixed the feature i wanted to have in the last commit 
-
-  Change: b64d4635f1450d2ead5cafb52a2393fa5ee48cd9
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-09-16 12:52:29 +0000
-
-    Support local include directory trees for private plugins 
-
 =================================================
-Plus 41 releases after 2013-09-28 00:00:00 +0000.
+Plus 44 releases after 2013-10-15 00:00:00 +0000.
 =================================================
