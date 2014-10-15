@@ -183,15 +183,15 @@ sub unlock {
     }
 }
 
-sub DESTROY {
-    my ($self) = @_;
-
-    return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
-
-    $self->unlock if $self->is_cron;
-
-    return;
-}
+# sub DESTROY {
+#     my ($self) = @_;
+# 
+#     return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+# 
+#     $self->unlock if $self->is_cron;
+# 
+#     return;
+# }
 
 1;
 
