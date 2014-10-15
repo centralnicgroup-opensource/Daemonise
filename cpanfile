@@ -10,7 +10,6 @@ requires "FindBin" => "0";
 requires "JSON" => "0";
 requires "LWP::UserAgent" => "0";
 requires "MIME::Base64" => "0";
-requires "Modern::Perl" => "0";
 requires "Mouse" => "0";
 requires "Mouse::Role" => "0";
 requires "Net::AMQP::RabbitMQ" => "0";
@@ -29,6 +28,7 @@ requires "Try::Tiny" => "0";
 requires "WebService::PagerDuty" => "0";
 requires "experimental" => "0";
 requires "lib" => "0";
+requires "perl" => "5.010";
 
 on 'test' => sub {
   requires "Test::Deep" => "0";

@@ -1,6 +1,6 @@
 package Daemonise::Plugin::RabbitMQ;
 
-use Modern::Perl;
+use 5.010;
 use Mouse::Role;
 use experimental 'smartmatch';
 

@@ -1,6 +1,5 @@
 package Daemonise::Plugin::KyotoTycoon;
 
-use Modern::Perl;
 use Mouse::Role;
 
 # ABSTRACT: Daemonise KyotoTycoon plugin
@@ -61,8 +60,6 @@ has 'tycoon' => (
     required => 1,
 );
 
-my $tycoon;
-
 
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
@@ -80,13 +77,13 @@ after 'configure' => sub {
             if defined $self->config->{kyototycoon}->{default_expire};
     }
 
-    $tycoon = Cache::KyotoTycoon->new(
-        host    => $self->tycoon_host,
-        port    => $self->tycoon_port,
-        timeout => $self->tycoon_timeout,
-        db      => $self->tycoon_db,
-    );
-    $self->tycoon($tycoon);
+    $self->tycoon(
+        Cache::KyotoTycoon->new(
+            host    => $self->tycoon_host,
+            port    => $self->tycoon_port,
+            timeout => $self->tycoon_timeout,
+            db      => $self->tycoon_db,
+        ));
 
     # don't try to lock() again when reconfiguring
     return if $reconfig;
@@ -212,16 +209,22 @@ before 'stop' => sub {
 sub DESTROY {
     my ($self) = @_;
 
-    print ${^GLOBAL_PHASE} . $/;
-    print $self;
+    return unless ref $self;
 
-    # return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
+    # the Cache::KyotoTycoon object was already destroyed to we need to create
+    # a new one with the existing config
+    $self->tycoon(
+        Cache::KyotoTycoon->new(
+            host    => $self->tycoon_host,
+            port    => $self->tycoon_port,
+            timeout => $self->tycoon_timeout,
+            db      => $self->tycoon_db,
+        ));
 
     $self->unlock if $self->is_cron;
 
     return;
 }
-
 
 1;
 

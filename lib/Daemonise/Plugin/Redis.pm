@@ -183,15 +183,25 @@ sub unlock {
     }
 }
 
-# sub DESTROY {
-#     my ($self) = @_;
-# 
-#     return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
-# 
-#     $self->unlock if $self->is_cron;
-# 
-#     return;
-# }
+sub DESTROY {
+    my ($self) = @_;
+
+    return unless ref $self;
+
+    # the Redis object was already destroyed to we need to create
+    # a new one with the existing config
+    $self->redis(
+        Redis->new(
+            server    => $self->redis_host . ':' . $self->redis_port,
+            reconnect => $self->redis_connect_timeout,
+            every     => $self->redis_connect_rate,
+            debug     => $self->debug,
+        ));
+
+    $self->unlock if $self->is_cron;
+
+    return;
+}
 
 1;
 
