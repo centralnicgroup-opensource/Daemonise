@@ -208,8 +208,8 @@ before 'stop' => sub {
 
 sub DEMOLISH {
     my ($self) = @_;
-    
-    say ${^GLOBAL_PHASE};
+     $DB::single
+    say "" . ${^GLOBAL_PHASE};
 
     return if (${^GLOBAL_PHASE} eq 'DESTRUCT');
 
