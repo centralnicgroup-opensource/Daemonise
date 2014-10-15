@@ -37,6 +37,9 @@ sub parallelise {
     foreach my $input (@input) {
         $self->pm->start and next;
 
+        # disable cron locking on configure and unlocking on destruction
+        $self->is_cron(0);
+
         # reconfigure to setup eventually broken connections
         $self->configure(1);
 
