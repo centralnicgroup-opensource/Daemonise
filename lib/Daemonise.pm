@@ -225,7 +225,7 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
     return $dump;
 }
 
-sub DEMOLISH {
+sub DESTROY {
     my ($self) = @_;
 
     say ${^GLOBAL_PHASE};
