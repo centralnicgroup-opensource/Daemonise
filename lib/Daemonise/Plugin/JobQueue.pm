@@ -95,7 +95,10 @@ around 'dequeue' => sub {
     {
         my $key   = 'activejob:' . $msg->{meta}->{id};
         my $value = $self->name . ':' . $$;
-        $self->lock($key, $value);
+        my $success = $self->lock($key, $value);
+        unless ($success) {
+            $self->notify()
+        }
     }
 
     return $msg;
@@ -553,6 +556,8 @@ store rabbitMQ message in job attribute after receiving
 
 if message is a job, lock rabbit on it using "activejob:job_id" as key and
 "some.rabbit.name:PID" as lock value.
+
+if locking fails, throw error and ack() message to prevent repeating.
 
 =head queue (around)
 

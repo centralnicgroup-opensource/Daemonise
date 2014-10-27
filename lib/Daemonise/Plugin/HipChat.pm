@@ -74,7 +74,7 @@ after 'configure' => sub {
 
 sub notify {
     my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
-    
+
     $self->log($msg);
 
     $msg = '[debug] ' . $msg if $self->debug;
@@ -82,15 +82,15 @@ sub notify {
     # fork and to the rest asynchronously
     # $self->async and return;
 
-    my $colour = ($colour{ $severity || 'info' }) || 'info';
+    my $colour = ($colour{ $severity || 'info' }) || 'green';
     my $ua = LWP::UserAgent->new(agent => $self->name);
     my $res = $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
-            room_id => $room || $self->hipchat_room,
-            from    => $self->hipchat_from,
-            message => $self->hostname . ': ' . $msg,
+            room_id        => $room           || $self->hipchat_room,
+            from           => $self->hipchat_from,
+            message        => $self->hostname . ': ' . $msg,
             message_format => $message_format || 'text',
-            notify         => $notify_users || 0,
+            notify         => $notify_users   || 0,
             color          => $colour,
         });
 
