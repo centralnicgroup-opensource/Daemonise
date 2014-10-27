@@ -142,28 +142,39 @@ sub cache_del {
 
 
 sub lock {    ## no critic (ProhibitBuiltinHomonyms)
-    my ($self, $thing) = @_;
+    my ($self, $thing, $lockvalue) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
         $self->log("locking failed: argument is not of type SCALAR");
         return;
     }
 
+    if (defined $lockvalue) {
+        unless (ref \$lockvalue eq 'SCALAR') {
+            $self->log('locking failed: second argument is not of type SCALAR');
+            return;
+        }
+    }
+
     my $lock = $thing || $self->name;
 
-    if (my $pid = $self->tycoon->get($lock)) {
-        if ($pid == $$) {
-            $self->tycoon->replace($lock, $$, $self->cache_default_expire);
+    # fallback to PID for the lock value
+    $lockvalue //= $$;
+
+    if (my $value = $self->tycoon->get($lock)) {
+        if ($value == $lockvalue) {
+            $self->tycoon->replace($lock, $lockvalue,
+                $self->cache_default_expire);
             $self->log("locking time extended") if $self->debug;
             return 1;
         }
         else {
-            $self->notify("cannot acquire lock hold by PID $pid");
+            $self->notify("cannot acquire lock hold by $lockvalue");
             return;
         }
     }
     else {
-        $self->tycoon->set($lock, $$, $self->cache_default_expire);
+        $self->tycoon->set($lock, $lockvalue, $self->cache_default_expire);
         $self->log("lock acquired") if $self->debug;
         return 1;
     }
@@ -171,23 +182,33 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
 
 
 sub unlock {
-    my ($self, $thing) = @_;
+    my ($self, $thing, $lockvalue) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
-        $self->log("locking failed: argument is not of type SCALAR");
+        $self->log("locking failed: first argument is not of type SCALAR");
         return;
+    }
+
+    if (defined $lockvalue) {
+        unless (ref \$lockvalue eq 'SCALAR') {
+            $self->log('locking failed: second argument is not of type SCALAR');
+            return;
+        }
     }
 
     my $lock = $thing || $self->name;
 
-    if (my $pid = $self->tycoon->get($lock)) {
-        if ($pid == $$) {
+    # fallback to PID for the lock value
+    $lockvalue //= $$;
+
+    if (my $value = $self->tycoon->get($lock)) {
+        if ($value == $lockvalue) {
             $self->tycoon->remove($lock);
             $self->log("lock released") if $self->debug;
             return 1;
         }
         else {
-            $self->log("lock hold by pid $pid, permission denied");
+            $self->log("lock hold by $value, permission denied");
             return;
         }
     }
@@ -241,7 +262,7 @@ Daemonise::Plugin::KyotoTycoon - Daemonise KyotoTycoon plugin
 
 =head1 VERSION
 
-version 1.85
+version 1.86
 
 =head1 SYNOPSIS
 

@@ -1,9 +1,9 @@
 ==================================================
-Changes from 2013-10-15 00:00:00 +0000 to present.
+Changes from 2013-10-27 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.85 at 2014-10-15 14:00:47 +0000
+version 1.85 at 2014-10-15 13:50:22 +0000
 -----------------------------------------
 
   Change: 088fc1926b7fc5100a01abaa9219bbf3e350248c
@@ -759,133 +759,6 @@ version 1.46 at 2013-11-29 04:06:17 +0000
 
     implemented cron locking 
 
------------------------------------------
-version 1.45 at 2013-10-22 09:50:10 +0000
------------------------------------------
-
-  Change: 61b6b7a01069b7e6d7a297c09b19960198690f4e
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-22 22:50:10 +0000
-
-    version bump 
-
-  Change: 6fdcfbf57bf4e6f32c70ff0aea5357fa46b6dcb6
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-22 22:45:09 +0000
-
-    ignore admin messages not for this queue 
-
------------------------------------------
-version 1.44 at 2013-10-22 09:25:36 +0000
------------------------------------------
-
-  Change: a7b521a0de4c7a530e6097ef6a70fd66325f9067
-  Author: Tobias Kirschstein <lev@idegeo.com>
-  Date : 2013-10-22 22:25:36 +0000
-
-    version bump 
-
-  Change: ff78c80f977f79c5e0cc4a1c4d515de31ac3090c
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-22 22:23:14 +0000
-
-    only react to admin routing key or specific hostname routing key 
-
------------------------------------------
-version 1.43 at 2013-10-18 09:31:39 +0000
------------------------------------------
-
-  Change: 866485a10188b30772c50292e74ed933b80ee1a2
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-18 21:31:39 +0000
-
-    catching signal with local does not work, ignore critic 
-
-  Change: bde5cb4aa99599cb5553798259f3ad74b2cac98d
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-18 21:23:55 +0000
-
-    version bump 
-
-  Change: 79cfd54b07caccdf2d4518fe64649e212784a89f
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-18 21:23:43 +0000
-
-    migrated restart handling to per worker admin queue, implemented
-    reconfigure capability 
-
------------------------------------------
-version 1.42 at 2013-10-17 05:33:18 +0000
------------------------------------------
-
-  Change: 20d3e910cb50ca593850ad139cef11e91d7b7d47
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-17 17:33:18 +0000
-
-    satisfied perlcritic 
-
-  Change: e1029934b93bab1d8d16c0a492ceb4309552351c
-  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
-  Date : 2013-10-16 16:20:06 +0000
-
-    added a generic restart type to event plugin 
-
-  Change: e55cfeb67b33355c154f98a520c1ffcbbecd8c1a
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 23:32:21 +0000
-
-    return status message, don't print it 
-
-  Change: 7af506e353458d415939936aeec2bd3ef7686101
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 22:25:38 +0000
-
-    reconfigure after forking 
-
-  Change: dff73e6d2f65078022a38d62df66e52784922afa
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 15:45:38 +0000
-
-    perltidy 
-
-  Change: 26c7371c9b307e7259efb90e3f3f0b31e867953a
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 15:43:56 +0000
-
-    version bump 
-
-  Change: 527a63ee63793c1702a59b0651c9cca266dcfbbe
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 15:43:33 +0000
-
-    new restart handling using kyototycoon in Daemon plugin, catch
-    SIGTERM instead of INT 
-
-  Change: a12b3c8843f7349324dfd9185985ebfb7166acbd
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 15:42:39 +0000
-
-    simplified dequeue(), no need for a while loop, auto ack() on empty
-    status/keepalive message 
-
-  Change: 346ddfad9a4f1130a2e687af42b005058ba9d1a0
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 15:41:45 +0000
-
-    store timestamp of process starting time 
-
-  Change: e693ac5c22edd13c10427da7522328a2f71ce769
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-15 15:40:56 +0000
-
-    added automatic dependency plugin loading 
-
-  Change: f4f1359b6c90b6f8c0888f94a08ad791bcd0399c
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2013-10-14 18:28:18 +0000
-
-    v1.41 
-
 =================================================
-Plus 44 releases after 2013-10-15 00:00:00 +0000.
+Plus 48 releases after 2013-10-27 00:00:00 +0000.
 =================================================

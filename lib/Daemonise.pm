@@ -6,7 +6,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.85'; # VERSION
+our $VERSION = '1.86'; # VERSION
 
 use Sys::Syslog qw(:standard :macros);
 use Config::Any;
@@ -83,6 +83,8 @@ after 'new' => sub {
     # load cache plugin required for cron locking
     if ($args{is_cron}) {
         return if %Daemonise::Plugin::KyotoTycoon::;
+        return if %Daemonise::Plugin::Redis::;
+
         my $cache_plugin =
             "Daemonise::Plugin::" . ($args{cache_plugin} || 'KyotoTycoon');
         with($cache_plugin);
@@ -239,7 +241,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.85
+version 1.86
 
 =head1 SYNOPSIS
 

@@ -14,6 +14,7 @@ use Scalar::Util qw(looks_like_number);
 BEGIN {
     with("Daemonise::Plugin::CouchDB");
     with("Daemonise::Plugin::RabbitMQ");
+    with("Daemonise::Plugin::KyotoTycoon");
 }
 
 
@@ -88,7 +89,34 @@ around 'dequeue' => sub {
     my $msg = $self->$orig($tag);
     $self->job({ message => $msg }) unless $tag;
 
+    if (    exists $msg->{meta}
+        and ref $msg->{meta} eq 'HASH'
+        and exists $msg->{meta}->{id})
+    {
+        my $key   = 'activejob:' . $msg->{meta}->{id};
+        my $value = $self->name . ':' . $$;
+        $self->lock($key, $value);
+    }
+
     return $msg;
+};
+
+
+around 'queue' => sub {
+    my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
+
+    if (    ref $msg eq 'HASH'
+        and exists $msg->{meta}
+        and ref $msg->{meta} eq 'HASH'
+        and exists $msg->{meta}->{id}
+        and defined $msg->{meta}->{id})
+    {
+        my $key   = 'activejob:' . $msg->{meta}->{id};
+        my $value = $self->name . ':' . $$;
+        $self->unlock($key, $value);
+    }
+
+    return $self->$orig($queue, $msg, $reply_queue, $exchange);
 };
 
 
@@ -460,7 +488,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.85
+version 1.86
 
 =head1 SYNOPSIS
 
@@ -521,7 +549,14 @@ version 1.85
 
 =head2 dequeue (around)
 
-store rabbitMQ message in job attribute on receive
+store rabbitMQ message in job attribute after receiving
+
+if message is a job, lock rabbit on it using "activejob:job_id" as key and
+"some.rabbit.name:PID" as lock value.
+
+=head queue (around)
+
+if message is a job, unlock rabbit from it before sending it on
 
 =head2 ack (before)
 
