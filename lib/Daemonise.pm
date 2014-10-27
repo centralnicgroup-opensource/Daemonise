@@ -184,10 +184,8 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 sub start {
     my ($self, $code) = @_;
 
-    $self->log("Daemonise start"); #debug
-
     unless (ref $code eq 'CODE') {
-        $self->log("first argument of start() must be a CODEREF! existing..." . $self->dump($code));
+        $self->log("first argument of start() must be a CODEREF! existing...");
         $self->stop;
     }
 

@@ -54,8 +54,8 @@ has 'mark_worker' => (
     is      => 'rw',
     isa     => 'Bool',
     lazy    => 1,
-    clearer => 'dont_log_worker',
-    default => sub { 0 },
+    clearer => 'dont_mark_worker',
+    default => sub { 1 },
 );
 
 
@@ -95,7 +95,12 @@ around 'log' => sub {
 around 'start' => sub {
     my ($orig, $self, $code) = @_;
 
-    $self->log("JobQueue start");    #debug
+    # check for CODEREF because we wrap it in one, which means the check later
+    # will always success and the rabbit will crash when calling $code->()
+    unless (ref $code eq 'CODE') {
+        $self->log("first argument of start() must be a CODEREF! existing...");
+        $self->stop;
+    }
 
     my $wrapper = sub {
         my $msg = $self->dequeue;
