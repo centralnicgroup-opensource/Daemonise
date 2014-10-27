@@ -1,6 +1,7 @@
 package Daemonise;
 
 use Mouse;
+use File::Basename;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
@@ -15,7 +16,7 @@ use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
 has 'name' => (
     is        => 'rw',
-    default   => sub { 'daemon' },
+    default   => sub { (my $name = basename($0)) =~ s/\.[^.]+$//; $name },
     predicate => 'has_name',
 );
 
@@ -180,6 +181,18 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 }
 
 
+sub start {
+    my ($self, $code) = @_;
+
+    unless (ref $code eq 'CODE') {
+        $self->log("first argument of start() must be a CODEREF! existing...");
+        $self->stop;
+    }
+
+    return;
+}
+
+
 sub stop {
     my ($self) = @_;
 
@@ -313,6 +326,10 @@ version 1.86
 =head2 async
 
 =head2 log
+
+=head2 start
+
+stub method to hook into by plugins
 
 =head2 stop
 

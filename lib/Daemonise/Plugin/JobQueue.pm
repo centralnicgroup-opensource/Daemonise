@@ -83,6 +83,36 @@ around 'log' => sub {
 };
 
 
+around 'start' => sub {
+    my ($orig, $self, $code) = @_;
+
+    my $wrapper = sub {
+        my $msg = $self->dequeue;
+
+        # skip processing if message was empty
+        return unless $msg;
+
+        $msg = $code->($msg);
+
+        $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
+
+        # always log worker and update job
+        $self->log_worker($msg);
+        $self->update_job($msg, delete $msg->{status});
+
+        # reply if needed and wanted
+        $self->queue($self->reply_queue, $msg) if $self->wants_reply;
+
+        # at last, ack message
+        $self->ack;
+
+        return;
+    };
+
+    return $self->$orig($wrapper);
+};
+
+
 around 'dequeue' => sub {
     my ($orig, $self, $tag) = @_;
 
@@ -93,11 +123,14 @@ around 'dequeue' => sub {
         and ref $msg->{meta} eq 'HASH'
         and exists $msg->{meta}->{id})
     {
-        my $key   = 'activejob:' . $msg->{meta}->{id};
-        my $value = $self->name . ':' . $$;
+        my $key     = 'activejob:' . $msg->{meta}->{id};
+        my $value   = $self->name . ':' . $$;
         my $success = $self->lock($key, $value);
+
+        # return undef to prevent any further processing
         unless ($success) {
-            $self->notify()
+            $self->ack;
+            return;
         }
     }
 
@@ -549,6 +582,10 @@ version 1.86
 =head2 configure
 
 =head2 log
+
+=head2 start (around)
+
+wrap 
 
 =head2 dequeue (around)
 

@@ -4,13 +4,11 @@ use 5.014;
 use experimental 'smartmatch';
 use Daemonise;
 use Getopt::Long;
-use File::Basename;
 
 my $pid;
 my $debug;
 my $conf = '/etc/daemonise/bunny.conf';
 my $foreground;
-my ($queue) = basename($0) =~ m/^(.*)\.rabbit$/;
 
 GetOptions(
     "debug|d"      => \$debug,
@@ -20,7 +18,6 @@ GetOptions(
 ) or die;
 
 my $d = Daemonise->new();
-$d->name($queue);
 $d->debug(1)       if $debug;
 $d->debug(1)       if ($d->hostname =~ m/devel/);
 $d->foreground(1)  if $foreground;
@@ -41,25 +38,7 @@ $d->load_plugin('KyotoTycoon');    # or $d->load_plugin('Redis');
 
 $d->is_worker(1);
 
-$d->start(\&main);
-
-sub main {
-    my $msg = process($d->dequeue);
-
-    $d->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
-
-    # always log worker and update job
-    $msg = $d->log_worker($msg);
-    $d->update_job($msg, delete $msg->{status});
-
-    # reply if needed and wanted
-    $d->queue($d->reply_queue, $msg) if $d->wants_reply;
-
-    # at last, ack message
-    $d->ack;
-
-    return;
-}
+$d->start(\&process);
 
 sub process {
     my ($msg) = @_;
@@ -151,9 +130,9 @@ sub action {
     }
     $d->cache_del($key);
 
-    # lock/unlock worker itsef or any given key using a caching plugin
-    $d->lock(undef || "some key");
-    $d->unlock;
+    # lock/unlock worker using $d->name as key by default and the PID as default value
+    $d->lock(undef || "some key", undef || "some value");
+    $d->unlock(undef || "some key", undef || "some value");
 
     # graph something
     # service, state and metric are mandatory and have to be strings

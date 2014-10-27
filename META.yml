@@ -23,6 +23,7 @@ requires:
   Data::Printer: '0'
   DateTime: '0'
   Digest::MD5: '0'
+  File::Basename: '0'
   FindBin: '0'
   JSON: '0'
   LWP::UserAgent: '0'

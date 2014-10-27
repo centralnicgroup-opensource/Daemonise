@@ -346,7 +346,7 @@ before 'stop' => sub {
 };
 
 
-sub start {
+after 'start' => sub {
     my ($self, $code) = @_;
 
     $self->daemonise;
@@ -355,24 +355,18 @@ sub start {
     # start connections in the configure stage
     $self->configure;
 
-    if (ref $code eq 'CODE') {
-        if ($self->dont_loop) {
-            $code->();
-            $self->stop;
-        }
-        else {
-            while (1) {
-                { $code->(); }
-            }
-        }
+    if ($self->dont_loop) {
+        $code->();
+        $self->stop;
     }
     else {
-        $self->log("first argument of start() is not a CODEREF! existing...");
-        $self->stop;
+        while (1) {
+            { $code->(); }
+        }
     }
 
     return;
-}
+};
 
 sub _get_uid {
     my ($self) = @_;
@@ -555,7 +549,7 @@ version 1.86
 
 =head2 stop
 
-=head2 start
+=head2 start (after)
 
 =head1 AUTHOR
 
