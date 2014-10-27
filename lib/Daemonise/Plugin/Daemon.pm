@@ -347,10 +347,13 @@ before 'stop' => sub {
 };
 
 
-after 'start' => sub {
-    my ($self, $code) = @_;
+around 'start' => sub {
+    my ($orig, $self, $code) = @_;
 
-    $self->log("Daemon start"); #debug
+    # call Daemonise checks on $code ref which might result in an early exit
+    $self->$orig($code);
+
+    $self->log("Daemon start");    #debug
 
     $self->daemonise;
 
@@ -552,7 +555,7 @@ version 1.86
 
 =head2 stop
 
-=head2 start (after)
+=head2 start (around)
 
 =head1 AUTHOR
 

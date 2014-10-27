@@ -95,12 +95,12 @@ around 'log' => sub {
 around 'start' => sub {
     my ($orig, $self, $code) = @_;
 
-    $self->log("JobQueue start"); #debug
+    $self->log("JobQueue start");    #debug
 
     my $wrapper = sub {
         my $msg = $self->dequeue;
-        
-        print "NO MESSAGE" unless $msg;
+
+        print "NO MESSAGE" unless $msg;    #debug
 
         # skip processing if message was empty
         return unless $msg;
