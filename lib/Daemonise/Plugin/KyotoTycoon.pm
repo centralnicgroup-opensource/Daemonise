@@ -162,7 +162,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     $lockvalue //= $$;
 
     if (my $value = $self->tycoon->get($lock)) {
-        if ($value == $lockvalue) {
+        if ($value eq $lockvalue) {
             $self->tycoon->replace($lock, $lockvalue,
                 $self->cache_default_expire);
             $self->log("locking time extended") if $self->debug;
@@ -202,7 +202,7 @@ sub unlock {
     $lockvalue //= $$;
 
     if (my $value = $self->tycoon->get($lock)) {
-        if ($value == $lockvalue) {
+        if ($value eq $lockvalue) {
             $self->tycoon->remove($lock);
             $self->log("lock released") if $self->debug;
             return 1;
