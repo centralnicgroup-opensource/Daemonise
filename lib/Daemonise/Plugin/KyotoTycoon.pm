@@ -142,15 +142,15 @@ sub cache_del {
 
 
 sub lock {    ## no critic (ProhibitBuiltinHomonyms)
-    my ($self, $thing, $lockvalue) = @_;
+    my ($self, $thing, $lock_value) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
         $self->log("locking failed: argument is not of type SCALAR");
         return;
     }
 
-    if (defined $lockvalue) {
-        unless (ref \$lockvalue eq 'SCALAR') {
+    if (defined $lock_value) {
+        unless (ref \$lock_value eq 'SCALAR') {
             $self->log('locking failed: second argument is not of type SCALAR');
             return;
         }
@@ -159,38 +159,39 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     my $lock = $thing || $self->name;
 
     # fallback to PID for the lock value
-    $lockvalue //= $$;
+    $lock_value //= $$;
 
     if (my $value = $self->tycoon->get($lock)) {
-        if ($value eq $lockvalue) {
-            $self->tycoon->replace($lock, $lockvalue,
+        if ($value eq $lock_value) {
+            $self->tycoon->replace($lock, $lock_value,
                 $self->cache_default_expire);
-            $self->log("locking time extended") if $self->debug;
+            $self->log("lock=$lock locking time extended for $value")
+                if $self->debug;
             return 1;
         }
         else {
-            $self->notify("cannot acquire lock hold by $lockvalue");
+            $self->notify("lock=$lock cannot acquire lock hold by $value");
             return;
         }
     }
     else {
-        $self->tycoon->set($lock, $lockvalue, $self->cache_default_expire);
-        $self->log("lock acquired") if $self->debug;
+        $self->tycoon->set($lock, $lock_value, $self->cache_default_expire);
+        $self->log("lock=$lock lock acquired") if $self->debug;
         return 1;
     }
 }
 
 
 sub unlock {
-    my ($self, $thing, $lockvalue) = @_;
+    my ($self, $thing, $lock_value) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
         $self->log("locking failed: first argument is not of type SCALAR");
         return;
     }
 
-    if (defined $lockvalue) {
-        unless (ref \$lockvalue eq 'SCALAR') {
+    if (defined $lock_value) {
+        unless (ref \$lock_value eq 'SCALAR') {
             $self->log('locking failed: second argument is not of type SCALAR');
             return;
         }
@@ -199,21 +200,21 @@ sub unlock {
     my $lock = $thing || $self->name;
 
     # fallback to PID for the lock value
-    $lockvalue //= $$;
+    $lock_value //= $$;
 
     if (my $value = $self->tycoon->get($lock)) {
-        if ($value eq $lockvalue) {
+        if ($value eq $lock_value) {
             $self->tycoon->remove($lock);
-            $self->log("lock released") if $self->debug;
+            $self->log("lock=$lock lock released by $value") if $self->debug;
             return 1;
         }
         else {
-            $self->log("lock hold by $value, permission denied");
+            $self->log("lock=$lock lock hold by $value, permission denied");
             return;
         }
     }
     else {
-        $self->log("lock was already released") if $self->debug;
+        $self->log("lock=$lock lock was already released") if $self->debug;
         return 1;
     }
 }
