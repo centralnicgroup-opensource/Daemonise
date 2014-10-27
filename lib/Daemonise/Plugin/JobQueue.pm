@@ -97,6 +97,8 @@ around 'start' => sub {
 
     my $wrapper = sub {
         my $msg = $self->dequeue;
+        
+        $self->log("empty message") unless $msg;
 
         # skip processing if message was empty
         return unless $msg;
