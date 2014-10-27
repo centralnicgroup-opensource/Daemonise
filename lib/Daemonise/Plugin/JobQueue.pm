@@ -124,7 +124,7 @@ around 'start' => sub {
         return;
     };
 
-    return $self->$orig(\$wrapper);
+    return $self->$orig($wrapper);
 };
 
 

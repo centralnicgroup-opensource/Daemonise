@@ -350,10 +350,10 @@ before 'stop' => sub {
 around 'start' => sub {
     my ($orig, $self, $code) = @_;
 
+    $self->log("Daemon start");    #debug
+
     # call Daemonise checks on $code ref which might result in an early exit
     $self->$orig($code);
-
-    $self->log("Daemon start");    #debug
 
     $self->daemonise;
 
