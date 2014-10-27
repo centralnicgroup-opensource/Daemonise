@@ -54,6 +54,7 @@ has 'mark_worker' => (
     is      => 'rw',
     isa     => 'Bool',
     lazy    => 1,
+    clearer => 'dont_log_worker',
     default => sub { 0 },
 );
 
