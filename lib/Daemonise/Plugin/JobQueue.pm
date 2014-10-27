@@ -76,15 +76,18 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
-    $msg = 'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{account}
-        and defined $self->job->{message}->{meta}->{account});
-    $msg = 'user=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{user}
-        and defined $self->job->{message}->{meta}->{user});
-    $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{id}
-        and defined $self->job->{message}->{meta}->{id});
+    if (ref $self->job->{message} eq 'HASH') {
+        $msg =
+            'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
+            if (exists $self->job->{message}->{meta}->{account}
+            and defined $self->job->{message}->{meta}->{account});
+        $msg = 'user=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
+            if (exists $self->job->{message}->{meta}->{user}
+            and defined $self->job->{message}->{meta}->{user});
+        $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
+            if (exists $self->job->{message}->{meta}->{id}
+            and defined $self->job->{message}->{meta}->{id});
+    }
 
     $self->$orig($msg);
 
@@ -105,10 +108,10 @@ around 'start' => sub {
     my $wrapper = sub {
         my $msg = $self->dequeue;
 
-        $self->log("NO MESSAGE") unless $msg;    #debug
+        $self->log("NO MESSAGE") unless $msg and ref $msg eq 'HASH';    #debug
 
-        # skip processing if message was empty
-        return unless $msg;
+        # skip processing if message was empty or not a hashref
+        return unless $msg and ref $msg eq 'HASH';
 
         $msg = $code->($msg);
 
@@ -139,7 +142,8 @@ around 'dequeue' => sub {
     my $msg = $self->$orig($tag);
     $self->job({ message => $msg }) unless $tag;
 
-    if (    exists $msg->{meta}
+    if (    ref $msg eq 'HASH'
+        and exists $msg->{meta}
         and ref $msg->{meta} eq 'HASH'
         and exists $msg->{meta}->{id})
     {
@@ -364,6 +368,8 @@ sub job_pending {
 
 sub log_worker {
     my ($self, $msg) = @_;
+
+    $self->log("logging worker");    #debug
 
     # no log yet? create it
     unless (exists $msg->{meta}->{log}) {
