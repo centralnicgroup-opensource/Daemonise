@@ -100,7 +100,7 @@ around 'start' => sub {
     my $wrapper = sub {
         my $msg = $self->dequeue;
 
-        print "NO MESSAGE" unless $msg;    #debug
+        $self->log("NO MESSAGE") unless $msg;    #debug
 
         # skip processing if message was empty
         return unless $msg;
