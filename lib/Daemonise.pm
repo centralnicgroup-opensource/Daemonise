@@ -188,6 +188,8 @@ sub start {
         $self->log("first argument of start() must be a CODEREF! existing...");
         $self->stop;
     }
+    
+    $self->log("Daemonise start"); #debug
 
     return;
 }

@@ -95,6 +95,8 @@ around 'log' => sub {
 around 'start' => sub {
     my ($orig, $self, $code) = @_;
 
+    $self->log("JobQueue start"); #debug
+
     my $wrapper = sub {
         my $msg = $self->dequeue;
         

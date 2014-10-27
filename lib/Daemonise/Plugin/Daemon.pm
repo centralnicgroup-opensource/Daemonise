@@ -350,6 +350,8 @@ before 'stop' => sub {
 after 'start' => sub {
     my ($self, $code) = @_;
 
+    $self->log("Daemon start"); #debug
+
     $self->daemonise;
 
     # we need to reconfigure, because we are in the child and some plugins
