@@ -108,10 +108,12 @@ around 'start' => sub {
     my $wrapper = sub {
         my $msg = $self->dequeue;
 
-        $self->log("NO MESSAGE") unless $msg and ref $msg eq 'HASH';    #debug
-
         # skip processing if message was empty or not a hashref
-        return unless $msg and ref $msg eq 'HASH';
+        unless ($msg and ref $msg eq 'HASH') {
+            $self->log("NO MESSAGE"); #debug
+            $self->ack;
+            return;
+        }
 
         $msg = $code->($msg);
 
