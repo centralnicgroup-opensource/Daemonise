@@ -60,11 +60,12 @@ has 'foreground' => (
 );
 
 
-has 'dont_loop' => (
+has 'loops' => (
     is      => 'rw',
     isa     => 'Bool',
     lazy    => 1,
-    default => sub { 0 },
+    clearer => 'dont_loop',
+    default => sub { 1 },
 );
 
 
@@ -355,7 +356,7 @@ after 'start' => sub {
     # start connections in the configure stage
     $self->configure;
 
-    if ($self->dont_loop) {
+    if ($self->loops) {
         $code->();
         $self->stop;
     }
@@ -527,7 +528,7 @@ version 1.86
 
 =head2 foreground
 
-=head2 dont_loop
+=head2 loops
 
 =head2 pid_dir
 
