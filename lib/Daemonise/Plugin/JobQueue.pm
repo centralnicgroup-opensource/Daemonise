@@ -50,6 +50,14 @@ has 'item_key' => (
 );
 
 
+has 'mark_worker' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
@@ -96,9 +104,11 @@ around 'start' => sub {
 
         $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
 
-        # always log worker and update job
-        $self->log_worker($msg);
-        $self->update_job($msg, delete $msg->{status});
+        # log worker and update job if we have to
+        if ($self->mark_worker) {
+            $self->log_worker($msg);
+            $self->update_job($msg, delete $msg->{status});
+        }
 
         # reply if needed and wanted
         $self->queue($self->reply_queue, $msg) if $self->wants_reply;
@@ -576,6 +586,8 @@ version 1.86
 =head2 items_key
 
 =head2 item_key
+
+=head2 mark_worker
 
 =head1 SUBROUTINES/METHODS provided
 
