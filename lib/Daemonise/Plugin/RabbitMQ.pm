@@ -243,6 +243,8 @@ sub dequeue {
             $self->log("JSON parsing error: $@");
             $msg = {};
         }
+        
+        $self->log($self->dump("received message: " . $msg));
 
         last unless ($frame->{routing_key} =~ m/^admin/);
 

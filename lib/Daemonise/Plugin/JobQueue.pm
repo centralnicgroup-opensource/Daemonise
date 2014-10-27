@@ -109,7 +109,7 @@ around 'start' => sub {
         my $msg = $self->dequeue;
 
         # skip processing if message was empty or not a hashref
-        unless ($msg and ref $msg eq 'HASH') {
+        unless (ref $msg eq 'HASH') {
             $self->log("NO MESSAGE"); #debug
             $self->ack;
             return;
