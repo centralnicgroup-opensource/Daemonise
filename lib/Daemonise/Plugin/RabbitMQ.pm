@@ -244,7 +244,7 @@ sub dequeue {
             $msg = {};
         }
         
-        $self->log($self->dump("received message: " . $msg));
+        $self->log("received message: " . $d->dump($msg)) if $d->debug; #debug
 
         last unless ($frame->{routing_key} =~ m/^admin/);
 

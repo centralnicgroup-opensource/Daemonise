@@ -98,35 +98,80 @@ around 'log' => sub {
 around 'start' => sub {
     my ($orig, $self, $code) = @_;
 
-    # check for CODEREF because we wrap it in one, which means the check later
-    # will always success and the rabbit will crash when calling $code->()
-    unless (ref $code eq 'CODE') {
-        $self->log("first argument of start() must be a CODEREF! existing...");
-        $self->stop;
+    # check whether we have an optional custom CODEREF
+    if (defined $code) {
+        unless (ref $code eq 'CODE') {
+            $self->log(
+                "first argument of start() must be a CODEREF! existing...");
+            $self->stop;
+        }
     }
+
+    $self->log('JobQueue starting');    #debug
 
     my $wrapper = sub {
         my $msg = $self->dequeue;
 
         # skip processing if message was empty or not a hashref
         unless (ref $msg eq 'HASH') {
-            $self->log("NO MESSAGE"); #debug
+            $self->log("NO MESSAGE");    #debug
             $self->ack;
             return;
         }
 
-        $msg = $code->($msg);
-
-        $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
-
-        # log worker and update job if we have to
-        if ($self->mark_worker) {
-            $self->log_worker($msg);
-            $self->update_job($msg, delete $msg->{status});
+        unless (exists $msg->{data}
+            and ref $msg->{data} eq 'HASH'
+            and exists $msg->{data}->{command}
+            and $msg->{data}->{command})
+        {
+            $msg->{error} = "msg->data->command missing or empty!";
+            $self->stop_here;
+            return;
         }
 
-        # reply if needed and wanted
-        $self->queue($self->reply_queue, $msg) if $self->wants_reply;
+        my $command = $msg->{data}->{command};
+
+        $self->log("[$command]") unless $command eq 'graph';
+
+        # give custom code ref preference over hooks
+        if ($code) {
+            $msg = $code->($msg);
+        }
+        else {
+            # check for existence of command hooks, fallback to 'default' if exists or fail
+            unless (exists $self->hooks->{$command}) {
+                if (exists $self->hooks->{default}) {
+                    $command = 'default';
+                }
+                else {
+                    $msg->{error} =
+                        "Command '$command' not defined and no default/fallback found!";
+                    $self->stop_here;
+                    return;
+                }
+            }
+
+            $msg = $self->hooks->{$command}->($msg);
+        }
+
+        # methods may return void to prevent furhter processing
+        unless ($msg and ref $msg eq 'HASH') {
+            $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
+
+            # log if workflow stops and will be started by event or cron
+            $self->log(
+                "waiting for " . $msg->{meta}->{wait_for} . " event/cron")
+                if (exists $msg->{meta}->{wait_for} and !$self->wants_reply);
+
+            # log worker and update job if we have to
+            if ($self->mark_worker) {
+                $self->log_worker($msg);
+                $self->update_job($msg, delete $msg->{status});
+            }
+
+            # reply if needed and wanted
+            $self->queue($self->reply_queue, $msg) if $self->wants_reply;
+        }
 
         # at last, ack message
         $self->ack;

@@ -182,14 +182,11 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 
 
 sub start {
-    my ($self, $code) = @_;
+    my ($self) = @_;
 
-    unless (ref $code eq 'CODE') {
-        $self->log("first argument of start() must be a CODEREF! existing...");
-        $self->stop;
-    }
+    $self->log("rabbit starting");
 
-    return $code;
+    return;
 }
 
 

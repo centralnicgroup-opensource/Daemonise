@@ -93,6 +93,14 @@ has 'interval' => (
 );
 
 
+has 'hooks' => (
+    is      => 'rw',
+    isa     => 'HashRef[CodeRef]',
+    lazy    => 1,
+    default => sub { {} },
+);
+
+
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
@@ -350,8 +358,16 @@ before 'stop' => sub {
 around 'start' => sub {
     my ($orig, $self, $code) = @_;
 
-    # call Daemonise checks on $code ref which might result in an early exit
+    # check whether we have a CODEREF
+    unless (ref $code eq 'CODE') {
+        $self->log("first argument of start() must be a CODEREF! existing...");
+        $self->stop;
+    }
+
+    # call original method first
     $self->$orig($code);
+
+    $self->log("Daemon starting");    #debug
 
     $self->daemonise;
 
@@ -538,6 +554,8 @@ version 1.86
 =head2 bin_dir
 
 =head2 interval
+
+=head2 hooks
 
 =head1 SUBROUTINES/METHODS provided
 
