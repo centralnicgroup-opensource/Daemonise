@@ -205,7 +205,7 @@ sub unlock {
     if (my $value = $self->tycoon->get($lock)) {
         if ($value eq $lock_value) {
             $self->tycoon->remove($lock);
-            $self->log("lock=$lock lock released by $value") if $self->debug;
+            $self->log("lock=$lock lock released") if $self->debug;
             return 1;
         }
         else {

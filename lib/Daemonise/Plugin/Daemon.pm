@@ -61,11 +61,10 @@ has 'foreground' => (
 
 
 has 'loops' => (
-    is      => 'rw',
-    isa     => 'Bool',
-    lazy    => 1,
-    clearer => 'dont_loop',
-    default => sub { 1 },
+    is        => 'rw',
+    isa       => 'Bool',
+    lazy      => 1,
+    default   => sub { 1 },
 );
 
 
@@ -90,14 +89,6 @@ has 'interval' => (
     isa     => 'Int',
     lazy    => 1,
     default => sub { 5 },
-);
-
-
-has 'hooks' => (
-    is      => 'rw',
-    isa     => 'HashRef[CodeRef]',
-    lazy    => 1,
-    default => sub { {} },
 );
 
 
@@ -147,6 +138,51 @@ around 'log' => sub {
 
     return;
 };
+
+
+before 'stop' => sub {
+    my ($self) = @_;
+
+    unlink $self->pid_file if $self->has_pid_file;
+
+    return;
+};
+
+
+around 'start' => sub {
+    my ($orig, $self, $code) = @_;
+
+    # check whether we have a CODEREF
+    unless (ref $code eq 'CODE') {
+        $self->log("first argument of start() must be a CODEREF! existing...");
+        $self->stop;
+    }
+
+    # call original method first
+    $self->$orig($code);
+
+    $self->daemonise;
+
+    # we need to reconfigure, because we are in the child and some plugins
+    # start connections in the configure stage
+    $self->configure;
+
+    if ($self->loops) {
+        while (1) {
+            { $code->(); }
+        }
+    }
+    else {
+        $code->();
+        $self->stop;
+    }
+
+    return;
+};
+
+
+sub dont_loop { $_[0]->loops(0); return; }
+sub loop      { $_[0]->loops(1); return; }
 
 
 sub check_pid_file {
@@ -345,49 +381,6 @@ sub status {
     return;
 }
 
-
-before 'stop' => sub {
-    my ($self) = @_;
-
-    unlink $self->pid_file if $self->has_pid_file;
-
-    return;
-};
-
-
-around 'start' => sub {
-    my ($orig, $self, $code) = @_;
-
-    # check whether we have a CODEREF
-    unless (ref $code eq 'CODE') {
-        $self->log("first argument of start() must be a CODEREF! existing...");
-        $self->stop;
-    }
-
-    # call original method first
-    $self->$orig($code);
-
-    $self->log("Daemon starting");    #debug
-
-    $self->daemonise;
-
-    # we need to reconfigure, because we are in the child and some plugins
-    # start connections in the configure stage
-    $self->configure;
-
-    if ($self->loops) {
-        while (1) {
-            { $code->(); }
-        }
-    }
-    else {
-        $code->();
-        $self->stop;
-    }
-
-    return;
-};
-
 sub _get_uid {
     my ($self) = @_;
 
@@ -555,23 +548,27 @@ version 1.86
 
 =head2 interval
 
-=head2 hooks
-
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
 
 =head2 log
 
+=head2 stop
+
+=head2 start
+
+=head2 dont_loop / loop
+
+deactivate code looping for deamon
+this could be done with MouseX::NativeTraits, but i didn't want to use another
+module for just changing boolean values
+
 =head2 check_pid_file
 
 =head2 daemonise
 
 =head2 status
-
-=head2 stop
-
-=head2 start (around)
 
 =head1 AUTHOR
 

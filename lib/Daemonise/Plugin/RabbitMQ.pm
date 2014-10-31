@@ -85,6 +85,7 @@ has 'rabbit_channel' => (
 
 has 'rabbit_consumer_tag' => (
     is      => 'rw',
+    isa     => 'Str',
     lazy    => 1,
     default => sub { '' },
 );
@@ -92,6 +93,7 @@ has 'rabbit_consumer_tag' => (
 
 has 'last_delivery_tag' => (
     is      => 'rw',
+    isa     => 'Str',
     lazy    => 1,
     default => sub { '' },
 );
@@ -107,7 +109,7 @@ has 'admin_queue' => (
 
 has 'reply_queue' => (
     is        => 'rw',
-    lazy      => 1,
+    isa       => 'Str',
     clearer   => 'dont_reply',
     predicate => 'wants_reply',
     default   => sub { undef },
@@ -243,8 +245,6 @@ sub dequeue {
             $self->log("JSON parsing error: $@");
             $msg = {};
         }
-        
-        $self->log("received message: " . $d->dump($msg)) if $d->debug; #debug
 
         last unless ($frame->{routing_key} =~ m/^admin/);
 

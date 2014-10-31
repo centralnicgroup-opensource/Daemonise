@@ -50,12 +50,17 @@ has 'item_key' => (
 );
 
 
-has 'mark_worker' => (
+has 'log_worker_enabled' => (
     is      => 'rw',
     isa     => 'Bool',
     lazy    => 1,
-    clearer => 'dont_mark_worker',
     default => sub { 1 },
+);
+
+
+has 'hooks' => (
+    is  => 'rw',
+    isa => 'HashRef[CodeRef]',
 );
 
 
@@ -76,7 +81,9 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
-    if (ref $self->job->{message} eq 'HASH') {
+    if (ref $self->job->{message} eq 'HASH'
+        and exists $self->job->{message}->{meta})
+    {
         $msg =
             'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
             if (exists $self->job->{message}->{meta}->{account}
@@ -107,15 +114,18 @@ around 'start' => sub {
         }
     }
 
-    $self->log('JobQueue starting');    #debug
-
     my $wrapper = sub {
         my $msg = $self->dequeue;
 
         # skip processing if message was empty or not a hashref
-        unless (ref $msg eq 'HASH') {
-            $self->log("NO MESSAGE");    #debug
-            $self->ack;
+        $msg = { error => "message must not be empty!" }
+            unless ref $msg eq 'HASH';
+
+        # try locking Job ID first because we don't want to write the couchDB
+        # job document if locking failed
+        my $lock_success = $self->lock_job($msg);
+        if (!$lock_success or exists $msg->{error}) {
+            $self->_finish_processing($msg, $lock_success);
             return;
         }
 
@@ -125,7 +135,7 @@ around 'start' => sub {
             and $msg->{data}->{command})
         {
             $msg->{error} = "msg->data->command missing or empty!";
-            $self->stop_here;
+            $self->_finish_processing($msg, $lock_success);
             return;
         }
 
@@ -138,44 +148,21 @@ around 'start' => sub {
             $msg = $code->($msg);
         }
         else {
-            # check for existence of command hooks, fallback to 'default' if exists or fail
-            unless (exists $self->hooks->{$command}) {
-                if (exists $self->hooks->{default}) {
-                    $command = 'default';
-                }
-                else {
-                    $msg->{error} =
-                        "Command '$command' not defined and no default/fallback found!";
-                    $self->stop_here;
-                    return;
-                }
-            }
+            # fallback to 'default' command hook
+            $command = 'default' unless (exists $self->hooks->{$command});
 
-            $msg = $self->hooks->{$command}->($msg);
+            if (exists $self->hooks->{$command}) {
+                $msg = $self->hooks->{$command}->($msg);
+            }
+            else {
+                $msg->{error} =
+                      'Command "'
+                    . $msg->{data}->{command}
+                    . '" not defined and no default/fallback found!';
+            }
         }
 
-        # methods may return void to prevent furhter processing
-        unless ($msg and ref $msg eq 'HASH') {
-            $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
-
-            # log if workflow stops and will be started by event or cron
-            $self->log(
-                "waiting for " . $msg->{meta}->{wait_for} . " event/cron")
-                if (exists $msg->{meta}->{wait_for} and !$self->wants_reply);
-
-            # log worker and update job if we have to
-            if ($self->mark_worker) {
-                $self->log_worker($msg);
-                $self->update_job($msg, delete $msg->{status});
-            }
-
-            # reply if needed and wanted
-            $self->queue($self->reply_queue, $msg) if $self->wants_reply;
-        }
-
-        # at last, ack message
-        $self->ack;
-
+        $self->_finish_processing($msg, $lock_success);
         return;
     };
 
@@ -189,41 +176,7 @@ around 'dequeue' => sub {
     my $msg = $self->$orig($tag);
     $self->job({ message => $msg }) unless $tag;
 
-    if (    ref $msg eq 'HASH'
-        and exists $msg->{meta}
-        and ref $msg->{meta} eq 'HASH'
-        and exists $msg->{meta}->{id})
-    {
-        my $key     = 'activejob:' . $msg->{meta}->{id};
-        my $value   = $self->name . ':' . $$;
-        my $success = $self->lock($key, $value);
-
-        # return undef to prevent any further processing
-        unless ($success) {
-            $self->ack;
-            return;
-        }
-    }
-
     return $msg;
-};
-
-
-around 'queue' => sub {
-    my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
-
-    if (    ref $msg eq 'HASH'
-        and exists $msg->{meta}
-        and ref $msg->{meta} eq 'HASH'
-        and exists $msg->{meta}->{id}
-        and defined $msg->{meta}->{id})
-    {
-        my $key   = 'activejob:' . $msg->{meta}->{id};
-        my $value = $self->name . ':' . $$;
-        $self->unlock($key, $value);
-    }
-
-    return $self->$orig($queue, $msg, $reply_queue, $exchange);
 };
 
 
@@ -234,6 +187,88 @@ before 'ack' => sub {
 
     return;
 };
+
+
+sub _finish_processing {
+    my ($self, $msg, $lock_success) = @_;
+
+    # methods may return void to prevent further processing
+    if ($msg and ref $msg eq 'HASH') {
+        $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
+
+        # log if workflow stops and will be started by event or cron
+        $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
+            if (exists $msg->{meta}
+            and exists $msg->{meta}->{wait_for}
+            and !$self->wants_reply);
+
+        # log worker and update job if we have to
+        my $status = delete $msg->{status};
+        if ($self->log_worker_enabled and $lock_success) {
+            $self->log_worker($msg);
+            $self->update_job($msg, $status);
+        }
+
+        $self->unlock_job($msg) if $lock_success;
+
+        # reply if needed and wanted
+        $self->queue($self->reply_queue, $msg) if $self->wants_reply;
+    }
+
+    # at last, ack message
+    $self->ack;
+
+    return;
+}
+
+
+sub lock_job {
+    my ($self, $msg, $mode) = @_;
+
+    $mode = (defined $mode and $mode eq 'unlock') ? 'unlock' : 'lock';
+
+    if (    ref $msg eq 'HASH'
+        and exists $msg->{meta}
+        and ref $msg->{meta} eq 'HASH'
+        and exists $msg->{meta}->{id})
+    {
+        my $key     = 'activejob:' . $msg->{meta}->{id};
+        my $value   = $self->name . ':' . $$;
+        my $success = $self->$mode($key, $value);
+
+        # return error to prevent any further processing in around 'start' wrapper
+        if ($mode eq 'lock' and !$success) {
+            $msg->{error} = "job locked by different worker process";
+            return;
+        }
+    }
+
+    return 1;
+}
+
+
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock') }
+
+
+# around 'queue' => sub {
+#     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
+#
+#     if (    ref $msg eq 'HASH'
+#         and exists $msg->{meta}
+#         and ref $msg->{meta} eq 'HASH'
+#         and exists $msg->{meta}->{id}
+#         and defined $msg->{meta}->{id})
+#     {
+#         my $key   = 'activejob:' . $msg->{meta}->{id};
+#         my $value = $self->name . ':' . $$;
+#         $self->unlock($key, $value);
+#     }
+#
+#     return $self->$orig($queue, $msg, $reply_queue, $exchange);
+# };
+
+
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }
 
 
 sub get_job {
@@ -354,7 +389,9 @@ sub start_job {
 sub update_job {
     my ($self, $msg, $status) = @_;
 
-    unless ((ref($msg) eq 'HASH') and (exists $msg->{meta}->{id})) {
+    unless ((ref($msg) eq 'HASH')
+        and (exists $msg->{meta} and exists $msg->{meta}->{id}))
+    {
         $self->log("not a JOB, just a message, nothing to see here")
             if $self->debug;
         return;
@@ -416,19 +453,22 @@ sub job_pending {
 sub log_worker {
     my ($self, $msg) = @_;
 
-    $self->log("logging worker");    #debug
+    # only log worker if message has a job ID
+    return $msg unless exists $msg->{meta} and exists $msg->{meta}->{id};
+
+    my $worker = $msg->{meta}->{worker} || $self->name;
+
+    $self->log("logging worker '$worker'") if $self->debug;
 
     # no log yet? create it
     unless (exists $msg->{meta}->{log}) {
-        push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+        push(@{ $msg->{meta}->{log} }, $worker);
         return $msg;
     }
 
     # last worker same as current? ignore
-    unless (
-        $msg->{meta}->{log}->[-1] eq ($msg->{meta}->{worker} || $self->name))
-    {
-        push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+    unless ($msg->{meta}->{log}->[-1] eq $worker) {
+        push(@{ $msg->{meta}->{log} }, $worker);
     }
 
     return $msg;
@@ -650,7 +690,9 @@ version 1.86
 
 =head2 item_key
 
-=head2 mark_worker
+=head2 log_worker_enabled
+
+=head2 hooks
 
 =head1 SUBROUTINES/METHODS provided
 
@@ -658,26 +700,45 @@ version 1.86
 
 =head2 log
 
-=head2 start (around)
+=head2 start
 
-wrap 
-
-=head2 dequeue (around)
+=head2 dequeue
 
 store rabbitMQ message in job attribute after receiving
+
+=head2 ack
+
+empty job attribute before acknowledging a rabbitMQ message
+
+=head2 _finish_processing
+
+this method exists to collect all common tasks needed to finish up a message
+
+1. log error if exists
+2. log wait_for key if job stops here
+3. log worker & update job unless locking failed (job only)
+4. unlock job (job only)
+5. reply to calling worker/rabbit if needed
+6. acknowledge AMQP message
+
+=head2 lock_job
 
 if message is a job, lock rabbit on it using "activejob:job_id" as key and
 "some.rabbit.name:PID" as lock value.
 
-if locking fails, throw error and ack() message to prevent repeating.
+if locking fails, throw error and return undef
 
-=head queue (around)
+=head2 unlock_job
+
+call lock_job in 'unlock' mode
+
+=head queue
 
 if message is a job, unlock rabbit from it before sending it on
 
-=head2 ack (before)
+=head2 dont_log_worker
 
-empty job attribute before acknowledging a rabbitMQ message
+disable worker logging in msg->meta->log array
 
 =head2 get_job
 
