@@ -109,7 +109,7 @@ has 'admin_queue' => (
 
 has 'reply_queue' => (
     is        => 'rw',
-    isa       => 'Str',
+    lazy      => 1,
     clearer   => 'dont_reply',
     predicate => 'wants_reply',
     default   => sub { undef },
