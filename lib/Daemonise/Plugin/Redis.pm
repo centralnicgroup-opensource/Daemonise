@@ -127,30 +127,41 @@ sub cache_del {
 
 
 sub lock {    ## no critic (ProhibitBuiltinHomonyms)
-    my ($self, $thing) = @_;
+    my ($self, $thing, $lock_value) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
         $self->log("locking failed: argument is not of type SCALAR");
         return;
     }
 
+    if (defined $lock_value) {
+        unless (ref \$lock_value eq 'SCALAR') {
+            $self->log('locking failed: second argument is not of type SCALAR');
+            return;
+        }
+    }
+
     my $lock = $thing || $self->name;
 
-    if (my $pid = $self->redis->get($lock)) {
-        if ($pid == $$) {
+    # fallback to PID for the lock value
+    $lock_value //= $$;
+
+    if (my $value = $self->redis->get($lock)) {
+        if ($value eq $lock_value) {
             $self->redis->expire($lock, $self->cache_default_expire);
-            $self->log("locking time extended") if $self->debug;
+            $self->log("lock=$lock locking time extended for $value")
+                if $self->debug;
             return 1;
         }
         else {
-            $self->notify("cannot acquire lock hold by PID $pid");
+            $self->notify("lock=$lock cannot acquire lock hold by $value");
             return;
         }
     }
     else {
-        $self->redis->set($lock => $$);
+        $self->redis->set($lock => $lock_value);
         $self->redis->expire($lock, $self->cache_default_expire);
-        $self->log("lock acquired") if $self->debug;
+        $self->log("lock=$lock lock acquired") if $self->debug;
         return 1;
     }
 }

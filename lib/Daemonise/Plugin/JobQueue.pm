@@ -127,16 +127,16 @@ around 'start' => sub {
         # reset job_locked attribute to unlocked to start with
         $self->job_locked(0);
 
-        # get the next message from the queue
+        # get the next message from the queue (includes locking)
         my $msg = $self->dequeue;
 
-        # skip processing if message was empty or not a hashref
+        # error if message was empty or not a hashref
         $msg = { error => "message must not be empty!" }
             unless ref $msg eq 'HASH';
 
-        # try locking Job ID first because we don't want to write the couchDB
-        # job document if locking failed
-        if (!$self->lock_job($msg) or exists $msg->{error}) {
+        # don't process anything if we already have an error
+        # e.g. locking failed, empty message, ...
+        if (exists $msg->{error}) {
             $self->_finish_processing($msg);
             return;
         }
@@ -185,7 +185,7 @@ around 'start' => sub {
 around 'queue' => sub {
     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
 
-    $self->unlock($msg) if $self->job_locked;
+    $self->unlock_job($msg) if $self->job_locked;
 
     return $self->$orig($queue, $msg, $reply_queue, $exchange);
 };
@@ -195,6 +195,9 @@ around 'dequeue' => sub {
     my ($orig, $self, $tag) = @_;
 
     my $msg = $self->$orig($tag);
+
+    return $msg unless $self->lock_job($msg);
+
     $self->job({ message => $msg }) unless $tag;
 
     return $msg;
@@ -246,6 +249,7 @@ sub _finish_processing {
 sub lock_job {
     my ($self, $msg, $mode) = @_;
 
+    # default on locking
     $mode = (defined $mode and $mode eq 'unlock') ? 'unlock' : 'lock';
 
     if (    ref $msg eq 'HASH'
@@ -741,7 +745,8 @@ unlock job ID before sending it off unless it's already unlocked or locking fail
 
 =head2 dequeue
 
-store rabbitMQ message in job attribute after receiving
+try to lock job ID first if applicable.
+store rabbitMQ message in job attribute after receiving.
 
 =head2 ack
 
