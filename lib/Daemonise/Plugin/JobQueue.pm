@@ -64,6 +64,14 @@ has 'hooks' => (
 );
 
 
+has 'job_locked' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
@@ -115,6 +123,11 @@ around 'start' => sub {
     }
 
     my $wrapper = sub {
+
+        # reset job_locked attribute to unlocked to start with
+        $self->job_locked(0);
+
+        # get the next message from the queue
         my $msg = $self->dequeue;
 
         # skip processing if message was empty or not a hashref
@@ -123,9 +136,8 @@ around 'start' => sub {
 
         # try locking Job ID first because we don't want to write the couchDB
         # job document if locking failed
-        my $lock_success = $self->lock_job($msg);
-        if (!$lock_success or exists $msg->{error}) {
-            $self->_finish_processing($msg, $lock_success);
+        if (!$self->lock_job($msg) or exists $msg->{error}) {
+            $self->_finish_processing($msg);
             return;
         }
 
@@ -135,7 +147,7 @@ around 'start' => sub {
             and $msg->{data}->{command})
         {
             $msg->{error} = "msg->data->command missing or empty!";
-            $self->_finish_processing($msg, $lock_success);
+            $self->_finish_processing($msg);
             return;
         }
 
@@ -162,11 +174,20 @@ around 'start' => sub {
             }
         }
 
-        $self->_finish_processing($msg, $lock_success);
+        $self->_finish_processing($msg);
         return;
     };
 
     return $self->$orig($wrapper);
+};
+
+
+around 'queue' => sub {
+    my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
+
+    $self->unlock($msg) if $self->job_locked;
+
+    return $self->$orig($queue, $msg, $reply_queue, $exchange);
 };
 
 
@@ -190,7 +211,7 @@ before 'ack' => sub {
 
 
 sub _finish_processing {
-    my ($self, $msg, $lock_success) = @_;
+    my ($self, $msg) = @_;
 
     # methods may return void to prevent further processing
     if ($msg and ref $msg eq 'HASH') {
@@ -204,12 +225,12 @@ sub _finish_processing {
 
         # log worker and update job if we have to
         my $status = delete $msg->{status};
-        if ($self->log_worker_enabled and $lock_success) {
+        if ($self->log_worker_enabled and $self->job_locked) {
             $self->log_worker($msg);
             $self->update_job($msg, $status);
         }
 
-        $self->unlock_job($msg) if $lock_success;
+        $self->unlock_job($msg) if $self->job_locked;
 
         # reply if needed and wanted
         $self->queue($self->reply_queue, $msg) if $self->wants_reply;
@@ -239,15 +260,25 @@ sub lock_job {
         # return error to prevent any further processing in around 'start' wrapper
         if ($mode eq 'lock' and !$success) {
             $msg->{error} = "job locked by different worker process";
+            $self->job_locked(0);
             return;
         }
     }
+
+    $self->job_locked(1);
 
     return 1;
 }
 
 
-sub unlock_job { return $_[0]->lock_job($_[1], 'unlock') }
+sub unlock_job {
+    my ($self, $msg) = @_;
+
+    my $result = $self->lock_job($msg, 'unlock');
+    $self->job_locked(0);
+
+    return $result;
+}
 
 
 # around 'queue' => sub {
@@ -694,6 +725,8 @@ version 1.86
 
 =head2 hooks
 
+=head2 job_locked
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -701,6 +734,10 @@ version 1.86
 =head2 log
 
 =head2 start
+
+=head2 queue
+
+unlock job ID before sending it off unless it's already unlocked or locking failed
 
 =head2 dequeue
 
@@ -730,7 +767,7 @@ if locking fails, throw error and return undef
 
 =head2 unlock_job
 
-call lock_job in 'unlock' mode
+call lock_job in 'unlock' mode and set boolean attribute
 
 =head queue
 
