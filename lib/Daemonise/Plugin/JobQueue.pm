@@ -529,17 +529,25 @@ sub job_pending {
 sub log_worker {
     my ($self, $msg) = @_;
 
+    # only log worker if message has a job ID
+    return $msg unless exists $msg->{meta} and exists $msg->{meta}->{id};
+
+    my $worker =
+        (exists $msg->{meta}->{worker})
+        ? $msg->{meta}->{worker}
+        : $self->name;
+
+    $self->log("logging worker '$worker'") if $self->debug;
+
     # no log yet? create it
     unless (exists $msg->{meta}->{log}) {
-        push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+        push(@{ $msg->{meta}->{log} }, $worker);
         return $msg;
     }
 
     # last worker same as current? ignore
-    unless (
-        $msg->{meta}->{log}->[-1] eq ($msg->{meta}->{worker} || $self->name))
-    {
-        push(@{ $msg->{meta}->{log} }, $msg->{meta}->{worker} || $self->name);
+    unless ($msg->{meta}->{log}->[-1] eq $worker) {
+        push(@{ $msg->{meta}->{log} }, $worker);
     }
 
     return $msg;
