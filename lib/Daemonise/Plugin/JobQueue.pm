@@ -577,7 +577,9 @@ sub start_job {
 sub update_job {
     my ($self, $msg, $status) = @_;
 
-    unless ((ref($msg) eq 'HASH') and (exists $msg->{meta}->{id})) {
+    unless ((ref($msg) eq 'HASH')
+        and (exists $msg->{meta} and exists $msg->{meta}->{id}))
+    {
         $self->log("not a JOB, just a message, nothing to see here")
             if $self->debug;
         return;

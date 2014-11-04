@@ -280,9 +280,8 @@ sub queue {
 
     my $json = $js->encode($hash);
     utf8::encode($json);
-    my $err =
-        $self->mq->publish($self->rabbit_channel, $queue, $json,
-        $options, $props);
+    my $err = $self->mq->publish($self->rabbit_channel,
+        $queue, $json, $options, $props);
 
     if ($err) {
         $self->log("sending message failed: $err");
