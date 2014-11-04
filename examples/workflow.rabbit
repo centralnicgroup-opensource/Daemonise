@@ -3,7 +3,6 @@
 use 5.014;
 use Daemonise;
 use Getopt::Long;
-use File::Basename;
 
 # PODNAME: workflow.rabbit
 
@@ -11,7 +10,6 @@ my $pid;
 my $debug;
 my $conf = '/etc/daemonise/bunny.conf';
 my $foreground;
-my ($queue) = basename($0) =~ m/^(.*)\.rabbit$/;
 
 GetOptions(
     "debug|d"      => \$debug,
@@ -21,7 +19,6 @@ GetOptions(
 ) or die;
 
 my $d = Daemonise->new();
-$d->name($queue);
 $d->debug(1)       if $debug;
 $d->debug(1)       if ($d->hostname =~ m/devel/);
 $d->foreground(1)  if $foreground;

@@ -1,6 +1,7 @@
 package Daemonise;
 
 use Mouse;
+use File::Basename;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
@@ -64,7 +65,7 @@ use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
 has 'name' => (
     is        => 'rw',
-    default   => sub { 'daemon' },
+    default   => sub { (my $name = basename($0)) =~ s/\.[^.]+$//; $name },
     predicate => 'has_name',
 );
 

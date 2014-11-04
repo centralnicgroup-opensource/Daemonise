@@ -1,13 +1,11 @@
 #!/usr/bin/env perl
 
-use 5.014;
+use Modern::Perl;
 use Daemonise;
 use Getopt::Long;
-use File::Basename;
 
 my $debug;
 my $conf = '/etc/daemonise/bunny.conf';
-my ($queue) = basename($0) =~ m/^(.*)\.cron$/;
 
 GetOptions(
     "debug|d"    => \$debug,
@@ -15,7 +13,6 @@ GetOptions(
 ) or die;
 
 my $d = Daemonise->new(is_cron => 1);
-$d->name($queue);
 $d->debug(1) if $debug;
 $d->debug(1) if ($d->hostname =~ m/devel/);
 $d->config_file($conf);
