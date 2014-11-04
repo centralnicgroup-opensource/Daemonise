@@ -165,6 +165,7 @@ around 'start' => sub {
 
             if (exists $self->hooks->{$command}) {
                 $msg = $self->hooks->{$command}->($msg);
+                $self->log("MESSAGE CHECK: " . $self->dump($msg));
             }
             else {
                 $msg->{error} =
