@@ -165,7 +165,6 @@ around 'start' => sub {
 
             if (exists $self->hooks->{$command}) {
                 $msg = $self->hooks->{$command}->($msg);
-                $self->log("MESSAGE CHECK: " . $self->dump($msg));
             }
             else {
                 $msg->{error} =
@@ -230,9 +229,11 @@ before 'ack' => sub {
 sub _finish_processing {
     my ($self, $msg) = @_;
 
+    $self->log("MESSAGE CHECK: " . $self->dump($msg));
+
     # methods may return void to prevent further processing
-    if ($msg and ref $msg eq 'HASH') {
-        $self->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
+    if (ref $msg eq 'HASH') {
+        $self->log("ERROR: " . $msg->{error}) if exists $msg->{error};
 
         # log if workflow stops and will be started by event or cron
         $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
