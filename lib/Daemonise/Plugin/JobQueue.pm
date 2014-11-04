@@ -67,7 +67,6 @@ has 'hooks' => (
 has 'job_locked' => (
     is      => 'rw',
     isa     => 'Bool',
-    lazy    => 1,
     default => sub { 0 },
 );
 
@@ -228,8 +227,6 @@ before 'ack' => sub {
 
 sub _finish_processing {
     my ($self, $msg) = @_;
-
-    $self->log("MESSAGE CHECK: " . $self->dump($msg));
 
     # methods may return void to prevent further processing
     if (ref $msg eq 'HASH') {
