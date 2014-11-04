@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use 5.014;
+use Modern::Perl;
 use Daemonise;
 use Getopt::Long;
 
@@ -27,22 +27,9 @@ $d->config_file($conf);
 $d->configure;
 $d->load_plugin('JobQueue');
 $d->is_worker(1);
+$d->dont_mark_worker;
 
-$d->start(\&main);
-
-sub main {
-    my $msg = process($d->dequeue);
-
-    $d->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
-
-    # reply if needed and wanted
-    $d->queue($d->reply_queue, $msg) if $d->wants_reply;
-
-    # at last, ack message
-    $d->ack;
-
-    return;
-}
+$d->start(\&process);
 
 sub process {
     my ($msg) = @_;

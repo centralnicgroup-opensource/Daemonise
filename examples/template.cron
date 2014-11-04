@@ -22,9 +22,4 @@ $d->load_plugin('JobQueue');
 
 $d->configure;
 
-END {
-    # because in perl 5.18 DESTROY is called in DESTRUCT global phase for whatever reason
-    $d->unlock;
-}
-
 # SEE template.rabbit for documentation of possible methods
