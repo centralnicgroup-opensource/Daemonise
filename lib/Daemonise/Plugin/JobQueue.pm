@@ -266,6 +266,17 @@ unlock job ID before sending it off unless it's already unlocked or locking fail
 around 'queue' => sub {
     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
 
+    if (ref $self->job->{message} eq 'HASH'
+        and exists $self->job->{message}->{meta})
+    {
+        for my $key ('user', 'account') {
+            next unless exists $msg->{meta}->{$key};
+
+            $msg->{meta}->{$key} = $self->job->{message}->{meta}->{$key}
+                if exists $self->job->{message}->{meta}->{$key};
+        }
+    }
+
     $self->unlock_job($msg) if $self->job_locked;
 
     return $self->$orig($queue, $msg, $reply_queue, $exchange);
