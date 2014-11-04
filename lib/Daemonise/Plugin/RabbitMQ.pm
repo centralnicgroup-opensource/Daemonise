@@ -284,6 +284,7 @@ sub dequeue {
 sub ack {
     my ($self) = @_;
 
+    $self->log("acknowledging AMQP message") if $self->debug;
     $self->mq->ack($self->rabbit_channel, $self->last_delivery_tag);
 
     return;
