@@ -145,7 +145,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $thing, $lock_value) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
-        $self->log("locking failed: argument is not of type SCALAR");
+        $self->log("locking failed: first argument is not of type SCALAR");
         return;
     }
 

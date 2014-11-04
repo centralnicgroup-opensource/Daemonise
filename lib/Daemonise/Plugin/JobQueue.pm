@@ -185,6 +185,17 @@ around 'start' => sub {
 around 'queue' => sub {
     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
 
+    if (ref $self->job->{message} eq 'HASH'
+        and exists $self->job->{message}->{meta})
+    {
+        for my $key ('user', 'account') {
+            next unless exists $msg->{meta}->{$key};
+
+            $msg->{meta}->{$key} = $self->job->{message}->{meta}->{$key}
+                if exists $self->job->{message}->{meta}->{$key};
+        }
+    }
+
     $self->unlock_job($msg) if $self->job_locked;
 
     return $self->$orig($queue, $msg, $reply_queue, $exchange);
@@ -741,7 +752,8 @@ version 1.86
 
 =head2 queue
 
-unlock job ID before sending it off unless it's already unlocked or locking failed
+pass on account ID and user ID meta information if needed.
+unlock job ID before sending it off unless it's already unlocked or locking failed.
 
 =head2 dequeue
 

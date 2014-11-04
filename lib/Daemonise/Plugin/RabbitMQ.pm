@@ -188,6 +188,9 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
+    $self->log("sending message body: " . $self->dump($hash))
+        if $self->debug;
+
     my $json = $js->encode($hash);
     utf8::encode($json);
     my $err = $self->mq->publish($self->rabbit_channel,
@@ -245,6 +248,9 @@ sub dequeue {
             $self->log("JSON parsing error: $@");
             $msg = {};
         }
+
+        $self->log("received message body: " . $self->dump($msg))
+            if $self->debug;
 
         last unless ($frame->{routing_key} =~ m/^admin/);
 

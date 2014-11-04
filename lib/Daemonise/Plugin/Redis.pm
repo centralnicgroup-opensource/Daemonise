@@ -130,7 +130,7 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $thing, $lock_value) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
-        $self->log("locking failed: argument is not of type SCALAR");
+        $self->log("locking failed: first argument is not of type SCALAR");
         return;
     }
 
@@ -168,28 +168,38 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
 
 
 sub unlock {
-    my ($self, $thing) = @_;
+    my ($self, $thing, $lock_value) = @_;
 
     unless (ref \$thing eq 'SCALAR') {
-        $self->log("locking failed: argument is not of type SCALAR");
+        $self->log("locking failed: first argument is not of type SCALAR");
         return;
+    }
+
+    if (defined $lock_value) {
+        unless (ref \$lock_value eq 'SCALAR') {
+            $self->log('locking failed: second argument is not of type SCALAR');
+            return;
+        }
     }
 
     my $lock = $thing || $self->name;
 
-    if (my $pid = $self->redis->get($lock)) {
-        if ($pid == $$) {
+    # fallback to PID for the lock value
+    $lock_value //= $$;
+
+    if (my $value = $self->redis->get($lock)) {
+        if ($value eq $lock_value) {
             $self->redis->del($lock);
-            $self->log("lock released") if $self->debug;
+            $self->log("lock=$lock lock released") if $self->debug;
             return 1;
         }
         else {
-            $self->log("lock hold by pid $pid, permission denied");
+            $self->log("lock=$lock lock hold by $value, permission denied");
             return;
         }
     }
     else {
-        $self->log("lock was already released") if $self->debug;
+        $self->log("lock=$lock lock was already released") if $self->debug;
         return 1;
     }
 }
