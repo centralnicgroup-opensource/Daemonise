@@ -153,9 +153,12 @@ after 'new' => sub {
 
     # load cache plugin required for cron locking
     if ($args{is_cron}) {
-        return if %Daemonise::Plugin::KyotoTycoon::;
-        my $cache_plugin =
-            "Daemonise::Plugin::" . ($args{cache_plugin} || 'KyotoTycoon');
+        my $cache = ($args{cache_plugin} || 'KyotoTycoon');
+
+        return if %Daemonise::Plugin::KyotoTycoon:: and $cache eq 'KyotoTycoon';
+        return if %Daemonise::Plugin::Redis::       and $cache eq 'Redis';
+
+        my $cache_plugin = "Daemonise::Plugin::" . $cache;
         with($cache_plugin);
     }
 
