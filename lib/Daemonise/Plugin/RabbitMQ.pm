@@ -275,6 +275,9 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
+    $self->log("sending message body: " . $self->dump($hash))
+        if $self->debug;
+
     my $json = $js->encode($hash);
     utf8::encode($json);
     my $err =
@@ -337,6 +340,9 @@ sub dequeue {
             $msg = {};
         }
 
+        $self->log("received message body: " . $self->dump($msg))
+            if $self->debug;
+
         last unless ($frame->{routing_key} =~ m/^admin/);
 
         if (   ($frame->{routing_key} eq 'admin')
@@ -372,6 +378,7 @@ sub dequeue {
 sub ack {
     my ($self) = @_;
 
+    $self->log("acknowledging AMQP message") if $self->debug;
     $self->mq->ack($self->rabbit_channel, $self->last_delivery_tag);
 
     return;
