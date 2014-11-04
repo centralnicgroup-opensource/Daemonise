@@ -152,6 +152,7 @@ has 'rabbit_channel' => (
 
 has 'rabbit_consumer_tag' => (
     is      => 'rw',
+    isa     => 'Str',
     lazy    => 1,
     default => sub { '' },
 );
@@ -162,6 +163,7 @@ has 'rabbit_consumer_tag' => (
 
 has 'last_delivery_tag' => (
     is      => 'rw',
+    isa     => 'Str',
     lazy    => 1,
     default => sub { '' },
 );
