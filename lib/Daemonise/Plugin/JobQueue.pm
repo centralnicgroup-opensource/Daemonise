@@ -274,27 +274,28 @@ sub lock_job {
         my $success = $self->$mode($key, $value);
 
         # return error to prevent any further processing in around 'start' wrapper
-        if ($mode eq 'lock' and !$success) {
-            $msg->{error} = "job locked by different worker process";
+        if ($mode eq 'lock') {
+            if ($success) {
+                $self->job_locked(1);
+                return 1;
+            }
+            else {
+                $msg->{error} = "job locked by different worker process";
+                $self->job_locked(0);
+                return;
+            }
+        }
+        else {
             $self->job_locked(0);
-            return;
+            return 1;
         }
     }
-
-    $self->job_locked(1);
 
     return 1;
 }
 
 
-sub unlock_job {
-    my ($self, $msg) = @_;
-
-    my $result = $self->lock_job($msg, 'unlock');
-    $self->job_locked(0);
-
-    return $result;
-}
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }
 
 
 # around 'queue' => sub {
