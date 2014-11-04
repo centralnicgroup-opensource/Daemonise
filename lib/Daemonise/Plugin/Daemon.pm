@@ -196,8 +196,8 @@ around 'log' => sub {
     elsif ($self->has_logfile) {
         open(my $log_file, '>>', $self->logfile)
             or confess "Could not open File (" . $self->logfile . "): $@";
-        my $now = strftime "[%F %T]", localtime;
-        print $log_file "$now\t$$\t$msg\n";
+        my $now = strftime "%F %T", localtime;
+        print $log_file "${now}: " . $self->name . "[$$]: $msg\n";
         close $log_file;
     }
     else {
