@@ -3,6 +3,22 @@ Changes from 2013-11-04 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
+version 1.86 at 2014-11-04 13:12:16 +0000
+-----------------------------------------
+
+  Change: 1a07524b834fe34bdb44d3561c19691ef0726647
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:03:03 +0000
+
+    use File::Basename to default on daemon/queue name 
+
+  Change: 2bb4a386390d017eb6506f5ad57bb06cab74bccc
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 20:56:11 +0000
+
+    support locking on custom lock value in caching plugins 
+
+-----------------------------------------
 version 1.85 at 2014-10-15 13:50:22 +0000
 -----------------------------------------
 

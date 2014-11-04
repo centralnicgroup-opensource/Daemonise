@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
 
-use 5.014;
+use Modern::Perl;
 use experimental 'smartmatch';
 use Daemonise;
 use Getopt::Long;
-use File::Basename;
 
 # PODNAME: tatort.rabbit
 
@@ -12,7 +11,6 @@ my $pid;
 my $debug;
 my $conf = '/etc/daemonise/bunny.conf';
 my $foreground;
-my ($queue) = basename($0) =~ m/^(.*)\.rabbit$/;
 
 our $AUTOLOAD;
 
@@ -24,7 +22,6 @@ GetOptions(
 ) or die;
 
 my $d = Daemonise->new();
-$d->name($queue);
 $d->debug(1)       if $debug;
 $d->debug(1)       if ($d->hostname =~ m/devel/);
 $d->foreground(1)  if $foreground;
@@ -36,58 +33,38 @@ $d->load_plugin('JobQueue');
 $d->load_plugin('HipChat');
 $d->load_plugin('Graphite');
 $d->is_worker(1);
+$d->dont_log_worker;
 $d->couch_db($d->config->{events}->{db});
 
-$d->start(\&main);
-
-sub main {
-    my $msg = process($d->dequeue);
-
-    $d->log("ERROR: " . $msg->{error}) if (exists $msg->{error});
-
-    # at last, ack message
-    $d->ack;
-
-    return;
-}
-
-sub process {
-    my ($msg) = @_;
-
-    my $command = $msg->{data}->{command};
-
-    my $log_msg = "[any]: $command";
-    $log_msg .= " event_id=" . $msg->{data}->{options}->{_id}
-        if exists $msg->{data}->{options}->{_id};
-    $d->log($log_msg);
-
-    given ($command) {
-        when ('event_add') {
+$d->hooks({
+        event_add => sub {
+            my ($msg) = @_;
             my $event = event_add($msg);
             return $msg unless $event;
             event_exec($event);
-        }
-        when ('event_exec') {
-            event_exec($msg->{data}->{options});
-        }
-        when ('events_trigger') {
-            my @events = _pending_events($msg);
-            foreach my $event (@events) {
-                my $frame = {
-                    data => {
-                        command => "event_exec",
-                        options => $event,
-                    },
-                };
-                $d->queue('events', $frame);
-            }
-        }
-        default {
-            $msg->{error} = "Command \"$command\" not defined!";
-        }
+            return $msg;
+        },
+        event_exec => sub { event_exec($_[0]->{data}->{options}) },
+        events_trigger => \&events_trigger,
+    });
+
+$d->start;
+
+sub events_trigger {
+    my ($msg) = @_;
+
+    my @events = _pending_events($msg);
+    foreach my $event (@events) {
+        my $frame = {
+            data => {
+                command => "event_exec",
+                options => $event,
+            },
+        };
+        $d->queue($d->name, $frame);
     }
 
-    return $msg;
+    return;
 }
 
 sub event_add {
@@ -100,10 +77,9 @@ sub event_add {
     for ('backend', 'object', 'action', 'status') {
         push(@missing, $_) unless defined $event->{$_};
     }
+
     if (@missing) {
         $msg->{error} = 'missing mandatory fields: ' . join(',', @missing);
-        $d->log("ERROR: " . $msg->{error});
-        $d->queue($d->reply_queue, $msg);
         return;
     }
 
@@ -114,14 +90,15 @@ sub event_add {
     my ($id, $rev) = $d->couchdb->put_doc({ doc => $event });
     if ($d->couchdb->error) {
         $msg->{error} = $d->couchdb->error;
-        $d->log("ERROR: " . $msg->{error});
+        return;
     }
     else {
         $msg->{response}->{event_id} = $id;
     }
 
-    # respond to caller
+    # respond to caller manually, as the rest can be done asynchronously
     $d->queue($d->reply_queue, $msg);
+    $d->dont_reply;
 
     # needed so we don't have to get the document again before updating it
     $event->{_id}  = $id;
@@ -136,6 +113,9 @@ sub event_add {
 
 sub event_exec {
     my ($event) = @_;
+
+    # we never need/want to reply to asynchrounous event exec calls
+    $d->dont_reply;
 
     unless (exists $event->{_id}) {
         $d->log(  "event ID missing, don't call event_exec() directly"
@@ -154,6 +134,8 @@ sub event_exec {
 
     my $name = _event_name($event);
     my $service = _event_name($event, '.');
+
+    $d->log('working on event_id=' . $event->{_id} . ' ' . $name);
 
     my $mute = $d->couchdb->get_doc({ id => 'mute' });
     if ($mute and (grep /^$name$/, @{ $mute->{event_list} })) {
@@ -238,7 +220,12 @@ sub restart_workflow {
         return;
     }
 
-    # set jobqueue object to new job
+    my $msg = $job->{message};
+
+    # try to lock job ID before working on it
+    return unless $d->lock_job($msg);
+
+    # store job in attribute
     $d->job($job);
 
     # set to processed if job is already 'done' unless 'reopen'
@@ -247,8 +234,6 @@ sub restart_workflow {
         $d->log("job done, reopen unset, marking as processed");
         return 1;
     }
-
-    my $msg = $job->{message};
 
     # check if this is the event the job was waiting for to prevent multiple
     # events messing with the same job if the job_id was in the event
@@ -289,6 +274,7 @@ sub restart_workflow {
     if ($stop) {
         $msg->{error} = $d->dump($event->{parsed}, 1);
         $d->job_done($msg);
+        $d->unlock_job($msg);
     }
     else {
         $d->update_job($msg, delete $msg->{status});
@@ -306,6 +292,7 @@ sub start_workflow {
     my ($event, $def) = @_;
 
     my $data;
+
     given ($def->{workflow}) {
         when ('workflow_name') {
             $data = { some => 'structure' };
