@@ -133,7 +133,7 @@ sub notify {
     # fork and to the rest asynchronously
     # $self->async and return;
 
-    my $colour = ($colour{ $severity || 'info' }) || 'info';
+    my $colour = ($colour{ $severity || 'info' }) || 'green';
     my $ua = LWP::UserAgent->new(agent => $self->name);
     my $res = $ua->post(
         $self->hipchat_url . $self->hipchat_token, {
