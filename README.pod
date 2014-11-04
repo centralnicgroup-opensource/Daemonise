@@ -8,7 +8,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.85
+version 1.86
 
 =head1 SYNOPSIS
 
@@ -80,6 +80,10 @@ version 1.85
 =head2 async
 
 =head2 log
+
+=head2 start
+
+stub method to hook into by plugins
 
 =head2 stop
 
