@@ -265,6 +265,20 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     return;
 }
 
+=head2 start
+
+stub method to hook into by plugins
+
+=cut
+
+sub start {
+    my ($self) = @_;
+
+    $self->log("rabbit starting");
+
+    return;
+}
+
 =head2 stop
 
 =cut

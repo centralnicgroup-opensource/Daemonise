@@ -107,15 +107,15 @@ has 'foreground' => (
     default => sub { 0 },
 );
 
-=head2 dont_loop
+=head2 loops
 
 =cut
 
-has 'dont_loop' => (
+has 'loops' => (
     is      => 'rw',
     isa     => 'Bool',
     lazy    => 1,
-    default => sub { 0 },
+    default => sub { 1 },
 );
 
 =head2 pid_dir
@@ -206,6 +206,64 @@ around 'log' => sub {
 
     return;
 };
+
+=head2 stop
+
+=cut
+
+before 'stop' => sub {
+    my ($self) = @_;
+
+    unlink $self->pid_file if $self->has_pid_file;
+
+    return;
+};
+
+=head2 start
+
+=cut
+
+around 'start' => sub {
+    my ($orig, $self, $code) = @_;
+
+    # check whether we have a CODEREF
+    unless (ref $code eq 'CODE') {
+        $self->log("first argument of start() must be a CODEREF! existing...");
+        $self->stop;
+    }
+
+    # call original method first
+    $self->$orig($code);
+
+    $self->daemonise;
+
+    # we need to reconfigure, because we are in the child and some plugins
+    # start connections in the configure stage
+    $self->configure;
+
+    if ($self->loops) {
+        while (1) {
+            { $code->(); }
+        }
+    }
+    else {
+        $code->();
+        $self->stop;
+    }
+
+    return;
+};
+
+=head2 dont_loop / loop
+
+deactivate code looping for deamon
+this could be done with MouseX::NativeTraits, but i didn't want to use another
+module for just changing boolean values
+
+=cut
+
+sub dont_loop { $_[0]->loops(0); return; }
+sub loop      { $_[0]->loops(1); return; }
 
 =head2 check_pid_file
 
@@ -408,50 +466,6 @@ sub status {
 
     if ($self->is_running) {
         return $self->running . ' with PID file ' . $self->pid_file;
-    }
-
-    return;
-}
-
-=head2 stop
-
-=cut
-
-before 'stop' => sub {
-    my ($self) = @_;
-
-    unlink $self->pid_file if $self->has_pid_file;
-
-    return;
-};
-
-=head2 start
-
-=cut
-
-sub start {
-    my ($self, $code) = @_;
-
-    $self->daemonise;
-
-    # we need to reconfigure, because we are in the child and some plugins
-    # start connections in the configure stage
-    $self->configure;
-
-    if (ref $code eq 'CODE') {
-        if ($self->dont_loop) {
-            $code->();
-            $self->stop;
-        }
-        else {
-            while (1) {
-                { $code->(); }
-            }
-        }
-    }
-    else {
-        $self->log("first argument of start() is not a CODEREF! existing...");
-        $self->stop;
     }
 
     return;
