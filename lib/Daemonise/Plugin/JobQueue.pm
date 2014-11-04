@@ -14,6 +14,7 @@ use Scalar::Util qw(looks_like_number);
 BEGIN {
     with("Daemonise::Plugin::CouchDB");
     with("Daemonise::Plugin::RabbitMQ");
+    with("Daemonise::Plugin::KyotoTycoon");
 }
 
 =head1 SYNOPSIS
@@ -124,6 +125,16 @@ has 'hooks' => (
     isa => 'HashRef[CodeRef]',
 );
 
+=head2 job_locked
+
+=cut
+
+has 'job_locked' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => sub { 0 },
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -188,7 +199,10 @@ around 'start' => sub {
 
     my $wrapper = sub {
 
-        # get the next message from the queue
+        # reset job_locked attribute to unlocked to start with
+        $self->job_locked(0);
+
+        # get the next message from the queue (includes locking)
         my $msg = $self->dequeue;
 
         # error if message was empty or not a hashref
@@ -196,6 +210,7 @@ around 'start' => sub {
             unless ref $msg eq 'HASH';
 
         # don't process anything if we already have an error
+        # e.g. locking failed, empty message, ...
         if (exists $msg->{error}) {
             $self->_finish_processing($msg);
             return;
@@ -241,9 +256,25 @@ around 'start' => sub {
     return $self->$orig($wrapper);
 };
 
+=head2 queue
+
+pass on account ID and user ID meta information if needed.
+unlock job ID before sending it off unless it's already unlocked or locking failed.
+
+=cut
+
+around 'queue' => sub {
+    my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
+
+    $self->unlock_job($msg) if $self->job_locked;
+
+    return $self->$orig($queue, $msg, $reply_queue, $exchange);
+};
+
 =head2 dequeue
 
 store rabbitMQ message in job attribute after receiving.
+try to lock job ID if applicable
 
 =cut
 
@@ -252,9 +283,10 @@ around 'dequeue' => sub {
 
     my $msg = $self->$orig($tag);
 
-    # don't store job if it's an RPC response
+    # don't lock and store job if it's an RPC response
     unless ($tag) {
         $self->job({ message => $msg });
+        $self->lock_job($msg);
     }
 
     return $msg;
@@ -280,9 +312,10 @@ this method exists to collect all common tasks needed to finish up a message
 
 1. log error if exists
 2. log wait_for key if job stops here
-3. log worker & update job (job only)
-4. reply to calling worker/rabbit if needed
-5. acknowledge AMQP message
+3. log worker & update job unless locking failed (job only)
+4. unlock job (job only)
+5. reply to calling worker/rabbit if needed
+6. acknowledge AMQP message
 
 =cut
 
@@ -301,10 +334,12 @@ sub _finish_processing {
 
         # log worker and update job if we have to
         my $status = delete $msg->{status};
-        if ($self->log_worker_enabled) {
+        if ($self->log_worker_enabled and $self->job_locked) {
             $self->log_worker($msg);
             $self->update_job($msg, $status);
         }
+
+        $self->unlock_job($msg) if $self->job_locked;
 
         # reply if needed and wanted
         $self->queue($self->reply_queue, $msg) if $self->wants_reply;
@@ -315,6 +350,82 @@ sub _finish_processing {
 
     return;
 }
+
+=head2 lock_job
+
+if message is a job, (un)lock rabbit on it using "activejob:job_id" as key and
+"some.rabbit.name:PID" as lock value.
+
+if locking fails, throws error and returns undef, otherwise returns true.
+
+=cut
+
+sub lock_job {
+    my ($self, $msg, $mode) = @_;
+
+    # default on locking
+    $mode = (defined $mode and $mode eq 'unlock') ? 'unlock' : 'lock';
+
+    if (    ref $msg eq 'HASH'
+        and exists $msg->{meta}
+        and ref $msg->{meta} eq 'HASH'
+        and exists $msg->{meta}->{id})
+    {
+        my $key     = 'activejob:' . $msg->{meta}->{id};
+        my $value   = $self->name . ':' . $$;
+        my $success = $self->$mode($key, $value);
+
+        # return error to prevent any further processing in around 'start' wrapper
+        if ($mode eq 'lock') {
+            if ($success) {
+                $self->job_locked(1);
+                return 1;
+            }
+            else {
+                $msg->{error} = "job locked by different worker process";
+                $self->job_locked(0);
+                return;
+            }
+        }
+        else {
+            $self->job_locked(0);
+            return 1;
+        }
+    }
+
+    return 1;
+}
+
+=head2 unlock_job
+
+call lock_job in 'unlock' mode and set boolean attribute
+
+=cut
+
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }
+
+=head queue
+
+if message is a job, unlock rabbit from it before sending it on
+
+=cut
+
+# around 'queue' => sub {
+#     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
+#
+#     if (    ref $msg eq 'HASH'
+#         and exists $msg->{meta}
+#         and ref $msg->{meta} eq 'HASH'
+#         and exists $msg->{meta}->{id}
+#         and defined $msg->{meta}->{id})
+#     {
+#         my $key   = 'activejob:' . $msg->{meta}->{id};
+#         my $value = $self->name . ':' . $$;
+#         $self->unlock($key, $value);
+#     }
+#
+#     return $self->$orig($queue, $msg, $reply_queue, $exchange);
+# };
 
 =head2 dont_log_worker
 
