@@ -207,9 +207,11 @@ around 'dequeue' => sub {
 
     my $msg = $self->$orig($tag);
 
-    return $msg unless $self->lock_job($msg);
-
-    $self->job({ message => $msg }) unless $tag;
+    # don't lock and store job if it's an RPC response
+    unless ($tag) {
+        $self->job({ message => $msg });
+        $self->lock_job($msg);
+    }
 
     return $msg;
 };
@@ -757,8 +759,8 @@ unlock job ID before sending it off unless it's already unlocked or locking fail
 
 =head2 dequeue
 
-try to lock job ID first if applicable.
 store rabbitMQ message in job attribute after receiving.
+try to lock job ID if applicable
 
 =head2 ack
 
