@@ -130,15 +130,20 @@ after 'configure' => sub {
 around 'log' => sub {
     my ($orig, $self, $msg) = @_;
 
-    $msg = 'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{account}
-        and defined $self->job->{message}->{meta}->{account});
-    $msg = 'user=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{user}
-        and defined $self->job->{message}->{meta}->{user});
-    $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
-        if (exists $self->job->{message}->{meta}->{id}
-        and defined $self->job->{message}->{meta}->{id});
+    if (ref $self->job->{message} eq 'HASH'
+        and exists $self->job->{message}->{meta})
+    {
+        $msg =
+            'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
+            if (exists $self->job->{message}->{meta}->{account}
+            and defined $self->job->{message}->{meta}->{account});
+        $msg = 'user=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
+            if (exists $self->job->{message}->{meta}->{user}
+            and defined $self->job->{message}->{meta}->{user});
+        $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
+            if (exists $self->job->{message}->{meta}->{id}
+            and defined $self->job->{message}->{meta}->{id});
+    }
 
     $self->$orig($msg);
 
