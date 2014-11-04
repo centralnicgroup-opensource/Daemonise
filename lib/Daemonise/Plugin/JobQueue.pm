@@ -104,6 +104,26 @@ has 'item_key' => (
     default => sub { 'domain' },
 );
 
+=head2 log_worker_enabled
+
+=cut
+
+has 'log_worker_enabled' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 1 },
+);
+
+=head2 hooks
+
+=cut
+
+has 'hooks' => (
+    is  => 'rw',
+    isa => 'HashRef[CodeRef]',
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -150,9 +170,80 @@ around 'log' => sub {
     return;
 };
 
-=head2 dequeue (around)
+=head2 start
 
-store rabbitMQ message in job attribute on receive
+=cut
+
+around 'start' => sub {
+    my ($orig, $self, $code) = @_;
+
+    # check whether we have an optional custom CODEREF
+    if (defined $code) {
+        unless (ref $code eq 'CODE') {
+            $self->log(
+                "first argument of start() must be a CODEREF! existing...");
+            $self->stop;
+        }
+    }
+
+    my $wrapper = sub {
+
+        # get the next message from the queue
+        my $msg = $self->dequeue;
+
+        # error if message was empty or not a hashref
+        $msg = { error => "message must not be empty!" }
+            unless ref $msg eq 'HASH';
+
+        # don't process anything if we already have an error
+        if (exists $msg->{error}) {
+            $self->_finish_processing($msg);
+            return;
+        }
+
+        unless (exists $msg->{data}
+            and ref $msg->{data} eq 'HASH'
+            and exists $msg->{data}->{command}
+            and $msg->{data}->{command})
+        {
+            $msg->{error} = "msg->data->command missing or empty!";
+            $self->_finish_processing($msg);
+            return;
+        }
+
+        my $command = $msg->{data}->{command};
+
+        $self->log("[$command]") unless $command eq 'graph';
+
+        # give custom code ref preference over hooks
+        if ($code) {
+            $msg = $code->($msg);
+        }
+        else {
+            # fallback to 'default' command hook
+            $command = 'default' unless (exists $self->hooks->{$command});
+
+            if (exists $self->hooks->{$command}) {
+                $msg = $self->hooks->{$command}->($msg);
+            }
+            else {
+                $msg->{error} =
+                      'Command "'
+                    . $msg->{data}->{command}
+                    . '" not defined and no default/fallback found!';
+            }
+        }
+
+        $self->_finish_processing($msg);
+        return;
+    };
+
+    return $self->$orig($wrapper);
+};
+
+=head2 dequeue
+
+store rabbitMQ message in job attribute after receiving.
 
 =cut
 
@@ -160,12 +251,16 @@ around 'dequeue' => sub {
     my ($orig, $self, $tag) = @_;
 
     my $msg = $self->$orig($tag);
-    $self->job({ message => $msg }) unless $tag;
+
+    # don't store job if it's an RPC response
+    unless ($tag) {
+        $self->job({ message => $msg });
+    }
 
     return $msg;
 };
 
-=head2 ack (before)
+=head2 ack
 
 empty job attribute before acknowledging a rabbitMQ message
 
@@ -178,6 +273,56 @@ before 'ack' => sub {
 
     return;
 };
+
+=head2 _finish_processing
+
+this method exists to collect all common tasks needed to finish up a message
+
+1. log error if exists
+2. log wait_for key if job stops here
+3. log worker & update job (job only)
+4. reply to calling worker/rabbit if needed
+5. acknowledge AMQP message
+
+=cut
+
+sub _finish_processing {
+    my ($self, $msg) = @_;
+
+    # methods may return void to prevent further processing
+    if (ref $msg eq 'HASH') {
+        $self->log("ERROR: " . $msg->{error}) if exists $msg->{error};
+
+        # log if workflow stops and will be started by event or cron
+        $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
+            if (exists $msg->{meta}
+            and exists $msg->{meta}->{wait_for}
+            and !$self->wants_reply);
+
+        # log worker and update job if we have to
+        my $status = delete $msg->{status};
+        if ($self->log_worker_enabled) {
+            $self->log_worker($msg);
+            $self->update_job($msg, $status);
+        }
+
+        # reply if needed and wanted
+        $self->queue($self->reply_queue, $msg) if $self->wants_reply;
+    }
+
+    # at last, ack message
+    $self->ack;
+
+    return;
+}
+
+=head2 dont_log_worker
+
+disable worker logging in msg->meta->log array
+
+=cut
+
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }
 
 =head2 get_job
 
