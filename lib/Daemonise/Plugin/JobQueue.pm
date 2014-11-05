@@ -187,7 +187,7 @@ around 'queue' => sub {
     if (ref $self->job->{message} eq 'HASH'
         and exists $self->job->{message}->{meta})
     {
-        for my $key ('user', 'account') {
+        for my $key ('user', 'account', 'session') {
             next if exists $msg->{meta}->{$key};
 
             $msg->{meta}->{$key} = $self->job->{message}->{meta}->{$key}
@@ -739,7 +739,7 @@ version 1.86
 
 =head2 queue
 
-pass on account ID and user ID meta information if needed.
+pass on some meta information if needed (user, account, session).
 unlock job ID before sending it off unless it's already unlocked or locking failed.
 
 =head2 dequeue
