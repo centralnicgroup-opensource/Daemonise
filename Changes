@@ -3,8 +3,15 @@ Changes from 2013-11-05 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.86 at 2014-11-05 13:09:07 +0000
+version 1.86 at 2014-11-05 16:04:37 +0000
 -----------------------------------------
+
+  Change: 7ee72ef9c854c5bb3e32c4948819ac4daf8bdeb7
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-06 00:04:17 +0000
+
+    removed leftover commented out code, fixed logic to pass on
+    user/account meta info 
 
   Change: 97ee80776d0cd38cc27e0f880f61f571bf270fd9
   Author: Tobias Kirschstein <lev@ideegeo.com>

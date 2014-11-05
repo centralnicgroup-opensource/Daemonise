@@ -188,7 +188,7 @@ around 'queue' => sub {
         and exists $self->job->{message}->{meta})
     {
         for my $key ('user', 'account') {
-            next unless exists $msg->{meta}->{$key};
+            next if exists $msg->{meta}->{$key};
 
             $msg->{meta}->{$key} = $self->job->{message}->{meta}->{$key}
                 if exists $self->job->{message}->{meta}->{$key};
@@ -296,24 +296,6 @@ sub lock_job {
 
 
 sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }
-
-
-# around 'queue' => sub {
-#     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
-#
-#     if (    ref $msg eq 'HASH'
-#         and exists $msg->{meta}
-#         and ref $msg->{meta} eq 'HASH'
-#         and exists $msg->{meta}->{id}
-#         and defined $msg->{meta}->{id})
-#     {
-#         my $key   = 'activejob:' . $msg->{meta}->{id};
-#         my $value = $self->name . ':' . $$;
-#         $self->unlock($key, $value);
-#     }
-#
-#     return $self->$orig($queue, $msg, $reply_queue, $exchange);
-# };
 
 
 sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }
@@ -790,10 +772,6 @@ if locking fails, throws error and returns undef, otherwise returns true.
 =head2 unlock_job
 
 call lock_job in 'unlock' mode and set boolean attribute
-
-=head queue
-
-if message is a job, unlock rabbit from it before sending it on
 
 =head2 dont_log_worker
 
