@@ -504,7 +504,10 @@ sub log_worker {
     # only log worker if message has a job ID
     return $msg unless exists $msg->{meta} and exists $msg->{meta}->{id};
 
-    my $worker = $msg->{meta}->{worker} || $self->name;
+    my $worker =
+        (exists $msg->{meta}->{worker})
+        ? $msg->{meta}->{worker}
+        : $self->name;
 
     $self->log("logging worker '$worker'") if $self->debug;
 
@@ -779,10 +782,10 @@ this method exists to collect all common tasks needed to finish up a message
 
 =head2 lock_job
 
-if message is a job, lock rabbit on it using "activejob:job_id" as key and
+if message is a job, (un)lock rabbit on it using "activejob:job_id" as key and
 "some.rabbit.name:PID" as lock value.
 
-if locking fails, throw error and return undef
+if locking fails, throws error and returns undef, otherwise returns true.
 
 =head2 unlock_job
 

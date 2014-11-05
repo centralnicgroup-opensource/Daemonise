@@ -1,10 +1,97 @@
 ==================================================
-Changes from 2013-11-04 00:00:00 +0000 to present.
+Changes from 2013-11-05 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.86 at 2014-11-04 13:12:16 +0000
+version 1.86 at 2014-11-05 13:09:07 +0000
 -----------------------------------------
+
+  Change: 97ee80776d0cd38cc27e0f880f61f571bf270fd9
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 22:08:49 +0000
+
+    version bump 
+
+  Change: 3656198786b7ef0063bfa905d6db7db0e2332601
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 22:07:51 +0000
+
+    updated examples to match latest changes 
+
+  Change: 5e030257172b2edd5a99e38e0d3df8069d20bf32
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 22:05:53 +0000
+
+    perltidy 
+
+  Change: 40fcf34ffbc0019e9e1d01ccac4242b2e69a371a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 22:03:24 +0000
+
+    pass on user and account keys in msg->meta wherever possible 
+
+  Change: 66e4894fd478591630e600a6d859f6e84df80f1b
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 22:01:49 +0000
+
+    implemented job locking based on KyotoTycoon 
+
+  Change: 091242ebb4fc03f5644ec65a5773a9fc23b11590
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:59:46 +0000
+
+    only log worker if we have a job ID, don't implicitly create
+    msg->meta key 
+
+  Change: f367d0fa80a76abccfdce344d9ed728275af45ab
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:57:46 +0000
+
+    introduced command hooks, a nice code wrapper with custom code
+    override to migrate more common rabbit code into Daemonise 
+
+  Change: c2a8ee4acf88e7859748933a50e82d938f3da40a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:31:13 +0000
+
+    make sure we don't implicitly create a msg->meta key 
+
+  Change: 41572069d3dae5834668e0f91477a55063da4da8
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:25:14 +0000
+
+    moved start() into Daemonise to hook into with plugins 
+
+  Change: 4c3191281af78e419c2d15047dd6e6dcec9cbbbf
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:20:32 +0000
+
+    log message received, message about to send and message ack()ing 
+
+  Change: db7a7e969c55d114d3505e7d8d3055b6eff44c96
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:19:26 +0000
+
+    tags are strings 
+
+  Change: 61891dc2fcfdc80a257b9a0baec7de76007afac2
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:18:33 +0000
+
+    fixed colour fallback for hipchat message 
+
+  Change: da09c19e24c074ce3bc0c2381879ed01882a40ea
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:17:04 +0000
+
+    changed logfile log format to be closer to syslog format 
+
+  Change: 972efadfa9499b999ce6fc440927944cf59e1805
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-11-04 21:15:57 +0000
+
+    check if redis was requested and already loaded as well as
+    kyototycoon 
 
   Change: 1a07524b834fe34bdb44d3561c19691ef0726647
   Author: Tobias Kirschstein <lev@ideegeo.com>
@@ -776,5 +863,5 @@ version 1.46 at 2013-11-29 04:06:17 +0000
     implemented cron locking 
 
 =================================================
-Plus 48 releases after 2013-11-04 00:00:00 +0000.
+Plus 48 releases after 2013-11-05 00:00:00 +0000.
 =================================================

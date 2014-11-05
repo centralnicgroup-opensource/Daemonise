@@ -71,6 +71,10 @@
    },
    "release_status" : "stable",
    "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/ideegeo/Daemonise/issues"
+      },
+      "homepage" : "https://github.com/ideegeo/Daemonise/wiki",
       "repository" : {
          "type" : "git",
          "url" : "git://github.com/ideegeo/Daemonise.git",
