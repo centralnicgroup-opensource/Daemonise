@@ -410,6 +410,7 @@ sub daemonise {
             # single lines not losing the context
             unless ($self->debug) {
                 require Sys::Syslog;
+                undef &Tie::Syslog::PRINT;    # silence redefine warnings
                 *Tie::Syslog::PRINT = sub {
                     my $s = shift;
 
