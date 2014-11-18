@@ -116,15 +116,6 @@ has 'log_worker_enabled' => (
     default => sub { 1 },
 );
 
-=head2 hooks
-
-=cut
-
-has 'hooks' => (
-    is  => 'rw',
-    isa => 'HashRef[CodeRef]',
-);
-
 =head2 job_locked
 
 =cut
@@ -133,6 +124,12 @@ has 'job_locked' => (
     is      => 'rw',
     isa     => 'Bool',
     default => sub { 0 },
+);
+
+# internal attribute to store all command hooks
+has '_hooks' => (
+    is  => 'rw',
+    isa => 'HashRef[CodeRef]',
 );
 
 =head1 SUBROUTINES/METHODS provided
@@ -316,6 +313,21 @@ before 'ack' => sub {
 
     return;
 };
+
+=head2 hooks
+
+method wrapper around _hooks attribute to accept hashes instead of a hash
+reference for convenience.
+
+=cut
+
+sub hooks {
+    my ($self, %hooks) = @_;
+
+    $self->_hooks(\%hooks) if %hooks;
+
+    return $self->_hooks;
+}
 
 =head2 _finish_processing
 
