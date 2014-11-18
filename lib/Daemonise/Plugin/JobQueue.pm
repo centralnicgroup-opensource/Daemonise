@@ -58,16 +58,16 @@ has 'log_worker_enabled' => (
 );
 
 
-has 'hooks' => (
-    is  => 'rw',
-    isa => 'HashRef[CodeRef]',
-);
-
-
 has 'job_locked' => (
     is      => 'rw',
     isa     => 'Bool',
     default => sub { 0 },
+);
+
+# internal attribute to store all command hooks
+has '_hooks' => (
+    is  => 'rw',
+    isa => 'HashRef[CodeRef]',
 );
 
 
@@ -223,6 +223,15 @@ before 'ack' => sub {
 
     return;
 };
+
+
+sub hooks {
+    my ($self, %hooks) = @_;
+
+    $self->_hooks(\%hooks) if %hooks;
+
+    return $self->_hooks;
+}
 
 
 sub _finish_processing {
@@ -725,8 +734,6 @@ version 1.86
 
 =head2 log_worker_enabled
 
-=head2 hooks
-
 =head2 job_locked
 
 =head1 SUBROUTINES/METHODS provided
@@ -750,6 +757,11 @@ try to lock job ID if applicable
 =head2 ack
 
 empty job attribute before acknowledging a rabbitMQ message
+
+=head2 hooks
+
+method wrapper around _hooks attribute to accept hashes instead of a hash
+reference for convenience.
 
 =head2 _finish_processing
 
