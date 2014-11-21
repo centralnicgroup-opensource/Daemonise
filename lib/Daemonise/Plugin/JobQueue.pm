@@ -253,6 +253,22 @@ around 'start' => sub {
     return $self->$orig($wrapper);
 };
 
+=head2 stop
+
+unlock job before we get terminated
+
+=cut
+
+before 'stop' => sub {
+    my ($self) = @_;
+
+    if (exists $self->job->{message} and $self->job_locked) {
+        $self->unlock_job($self->job->{message});
+    }
+
+    return;
+};
+
 =head2 queue
 
 pass on some meta information if needed (user, account, session).
