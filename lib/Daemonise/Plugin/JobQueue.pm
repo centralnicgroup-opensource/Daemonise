@@ -181,6 +181,17 @@ around 'start' => sub {
 };
 
 
+before 'stop' => sub {
+    my ($self) = @_;
+
+    if (exists $self->job->{message} and $self->job_locked) {
+        $self->unlock_job($self->job->{message});
+    }
+
+    return;
+};
+
+
 around 'queue' => sub {
     my ($orig, $self, $queue, $msg, $reply_queue, $exchange) = @_;
 
@@ -743,6 +754,10 @@ version 1.86
 =head2 log
 
 =head2 start
+
+=head2 stop
+
+unlock job before we get terminated
 
 =head2 queue
 
