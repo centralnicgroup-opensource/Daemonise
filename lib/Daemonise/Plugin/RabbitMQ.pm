@@ -283,7 +283,11 @@ sub queue {
 
     my $props = { content_type => 'application/json' };
     $props->{reply_to} = $reply_queue if defined $reply_queue;
-    $props->{correlation_id} = $self->correlation_id if defined $reply_queue;
+    # If the queue we're sending to is Daemonise's reply_queue, then this is
+    # probably a response for an rpc message. Include the correlation_id
+    if ($queue eq $self->reply_queue && defined $self->correlation_id) {
+        $props->{correlation_id} = $self->correlation_id 
+    }
 
     my $options;
     $options->{exchange} = $exchange if $exchange;
