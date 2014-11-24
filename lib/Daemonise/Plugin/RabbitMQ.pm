@@ -191,6 +191,18 @@ has 'reply_queue' => (
     default   => sub { undef },
 );
 
+=head2 correlation_id
+
+=cut
+
+has 'correlation_id' => (
+    is        => 'rw',
+    lazy      => 1,
+    # no idea if mouse supports two properties with the same "clearer"
+    clearer   => 'dont_reply',
+    default   => sub { undef },
+);
+
 =head2 mq
 
 =cut
@@ -271,6 +283,7 @@ sub queue {
 
     my $props = { content_type => 'application/json' };
     $props->{reply_to} = $reply_queue if defined $reply_queue;
+    $props->{correlation_id} = $self->correlation_id if defined $reply_queue;
 
     my $options;
     $options->{exchange} = $exchange if $exchange;
@@ -366,6 +379,8 @@ sub dequeue {
     $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
     $self->reply_queue($frame->{props}->{reply_to})
         if exists $frame->{props}->{reply_to};
+    $self->correlation_id($frame->{props}->{correlation_id})
+        if exists $frame->{props}->{correlation_id};
 
     return $msg;
 }
