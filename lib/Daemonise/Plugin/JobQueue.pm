@@ -91,16 +91,15 @@ around 'log' => sub {
     if (ref $self->job->{message} eq 'HASH'
         and exists $self->job->{message}->{meta})
     {
-        $msg =
-            'account=' . $self->job->{message}->{meta}->{account} . ' ' . $msg
-            if (exists $self->job->{message}->{meta}->{account}
-            and defined $self->job->{message}->{meta}->{account});
-        $msg = 'user=' . $self->job->{message}->{meta}->{user} . ' ' . $msg
-            if (exists $self->job->{message}->{meta}->{user}
-            and defined $self->job->{message}->{meta}->{user});
-        $msg = 'job=' . $self->job->{message}->{meta}->{id} . ' ' . $msg
-            if (exists $self->job->{message}->{meta}->{id}
-            and defined $self->job->{message}->{meta}->{id});
+        foreach my $meta (qw/account user session id/) {
+            my $log_meta = $meta eq 'id' ? 'job' : $meta;
+            $msg =
+                  "$log_meta="
+                . $self->job->{message}->{meta}->{$meta} . ' '
+                . $msg
+                if (exists $self->job->{message}->{meta}->{$meta}
+                and defined $self->job->{message}->{meta}->{$meta});
+        }
     }
 
     $self->$orig($msg);
@@ -752,6 +751,10 @@ version 1.86
 =head2 configure
 
 =head2 log
+
+log additional meta info of a job if present. this adds C<job> (from C<<meta->id>>,
+C<session>, C<user>, C<account> from the C<meta> hash in front of each log message
+for easy tracking in any kind of log analyzer later.
 
 =head2 start
 
