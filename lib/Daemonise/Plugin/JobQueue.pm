@@ -538,6 +538,7 @@ sub create_job {
     }
 
     $self->job($job);
+    $self->lock_job($msg);
 
     return $job;
 }
