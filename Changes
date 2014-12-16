@@ -3,8 +3,20 @@ Changes from 2013-12-16 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.86 at 2014-12-16 02:35:00 +0000
+version 1.86 at 2014-12-16 04:39:44 +0000
 -----------------------------------------
+
+  Change: fa40627ec316521211b370dc4bdb94c5fb32920e
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-12-16 16:29:59 +0000
+
+    lock job upon creation 
+
+  Change: f7677c73f2f81584c81b02a60b3a870d87d4c797
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-12-16 16:29:40 +0000
+
+    fixed example workflow rabbit 
 
   Change: 624a7afb46955237d5602fb5aeb70dbb3023ce55
   Author: Tobias Kirschstein <lev@ideegeo.com>
