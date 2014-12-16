@@ -27,7 +27,7 @@ $d->config_file($conf);
 $d->configure;
 $d->load_plugin('JobQueue');
 $d->is_worker(1);
-$d->dont_mark_worker;
+$d->dont_log_worker;
 
 $d->start(\&process);
 
