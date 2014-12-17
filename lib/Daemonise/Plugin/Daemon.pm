@@ -412,16 +412,22 @@ sub daemonise {
                 require Sys::Syslog;
                 undef &Tie::Syslog::PRINT;    # silence redefine warnings
                 *Tie::Syslog::PRINT = sub {
-                    my $s = shift;
+                    my ($s, @msg) = @_;
 
                     warn "Cannot PRINT to a closed filehandle!"
                         unless $s->{'is_open'};
 
-                    map { $_ =~ s/\s*\n\s*/ /gs } @_;    ## no critic
+                    my $msg = join('', @msg);
+
+                    # remove vertical (and potentially surrounding horizontal) spaces
+                    $msg =~ s/\h*\v+\h*/ /gs;
+
+                    # Sys::Syslog does not like wide characters and dies
+                    utf8::encode($msg);
 
                     eval {
-                        Sys::Syslog::syslog($s->facility . "|" . $s->priority,
-                            "@_");
+                        Sys::Syslog::syslog($s->facility . '|' . $s->priority,
+                            $msg);
                     };
                     if ($@) {
                         Sys::Syslog::syslog($s->facility . '|',
