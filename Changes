@@ -3,8 +3,14 @@ Changes from 2013-12-17 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.87 at 2014-12-17 01:14:34 +0000
+version 1.87 at 2014-12-17 01:30:13 +0000
 -----------------------------------------
+
+  Change: a1ac5a8dd2adad77e936acbd9d4b207471ef1e28
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-12-17 14:29:56 +0000
+
+    version bump 
 
   Change: ed81a27e5fc39c5a26803f72b54ebc2fa404cc9f
   Author: Tobias Kirschstein <lev@ideegeo.com>
