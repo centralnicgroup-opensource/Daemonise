@@ -430,8 +430,10 @@ sub daemonise {
                             $msg);
                     };
                     if ($@) {
-                        Sys::Syslog::syslog($s->facility . '|',
-                            $s->priority, "PRINT failed with errors: $@");
+                        Sys::Syslog::syslog(
+                            $s->facility . '|' . $s->priority,
+                            "PRINT failed with errors: $@"
+                        );
                     }
 
                     return;
