@@ -1,9 +1,25 @@
 ==================================================
-Changes from 2013-12-16 00:00:00 +0000 to present.
+Changes from 2013-12-17 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.86 at 2014-12-16 04:39:44 +0000
+version 1.87 at 2014-12-17 01:14:34 +0000
+-----------------------------------------
+
+  Change: ed81a27e5fc39c5a26803f72b54ebc2fa404cc9f
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-12-17 14:14:22 +0000
+
+    proper encoding before syslogging 
+
+  Change: 70b341c3169c9fb5f47751ed0854dbe554e65472
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2014-12-17 14:13:49 +0000
+
+    don't die because syslogging didn't work 
+
+-----------------------------------------
+version 1.86 at 2014-12-16 03:29:59 +0000
 -----------------------------------------
 
   Change: fa40627ec316521211b370dc4bdb94c5fb32920e
@@ -796,5 +812,5 @@ version 1.55 at 2014-01-03 05:23:29 +0000
     release build branches on github 
 
 =================================================
-Plus 56 releases after 2013-12-16 00:00:00 +0000.
+Plus 56 releases after 2013-12-17 00:00:00 +0000.
 =================================================
