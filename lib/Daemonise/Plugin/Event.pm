@@ -82,8 +82,11 @@ sub create_event {
     # add mapped stuff
     given ($type) {
         when ('restart_billing') {
-            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
-                $self->log('data->key missing or not a scalar');
+            unless (exists $data->{key}
+                and ref \$data->{key} eq 'SCALAR'
+                and $data->{key})
+            {
+                $self->log('data->key missing or empty');
                 return;
             }
 
@@ -97,8 +100,11 @@ sub create_event {
             };
         }
         when ('start_billing') {
-            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
-                $self->log('data->key missing or not a scalar');
+            unless (exists $data->{key}
+                and ref \$data->{key} eq 'SCALAR'
+                and $data->{key})
+            {
+                $self->log('data->key missing or empty');
                 return;
             }
 
@@ -112,8 +118,11 @@ sub create_event {
             };
         }
         when ('continue') {
-            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
-                $self->log('data->key missing or not a scalar');
+            unless (exists $data->{key}
+                and ref \$data->{key} eq 'SCALAR'
+                and $data->{key})
+            {
+                $self->log('data->key missing or empty');
                 return;
             }
 
@@ -127,8 +136,11 @@ sub create_event {
             };
         }
         when ('restart') {
-            unless (exists $data->{key} and ref \$data->{key} eq 'SCALAR') {
-                $self->log('data->key missing or not a scalar');
+            unless (exists $data->{key}
+                and ref \$data->{key} eq 'SCALAR'
+                and $data->{key})
+            {
+                $self->log('data->key missing or empty');
                 return;
             }
 
