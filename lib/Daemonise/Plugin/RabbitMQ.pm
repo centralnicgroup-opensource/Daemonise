@@ -110,9 +110,16 @@ has 'admin_queue' => (
 has 'reply_queue' => (
     is        => 'rw',
     lazy      => 1,
-    clearer   => 'dont_reply',
+    clearer   => 'no_reply',
     predicate => 'wants_reply',
     default   => sub { undef },
+);
+
+
+has 'correlation_id' => (
+    is      => 'rw',
+    isa     => 'Str',
+    clearer => 'no_correlation_id',
 );
 
 
@@ -142,6 +149,16 @@ after 'configure' => sub {
 
     return;
 };
+
+
+sub dont_reply {
+    my ($self) = @_;
+
+    $self->no_reply;
+    $self->no_correlation_id;
+
+    return;
+}
 
 
 sub queue {
@@ -184,6 +201,12 @@ sub queue {
 
     my $props = { content_type => 'application/json' };
     $props->{reply_to} = $reply_queue if defined $reply_queue;
+
+    # If the queue we're sending to is Daemonise's reply_queue, then this is
+    # probably a response for an RPC message. Include the correlation_id
+    if ($queue eq $self->reply_queue && defined $self->correlation_id) {
+        $props->{correlation_id} = $self->correlation_id;
+    }
 
     my $options;
     $options->{exchange} = $exchange if $exchange;
@@ -276,6 +299,8 @@ sub dequeue {
     $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
     $self->reply_queue($frame->{props}->{reply_to})
         if exists $frame->{props}->{reply_to};
+    $self->correlation_id($frame->{props}->{correlation_id})
+        if exists $frame->{props}->{correlation_id};
 
     return $msg;
 }
@@ -375,7 +400,7 @@ Daemonise::Plugin::RabbitMQ - Daemonise RabbitMQ plugin
 
 =head1 VERSION
 
-version 1.87
+version 1.88
 
 =head1 SYNOPSIS
 
@@ -440,11 +465,15 @@ version 1.87
 
 =head2 reply_queue
 
+=head2 correlation_id
+
 =head2 mq
 
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
+
+=head dont_reply
 
 =head2 queue
 
