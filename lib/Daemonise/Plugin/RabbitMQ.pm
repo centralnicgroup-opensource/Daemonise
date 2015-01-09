@@ -204,7 +204,10 @@ sub queue {
 
     # If the queue we're sending to is Daemonise's reply_queue, then this is
     # probably a response for an RPC message. Include the correlation_id
-    if ($queue eq $self->reply_queue && defined $self->correlation_id) {
+    if (    defined $self->correlation_id
+        and defined $self->reply_queue
+        and $queue eq $self->reply_queue)
+    {
         $props->{correlation_id} = $self->correlation_id;
     }
 
