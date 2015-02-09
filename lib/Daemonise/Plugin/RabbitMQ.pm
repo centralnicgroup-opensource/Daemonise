@@ -476,7 +476,7 @@ version 1.88
 
 =head2 configure
 
-=head dont_reply
+=head2 dont_reply
 
 =head2 queue
 

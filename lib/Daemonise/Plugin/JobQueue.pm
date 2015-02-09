@@ -314,10 +314,10 @@ sub lock_job {
 }
 
 
-sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); } ## no critic
 
 
-sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; } ## no critic
 
 
 sub get_job {
