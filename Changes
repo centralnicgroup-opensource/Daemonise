@@ -3,8 +3,14 @@ Changes from 2014-02-09 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.88 at 2015-02-09 11:56:41 +0000
+version 1.88 at 2015-02-09 11:57:28 +0000
 -----------------------------------------
+
+  Change: 6bf13944f2bb929c5a7e81aa9c36145c9092e8b0
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-02-10 00:57:20 +0000
+
+    satisfied perl critic 
 
   Change: f6d378e0366cea2b53c0287f36991f29f7294b20
   Author: Tobias Kirschstein <lev@ideegeo.com>
