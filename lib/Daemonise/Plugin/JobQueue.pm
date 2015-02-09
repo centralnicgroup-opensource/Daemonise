@@ -255,7 +255,7 @@ sub _finish_processing {
         $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
             if (exists $msg->{meta}
             and exists $msg->{meta}->{wait_for}
-            and !$self->wants_reply);
+            and not $self->wants_reply);
 
         # log worker and update job if we have to
         my $status = delete $msg->{status};
