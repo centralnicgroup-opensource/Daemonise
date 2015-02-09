@@ -372,7 +372,7 @@ sub _finish_processing {
         $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
             if (exists $msg->{meta}
             and exists $msg->{meta}->{wait_for}
-            and !$self->wants_reply);
+            and not $self->wants_reply);
 
         # log worker and update job if we have to
         my $status = delete $msg->{status};
@@ -444,7 +444,7 @@ call lock_job in 'unlock' mode and set boolean attribute
 
 =cut
 
-sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); } ## no critic
 
 =head2 dont_log_worker
 
@@ -452,7 +452,7 @@ disable worker logging in msg->meta->log array
 
 =cut
 
-sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; } ## no critic
 
 =head2 get_job
 

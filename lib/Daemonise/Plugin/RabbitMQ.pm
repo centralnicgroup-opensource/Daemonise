@@ -237,7 +237,7 @@ after 'configure' => sub {
     return;
 };
 
-=head dont_reply
+=head2 dont_reply
 
 =cut
 

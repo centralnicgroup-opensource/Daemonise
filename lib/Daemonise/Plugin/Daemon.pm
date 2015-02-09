@@ -262,8 +262,8 @@ module for just changing boolean values
 
 =cut
 
-sub dont_loop { $_[0]->loops(0); return; }
-sub loop      { $_[0]->loops(1); return; }
+sub dont_loop { $_[0]->loops(0); return; } ## no critic
+sub loop      { $_[0]->loops(1); return; } ## no critic
 
 =head2 check_pid_file
 
