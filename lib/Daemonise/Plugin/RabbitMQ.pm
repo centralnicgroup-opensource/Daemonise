@@ -186,9 +186,19 @@ has 'admin_queue' => (
 has 'reply_queue' => (
     is        => 'rw',
     lazy      => 1,
-    clearer   => 'dont_reply',
+    clearer   => 'no_reply',
     predicate => 'wants_reply',
     default   => sub { undef },
+);
+
+=head2 correlation_id
+
+=cut
+
+has 'correlation_id' => (
+    is      => 'rw',
+    isa     => 'Str',
+    clearer => 'no_correlation_id',
 );
 
 =head2 mq
@@ -226,6 +236,19 @@ after 'configure' => sub {
 
     return;
 };
+
+=head dont_reply
+
+=cut
+
+sub dont_reply {
+    my ($self) = @_;
+
+    $self->no_reply;
+    $self->no_correlation_id;
+
+    return;
+}
 
 =head2 queue
 
@@ -271,6 +294,15 @@ sub queue {
 
     my $props = { content_type => 'application/json' };
     $props->{reply_to} = $reply_queue if defined $reply_queue;
+
+    # If the queue we're sending to is Daemonise's reply_queue, then this is
+    # probably a response for an RPC message. Include the correlation_id
+    if (    defined $self->correlation_id
+        and defined $self->reply_queue
+        and $queue eq $self->reply_queue)
+    {
+        $props->{correlation_id} = $self->correlation_id;
+    }
 
     my $options;
     $options->{exchange} = $exchange if $exchange;
@@ -366,6 +398,8 @@ sub dequeue {
     $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
     $self->reply_queue($frame->{props}->{reply_to})
         if exists $frame->{props}->{reply_to};
+    $self->correlation_id($frame->{props}->{correlation_id})
+        if exists $frame->{props}->{correlation_id};
 
     return $msg;
 }
