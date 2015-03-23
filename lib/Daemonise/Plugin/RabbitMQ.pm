@@ -52,13 +52,20 @@ use Try::Tiny;
 
 use Mouse::Util::TypeConstraints;
 
-subytpe 'LastDeliveryTagMathUInt64' => as 'Object' => where {
-    $_->isa('Math::UInt64') or $_->isa('Math::Int64');
+subtype 'MathUInt64' => as 'Object' => where {
+    say "Checking MathUInt";
+    $_->isa('Math::UInt64');
 };
 
+subtype 'MathInt64' => as 'Object' => where {
+    say "Checking MathInt";
+    $_->isa('Math::Int64');
+};
 
-coerce 'Str' => from 'LastDeliveryTagMathUInt64' => via {
-    return ""+$_;
+coerce 'Str' => from 'MathUInt64' => via {
+    return "$_";
+} => from 'MathInt64' => via {
+    return "$_";
 };
 
 no Mouse::Util::TypeConstraints;
@@ -170,6 +177,7 @@ has 'rabbit_consumer_tag' => (
     default => sub { '' },
 );
 
+
 =head2 last_delivery_tag
 
 =cut
@@ -178,7 +186,7 @@ has 'last_delivery_tag' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    coerce => 1,
+    coerce  => 1,
     default => sub { '' },
 );
 
