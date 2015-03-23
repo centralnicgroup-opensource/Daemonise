@@ -71,7 +71,7 @@ Daemonise::Plugin::Paralleliser - Daemonise plugin to parallelise certain tasks 
 
 =head1 VERSION
 
-version 1.88
+version 1.89
 
 =head1 SYNOPSIS
 

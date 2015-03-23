@@ -43,7 +43,7 @@
             "MIME::Base64" : "0",
             "Mouse" : "0",
             "Mouse::Role" : "0",
-            "Net::AMQP::RabbitMQ" : "0",
+            "Net::AMQP::RabbitMQ" : "0.300000",
             "Net::Graphite" : "0",
             "POSIX" : "0",
             "Parallel::ForkManager" : "0",
@@ -81,6 +81,6 @@
          "web" : "https://github.com/ideegeo/Daemonise"
       }
    },
-   "version" : "1.88"
+   "version" : "1.89"
 }
 

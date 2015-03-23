@@ -128,7 +128,7 @@ Daemonise::Plugin::Graphite - Daemonise Graphite plugin
 
 =head1 VERSION
 
-version 1.88
+version 1.89
 
 =head1 SYNOPSIS
 
