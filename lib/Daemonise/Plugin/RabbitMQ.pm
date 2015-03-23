@@ -50,6 +50,19 @@ use Try::Tiny;
 
 =cut
 
+use Mouse::Util::TypeConstraints;
+
+subytpe 'LastDeliveryTagMathUInt64' => as 'Object' => where {
+    $_->isa('Math::UInt64') or $_->isa('Math::Int64');
+};
+
+
+coerce 'Str' => from 'LastDeliveryTagMathUInt64' => via {
+    return ""+$_;
+};
+
+no Mouse::Util::TypeConstraints;
+
 our $js = JSON->new;
 $js->utf8;
 $js->allow_blessed;
@@ -165,6 +178,7 @@ has 'last_delivery_tag' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
+    coerce => 1,
     default => sub { '' },
 );
 
