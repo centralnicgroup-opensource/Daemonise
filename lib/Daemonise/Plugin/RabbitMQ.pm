@@ -53,12 +53,10 @@ use Try::Tiny;
 use Mouse::Util::TypeConstraints;
 
 subtype 'MathUInt64' => as 'Object' => where {
-    say "Checking MathUInt";
     $_->isa('Math::UInt64');
 };
 
 subtype 'MathInt64' => as 'Object' => where {
-    say "Checking MathInt";
     $_->isa('Math::Int64');
 };
 
