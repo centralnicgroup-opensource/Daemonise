@@ -6,7 +6,7 @@ use experimental 'smartmatch';
 
 # ABSTRACT: Daemonise RabbitMQ plugin
 
-use Net::AMQP::RabbitMQ;
+use Net::AMQP::RabbitMQ 0.300000;
 use Carp;
 use JSON;
 use Try::Tiny;
@@ -162,10 +162,10 @@ has 'rabbit_consumer_tag' => (
 =cut
 
 has 'last_delivery_tag' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { '' },
+    is => 'rw',
+
+    # Net::AMQP::RabbitMQ 0.100000 introduced Math::Uint64 delivery_tags
+    isa => 'Math::UInt64',
 );
 
 =head2 admin_queue
