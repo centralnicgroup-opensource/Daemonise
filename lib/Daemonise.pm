@@ -190,7 +190,9 @@ sub start {
 
     # configure unless we are going to fork,
     # in which case we have to configure after forking
-    $self->configure unless (%Daemonise::Plugin::Daemon:: and $self->foreground);
+    $self->configure
+        unless (%Daemonise::Plugin::Daemon::
+        and not($self->can('foreground') and $self->foreground));
 
     $self->log("rabbit starting");
 
@@ -250,7 +252,7 @@ sub parse_command_line {
 
     my ($debug, $config);
 
-    eval { GetOptions(@opts, "debug|d" => \$debug, "config|c=s" => \$config) };
+    eval { GetOptions(@opts, "debug|d" => \$debug, "config|c=s" => \$config); };
     die $@ if $@;
 
     $self->debug($debug)        if defined $debug;
