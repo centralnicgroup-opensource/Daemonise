@@ -7,11 +7,12 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.89'; # VERSION
+our $VERSION = '1.90'; # VERSION
 
 use Sys::Syslog qw(:standard :macros);
 use Config::Any;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
+use Getopt::Long;
 
 
 has 'name' => (
@@ -110,7 +111,7 @@ sub load_plugin {
 sub configure {
     my ($self, $reconfig) = @_;
 
-    ### install a signal handler as anchor for clean shutdowns in plugins
+    # install a signal handler as anchor for clean shutdowns in plugins
     $SIG{QUIT} = sub { $self->stop };    ## no critic
     $SIG{TERM} = sub { $self->stop };    ## no critic
     $SIG{INT}  = sub { $self->stop };    ## no critic
@@ -142,21 +143,21 @@ sub configure {
 sub async {
     my ($self) = @_;
 
-    ### block signal for fork
+    # block signal for fork
     my $sigset = POSIX::SigSet->new(SIGTERM);
     POSIX::sigprocmask(SIG_BLOCK, $sigset)
         or die "Can't block SIGTERM for fork: [$!]\n";
 
-    ### fork off a child
+    # fork off a child
     my $pid = fork;
     unless (defined $pid) {
         die "Couldn't fork: [$!]\n";
     }
 
-    ### make SIGTERM kill us as it did before
+    # make SIGTERM kill us as it did before
     local $SIG{TERM} = 'DEFAULT';
 
-    ### put back to normal
+    # put back to normal
     POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
         or die "Can't unblock SIGTERM for fork: [$!]\n";
 
@@ -185,6 +186,12 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 sub start {
     my ($self) = @_;
 
+    $self->parse_command_line;
+
+    # configure unless we are going to fork,
+    # in which case we have to configure after forking
+    $self->configure unless (%Daemonise::Plugin::Daemon:: and $self->foreground);
+    f(d&!g)
     $self->log("rabbit starting");
 
     return;
@@ -238,6 +245,21 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
 }
 
 
+sub parse_command_line {
+    my ($self, @opts) = @_;
+
+    my ($debug, $config);
+
+    eval { GetOptions(@opts, "debug|d" => \$debug, "config|c=s" => \$config) };
+    die $@ if $@;
+
+    $self->debug($debug)        if defined $debug;
+    $self->config_file($config) if defined $config;
+
+    return;
+}
+
+
 1;    # End of Daemonise
 
 __END__
@@ -252,33 +274,16 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.89
+version 1.90
 
 =head1 SYNOPSIS
 
     use Daemonise;
-    use File::Basename;
     
     my $d = Daemonise->new();
-    $d->name(basename($0));
     
     # log/print more debug info
     $d->debug(1);
-    
-    # stay in foreground, don't actually fork when calling $d->start
-    $d->foreground(1) if $d->debug;
-    
-    # config file style can be whatever Config::Any supports
-    $d->config_file('/path/to/some.conf');
-    
-    # where to store/look for PID file
-    $d->pid_file("/var/run/${name}.pid");
-    
-    # configure everything so far
-    $d->configure;
-    
-    # fork and redirect STDERR/STDOUT to syslog per default
-    $d->start;
     
     # load some plugins (refer to plugin documentation for provided methods)
     $d->load_plugin('RabbitMQ');
@@ -292,7 +297,10 @@ version 1.89
     $d->load_plugin('KyotoTycoon');
     $d->load_plugin('Graphite');
     
-    # reconfigure after loading plugins if necessary
+    # config file style can be whatever Config::Any supports
+    $d->config_file('/path/to/some.conf');
+    
+    # configure plugins after loading
     $d->configure;
     
     # do stuff
@@ -334,6 +342,8 @@ stub method to hook into by plugins
 =head2 round
 
 =head2 dump
+
+=head2 parse_command_line
 
 =head1 BUGS
 

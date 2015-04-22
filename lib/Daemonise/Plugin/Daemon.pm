@@ -163,10 +163,6 @@ around 'start' => sub {
 
     $self->daemonise;
 
-    # we need to reconfigure, because we are in the child and some plugins
-    # start connections in the configure stage
-    $self->configure;
-
     if ($self->loops) {
         while (1) {
             { $code->(); }
@@ -181,17 +177,33 @@ around 'start' => sub {
 };
 
 
-sub dont_loop { $_[0]->loops(0); return; } ## no critic
-sub loop      { $_[0]->loops(1); return; } ## no critic
+around 'parse_command_line' => sub {
+    my ($orig, $self, @opts) = @_;
+
+    my ($pid_file, $foreground);
+    $self->$orig(
+        @opts,
+        "pid_file|p=s" => \$pid_file,
+        "foreground|f" => \$foreground,
+    );
+    $self->foreground($foreground) if defined $foreground;
+    $self->pid_file($pid_file)     if defined $pid_file;
+
+    return;
+};
+
+
+sub dont_loop { $_[0]->loops(0); return; }    ## no critic
+sub loop      { $_[0]->loops(1); return; }    ## no critic
 
 
 sub check_pid_file {
     my ($self) = @_;
 
-    ### no pid_file = return success
+    # no pid_file = return success
     return 1 unless -e $self->pid_file;
 
-    ### get the currently listed pid
+    # get the currently listed pid
     open(my $pid_file, '<', $self->pid_file)
         or die "Couldn't open existant pid_file \""
         . $self->pid_file
@@ -206,11 +218,11 @@ sub check_pid_file {
 
     my $exists;
 
-    ### try a proc file system
+    # try a proc file system
     if (-d '/proc') {
         $exists = -e "/proc/$pid";
 
-        ### try ps
+        # try ps
         #}elsif( -x '/bin/ps' ){ # not as portable
         # the ps command itself really isn't portable
         # this follows BSD syntax ps (BSD's and linux)
@@ -223,7 +235,7 @@ sub check_pid_file {
 
     }
 
-    ### running process exists, ouch
+    # running process exists, ouch
     if ($exists) {
 
         if ($pid == $$) {
@@ -242,8 +254,7 @@ sub check_pid_file {
         }
     }
     else {
-        ### remove the pid_file
-
+        # remove the pid_file
         warn "Pid_file \""
             . $self->pid_file
             . "\" already exists.  Overwriting!\n";
@@ -275,23 +286,24 @@ sub daemonise {
 
     my $pid = $self->async;
 
-    ### parent process should do the pid file and exit
+    # parent process should do the pid file and exit
     if ($pid) {
         $pid && exit;
-        ### child process will continue on
+
+        # child process will continue on
     }
     else {
         $self->_create_pid_file if $self->has_pid_file;
 
-        ### make sure we can remove the file later
+        # make sure we can remove the file later
         chown($self->uid, $self->gid, $self->pid_file)
             if $self->has_pid_file;
 
-        ### become another user and group
+        # become another user and group
         $self->_set_user;
 
-        ### close all input/output and separate
-        ### from the parent process group
+        # close all input/output and separate
+        # from the parent process group
         open(STDIN, '<', '/dev/null')
             or die "Can't open STDIN from /dev/null: [$!]";
 
@@ -361,19 +373,18 @@ sub daemonise {
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
 
-        ### Change to root dir to avoid locking a mounted file system
-        ### does this mean to be chroot ?
+        # Change to root dir to avoid locking a mounted file system
+        # does this mean to be chroot ?
         chdir '/' or die "Can't chdir to \"/\": [$!]";
 
-        ### Turn process into session leader, and ensure no controlling terminal
+        # Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
 
-        $self->log("daemon started");
+        $self->log("rabbit started");
 
-        ### install signal handlers to make sure we shut down gracefully
-        $SIG{QUIT} = sub { $self->stop };    ## no critic
-        $SIG{TERM} = sub { $self->stop };    ## no critic
-        $SIG{INT}  = sub { $self->stop };    ## no critic
+        # we need to reconfigure, because we are in the child and some plugins
+        # start connections in the configure stage
+        $self->configure;
 
         return 1;
     }
@@ -437,7 +448,7 @@ sub _create_pid_file {
     # child should also know its PID
     $self->running($$);
 
-    ### see if the pid_file is already there
+    # see if the pid_file is already there
     $self->check_pid_file;
 
     open(my $pid_file, '>', $self->pid_file)
@@ -513,7 +524,7 @@ Daemonise::Plugin::Daemon - Daemonise plugin handling PID file, forking, syslog
 
 =head1 VERSION
 
-version 1.89
+version 1.90
 
 =head1 SYNOPSIS
 
@@ -521,8 +532,13 @@ version 1.89
     
     my $d = Daemonise->new();
     $d->debug(1);
-    $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
+
+    # stay in foreground, don't actually fork when calling $d->start
+    $d->foreground(1) if $d->debug;
+
+    # where to store/look for PID file
+    $d->pid_file("/var/run/${name}.pid");
     
     $d->configure;
     
@@ -571,6 +587,8 @@ version 1.89
 =head2 stop
 
 =head2 start
+
+=head2 parse_command_line
 
 =head2 dont_loop / loop
 

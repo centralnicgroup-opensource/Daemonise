@@ -8,6 +8,7 @@ requires "DateTime" => "0";
 requires "Digest::MD5" => "0";
 requires "File::Basename" => "0";
 requires "FindBin" => "0";
+requires "Getopt::Long" => "0";
 requires "JSON" => "0";
 requires "LWP::UserAgent" => "0";
 requires "MIME::Base64" => "0";

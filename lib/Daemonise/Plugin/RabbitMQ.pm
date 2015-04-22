@@ -403,7 +403,7 @@ Daemonise::Plugin::RabbitMQ - Daemonise RabbitMQ plugin
 
 =head1 VERSION
 
-version 1.89
+version 1.90
 
 =head1 SYNOPSIS
 
