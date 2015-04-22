@@ -475,7 +475,7 @@ sub daemonise {
         ### Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
 
-        $self->log("daemon started");
+        $self->log("rabbit started");
 
         # we need to reconfigure, because we are in the child and some plugins
         # start connections in the configure stage
