@@ -12,8 +12,13 @@ use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
     
     my $d = Daemonise->new();
     $d->debug(1);
-    $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
+
+    # stay in foreground, don't actually fork when calling $d->start
+    $d->foreground(1) if $d->debug;
+
+    # where to store/look for PID file
+    $d->pid_file("/var/run/${name}.pid");
     
     $d->configure;
     
@@ -237,10 +242,6 @@ around 'start' => sub {
 
     $self->daemonise;
 
-    # we need to reconfigure, because we are in the child and some plugins
-    # start connections in the configure stage
-    $self->configure;
-
     if ($self->loops) {
         while (1) {
             { $code->(); }
@@ -250,6 +251,25 @@ around 'start' => sub {
         $code->();
         $self->stop;
     }
+
+    return;
+};
+
+=head2 parse_command_line
+
+=cut
+
+around 'parse_command_line' => sub {
+    my ($orig, $self, @opts) = @_;
+
+    my ($pid_file, $foreground);
+    $self->$orig(
+        @opts,
+        "pid_file|p=s" => \$pid_file,
+        "foreground|f" => \$foreground,
+    );
+    $self->foreground($foreground) if defined $foreground;
+    $self->pid_file($pid_file)     if defined $pid_file;
 
     return;
 };
@@ -457,10 +477,9 @@ sub daemonise {
 
         $self->log("daemon started");
 
-        ### install signal handlers to make sure we shut down gracefully
-        $SIG{QUIT} = sub { $self->stop };    ## no critic
-        $SIG{TERM} = sub { $self->stop };    ## no critic
-        $SIG{INT}  = sub { $self->stop };    ## no critic
+        # we need to reconfigure, because we are in the child and some plugins
+        # start connections in the configure stage
+        $self->configure;
 
         return 1;
     }
