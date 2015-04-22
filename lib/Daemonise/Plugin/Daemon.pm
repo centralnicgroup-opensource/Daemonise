@@ -282,8 +282,8 @@ module for just changing boolean values
 
 =cut
 
-sub dont_loop { $_[0]->loops(0); return; } ## no critic
-sub loop      { $_[0]->loops(1); return; } ## no critic
+sub dont_loop { $_[0]->loops(0); return; }    ## no critic
+sub loop      { $_[0]->loops(1); return; }    ## no critic
 
 =head2 check_pid_file
 
@@ -292,10 +292,10 @@ sub loop      { $_[0]->loops(1); return; } ## no critic
 sub check_pid_file {
     my ($self) = @_;
 
-    ### no pid_file = return success
+    # no pid_file = return success
     return 1 unless -e $self->pid_file;
 
-    ### get the currently listed pid
+    # get the currently listed pid
     open(my $pid_file, '<', $self->pid_file)
         or die "Couldn't open existant pid_file \""
         . $self->pid_file
@@ -310,11 +310,11 @@ sub check_pid_file {
 
     my $exists;
 
-    ### try a proc file system
+    # try a proc file system
     if (-d '/proc') {
         $exists = -e "/proc/$pid";
 
-        ### try ps
+        # try ps
         #}elsif( -x '/bin/ps' ){ # not as portable
         # the ps command itself really isn't portable
         # this follows BSD syntax ps (BSD's and linux)
@@ -327,7 +327,7 @@ sub check_pid_file {
 
     }
 
-    ### running process exists, ouch
+    # running process exists, ouch
     if ($exists) {
 
         if ($pid == $$) {
@@ -346,8 +346,7 @@ sub check_pid_file {
         }
     }
     else {
-        ### remove the pid_file
-
+        # remove the pid_file
         warn "Pid_file \""
             . $self->pid_file
             . "\" already exists.  Overwriting!\n";
@@ -382,23 +381,24 @@ sub daemonise {
 
     my $pid = $self->async;
 
-    ### parent process should do the pid file and exit
+    # parent process should do the pid file and exit
     if ($pid) {
         $pid && exit;
-        ### child process will continue on
+
+        # child process will continue on
     }
     else {
         $self->_create_pid_file if $self->has_pid_file;
 
-        ### make sure we can remove the file later
+        # make sure we can remove the file later
         chown($self->uid, $self->gid, $self->pid_file)
             if $self->has_pid_file;
 
-        ### become another user and group
+        # become another user and group
         $self->_set_user;
 
-        ### close all input/output and separate
-        ### from the parent process group
+        # close all input/output and separate
+        # from the parent process group
         open(STDIN, '<', '/dev/null')
             or die "Can't open STDIN from /dev/null: [$!]";
 
@@ -468,11 +468,11 @@ sub daemonise {
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
 
-        ### Change to root dir to avoid locking a mounted file system
-        ### does this mean to be chroot ?
+        # Change to root dir to avoid locking a mounted file system
+        # does this mean to be chroot ?
         chdir '/' or die "Can't chdir to \"/\": [$!]";
 
-        ### Turn process into session leader, and ensure no controlling terminal
+        # Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
 
         $self->log("rabbit started");
@@ -546,7 +546,7 @@ sub _create_pid_file {
     # child should also know its PID
     $self->running($$);
 
-    ### see if the pid_file is already there
+    # see if the pid_file is already there
     $self->check_pid_file;
 
     open(my $pid_file, '>', $self->pid_file)

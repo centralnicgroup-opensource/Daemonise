@@ -175,7 +175,7 @@ sub load_plugin {
 sub configure {
     my ($self, $reconfig) = @_;
 
-    ### install a signal handler as anchor for clean shutdowns in plugins
+    # install a signal handler as anchor for clean shutdowns in plugins
     $SIG{QUIT} = sub { $self->stop };    ## no critic
     $SIG{TERM} = sub { $self->stop };    ## no critic
     $SIG{INT}  = sub { $self->stop };    ## no critic
@@ -210,21 +210,21 @@ sub configure {
 sub async {
     my ($self) = @_;
 
-    ### block signal for fork
+    # block signal for fork
     my $sigset = POSIX::SigSet->new(SIGTERM);
     POSIX::sigprocmask(SIG_BLOCK, $sigset)
         or die "Can't block SIGTERM for fork: [$!]\n";
 
-    ### fork off a child
+    # fork off a child
     my $pid = fork;
     unless (defined $pid) {
         die "Couldn't fork: [$!]\n";
     }
 
-    ### make SIGTERM kill us as it did before
+    # make SIGTERM kill us as it did before
     local $SIG{TERM} = 'DEFAULT';
 
-    ### put back to normal
+    # put back to normal
     POSIX::sigprocmask(SIG_UNBLOCK, $sigset)
         or die "Can't unblock SIGTERM for fork: [$!]\n";
 

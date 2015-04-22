@@ -431,7 +431,7 @@ call lock_job in 'unlock' mode and set boolean attribute
 
 =cut
 
-sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); } ## no critic
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }    ## no critic
 
 =head2 dont_log_worker
 
@@ -439,7 +439,7 @@ disable worker logging in msg->meta->log array
 
 =cut
 
-sub dont_log_worker { $_[0]->log_worker_enabled(0); return; } ## no critic
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }  ## no critic
 
 =head2 get_job
 
