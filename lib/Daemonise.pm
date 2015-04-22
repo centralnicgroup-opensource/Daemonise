@@ -191,7 +191,7 @@ sub start {
     # configure unless we are going to fork,
     # in which case we have to configure after forking
     $self->configure unless (%Daemonise::Plugin::Daemon:: and $self->foreground);
-    f(d&!g)
+
     $self->log("rabbit starting");
 
     return;
