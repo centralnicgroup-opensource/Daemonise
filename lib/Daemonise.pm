@@ -7,7 +7,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.90'; # VERSION
+our $VERSION = '1.91'; # VERSION
 
 use Sys::Syslog qw(:standard :macros);
 use Config::Any;
@@ -252,7 +252,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.90
+version 1.91
 
 =head1 SYNOPSIS
 
