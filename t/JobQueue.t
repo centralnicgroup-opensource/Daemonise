@@ -1,12 +1,9 @@
-use lib 'lib';
-
 use Test::More;
 use Test::Deep;
-use Data::Dumper;
 
 use Daemonise;
 
-my $d = Daemonise->new;
+my $d = Daemonise->new(no_daemon => 1);
 $d->load_plugin('JobQueue');
 
 plan qw/no_plan/;

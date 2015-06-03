@@ -1,6 +1,5 @@
 package Daemonise::Plugin::JobQueue;
 
-use 5.010;
 use Mouse::Role;
 
 # ABSTRACT: Daemonise JobQueue plugin
@@ -67,10 +66,8 @@ has 'job_locked' => (
 
 # internal attribute to store all command hooks
 has '_hooks' => (
-    is      => 'rw',
-    isa     => 'HashRef[CodeRef]',
-    lazy    => 1,
-    default => sub { { help => \&help } },
+    is  => 'rw',
+    isa => 'HashRef[CodeRef]',
 );
 
 
@@ -162,10 +159,10 @@ around 'start' => sub {
         }
         else {
             # fallback to 'default' command hook
-            $command = 'default' unless (exists $self->_hooks->{$command});
+            $command = 'default' unless (exists $self->hooks->{$command});
 
-            if (exists $self->_hooks->{$command}) {
-                $msg = $self->_hooks->{$command}->($msg);
+            if (exists $self->hooks->{$command}) {
+                $msg = $self->hooks->{$command}->($msg);
             }
             else {
                 $msg->{error} =
@@ -238,38 +235,45 @@ before 'ack' => sub {
 };
 
 
-around 'parse_command_line' => sub {
-    my ($orig, $self, @opts) = @_;
-
-    $self->$orig(@opts);
-
-    my $command = shift @ARGV;
-    my $arg     = shift @ARGV;
-
-    # if we have a command line argument, try to execute it as hook if it exists
-    if ($command) {
-        $command = 'default' unless exists $self->_hooks->{$command};
-        if (exists $self->_hooks->{$command}) {
-            print $self->dump($self->_hooks->{$command}->($arg, $self));
-        }
-        else {
-            say "command/hook does not exist";
-        }
-
-        # exit no matter what, if a command was requested on command line
-        exit;
-    }
-
-    return;
-};
-
-
 sub hooks {
     my ($self, %hooks) = @_;
 
-    $self->_hooks({ %{ $self->_hooks }, %hooks, help => \&help }) if %hooks;
+    $self->_hooks(\%hooks) if %hooks;
 
     return $self->_hooks;
+}
+
+
+sub _finish_processing {
+    my ($self, $msg) = @_;
+
+    # methods may return void to prevent further processing
+    if (ref $msg eq 'HASH') {
+        $self->log("ERROR: " . $msg->{error}) if exists $msg->{error};
+
+        # log if workflow stops and will be started by event or cron
+        $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
+            if (exists $msg->{meta}
+            and exists $msg->{meta}->{wait_for}
+            and not $self->wants_reply);
+
+        # log worker and update job if we have to
+        my $status = delete $msg->{status};
+        if ($self->log_worker_enabled and $self->job_locked) {
+            $self->log_worker($msg);
+            $self->update_job($msg, $status);
+        }
+
+        $self->unlock_job($msg) if $self->job_locked;
+
+        # reply if needed and wanted
+        $self->queue($self->reply_queue, $msg) if $self->wants_reply;
+    }
+
+    # at last, ack message
+    $self->ack;
+
+    return;
 }
 
 
@@ -310,10 +314,10 @@ sub lock_job {
 }
 
 
-sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }    ## no critic
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); } ## no critic
 
 
-sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }  ## no critic
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; } ## no critic
 
 
 sub get_job {
@@ -672,52 +676,6 @@ sub remove_items {
     return @removed;
 }
 
-
-sub help {
-    my ($msg, $self) = @_;
-
-    my @commands = keys %{ $self->_hooks() };
-
-    $self->log("supported commands: " . join(', ', @commands)) if $self->debug;
-
-    $msg->{response} = { commands => \@commands };
-
-    return $msg;
-}
-
-
-sub _finish_processing {
-    my ($self, $msg) = @_;
-
-    # methods may return void to prevent further processing
-    if (ref $msg eq 'HASH') {
-        $self->log("ERROR: " . $msg->{error}) if exists $msg->{error};
-
-        # log if workflow stops and will be started by event or cron
-        $self->log("waiting for " . $msg->{meta}->{wait_for} . " event/cron")
-            if (exists $msg->{meta}
-            and exists $msg->{meta}->{wait_for}
-            and not $self->wants_reply);
-
-        # log worker and update job if we have to
-        my $status = delete $msg->{status};
-        if ($self->log_worker_enabled and $self->job_locked) {
-            $self->log_worker($msg);
-            $self->update_job($msg, $status);
-        }
-
-        $self->unlock_job($msg) if $self->job_locked;
-
-        # reply if needed and wanted
-        $self->queue($self->reply_queue, $msg) if $self->wants_reply;
-    }
-
-    # at last, ack message
-    $self->ack;
-
-    return;
-}
-
 1;
 
 __END__
@@ -819,12 +777,21 @@ try to lock job ID if applicable
 
 empty job attribute before acknowledging a rabbitMQ message
 
-=head2 parse_command_line
-
 =head2 hooks
 
 method wrapper around _hooks attribute to accept hashes instead of a hash
 reference for convenience.
+
+=head2 _finish_processing
+
+this method exists to collect all common tasks needed to finish up a message
+
+1. log error if exists
+2. log wait_for key if job stops here
+3. log worker & update job unless locking failed (job only)
+4. unlock job (job only)
+5. reply to calling worker/rabbit if needed
+6. acknowledge AMQP message
 
 =head2 lock_job
 
@@ -879,23 +846,6 @@ array and save them in C<$data->{'removed_'  . $self->items_key}> array.
 If item isn't found, it is silently ignored.
 
 Return value is an array of removed item hashes.
-
-=head2 help
-
-simply list all supported command names (which are keys to the C<hooks()>
-
-=head1 PRIVATE SUBROUTINES
-
-=head2 _finish_processing
-
-this method exists to collect all common tasks needed to finish up a message
-
-1. log error if exists
-2. log wait_for key if job stops here
-3. log worker & update job unless locking failed (job only)
-4. unlock job (job only)
-5. reply to calling worker/rabbit if needed
-6. acknowledge AMQP message
 
 =head1 AUTHOR
 

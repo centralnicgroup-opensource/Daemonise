@@ -156,15 +156,15 @@ sub create_event {
         when ('backend_call') {
             unless (exists $data->{queue}
                 and exists $data->{command}
-                and exists $data->{data})
+                and exists $data->{options})
             {
                 $self->log(
-                    '"queue", "command" and "data" keys must be present');
+                    '"queue", "command" and "options" keys must be present');
                 return;
             }
 
             # include all keys from $data hash first here to have "command",
-            # "queue" and "data" available later
+            # "queue" and "options" available later
             $event = {
                 %$data,
                 %$event,

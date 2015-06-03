@@ -1,6 +1,30 @@
 ==================================================
-Changes from 2014-04-22 00:00:00 +0000 to present.
+Changes from 2014-06-03 00:00:00 +0000 to present.
 ==================================================
+
+-----------------------------------------
+version 1.90 at 2015-06-03 04:05:50 +0000
+-----------------------------------------
+
+  Change: 1cad576690602a465436f4113d449bef6fd276b3
+  Author: Tobias Kirschstein <nupfel@users.noreply.github.com>
+  Date : 2015-06-03 16:05:19 +0000
+
+    Merge pull request #17 from ideegeo/fix_backend_call_event_structure
+
+    renamed 'data' to 'options' in backend_call() event type 
+
+  Change: c63a70d734fe65f5b8b58436f5d2e86f200a973c
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-02 22:59:52 +0000
+
+    cleaned up JobQueue testing preamble 
+
+  Change: dc321c27999e5789f4c0d6d84a55c8798583f70a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-02 22:50:43 +0000
+
+    renamed 'data' to 'options' in backend_call() event type 
 
 -----------------------------------------
 version 1.89 at 2015-03-23 12:13:07 +0000
@@ -335,47 +359,6 @@ version 1.83 at 2014-06-17 05:11:38 +0000
 
     UTF8 encode syslog message 
 
------------------------------------------
-version 1.82 at 2014-04-30 04:51:19 +0000
------------------------------------------
-
-  Change: 698795a2c2b8bda59a331c9f14e7c0995cd26520
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-04-30 16:51:19 +0000
-
-    added first little test for JobQueue find_item_index() and
-    remove_items() 
-
-  Change: 4d589baee8a967b419605cc5b7f60b8486e8e6cf
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-04-30 16:35:39 +0000
-
-    added find_item_index and remove_items that work on an item array key
-    which can be changed via attribute, version bump 
-
-  Change: b2f094671fc92362de26cd8e4479e91b8d676834
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-04-30 16:29:49 +0000
-
-    always store meta->workflow when creating workflows 
-
------------------------------------------
-version 1.81 at 2014-04-28 04:16:50 +0000
------------------------------------------
-
-  Change: e237be6b8e7a37df01f886dbe4977c1e54e27776
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-04-28 16:16:50 +0000
-
-    moved job ID key into data hash and reduced parameters for
-    create_event(), version bump 
-
-  Change: c657bcddab169a10d1d80ab00fb2edfc747cabbf
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-04-10 14:15:59 +0000
-
-    v1.80 
-
 =================================================
-Plus 83 releases after 2014-04-22 00:00:00 +0000.
+Plus 85 releases after 2014-06-03 00:00:00 +0000.
 =================================================
