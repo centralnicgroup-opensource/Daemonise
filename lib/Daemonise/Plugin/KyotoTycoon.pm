@@ -166,7 +166,6 @@ sub cache_get {
     return unless defined $value;
 
     my $data = $value;
-    print STDERR $self->dump($data) . $/;
 
     # thaw and decode if it looks like a BASE64 encoding
     $data = thaw(decode_base64($value)) if $value =~ m/^[a-zA-Z0-9\n]+=?=$/s;
@@ -190,7 +189,8 @@ sub cache_set {
     # otherwise freeze and encode
     $scalar = encode_base64(nfreeze($data)) if ref $data;
 
-    $self->tycoon->set($key, $scalar, ($expire || $self->cache_default_expire));
+    $expire //= $self->cache_default_expire;
+    $self->tycoon->set($key, $scalar, $expire);
 
     return 1;
 }
