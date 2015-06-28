@@ -1,16 +1,54 @@
 ==================================================
-Changes from 2014-06-03 00:00:00 +0000 to present.
+Changes from 2014-06-28 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.91 at 2015-06-03 06:35:43 +0000
+version 1.91 at 2015-06-28 10:03:34 +0000
 -----------------------------------------
+
+  Change: 4db9c272f451f02952fa3f95d15ae7d2af7dbc85
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-28 22:03:19 +0000
+
+    perltidy 
+
+  Change: 515679ca227c19583d696c3e02ea54e5dd6de4b0
+  Author: Tobias Kirschstein <nupfel@users.noreply.github.com>
+  Date : 2015-06-28 21:59:30 +0000
+
+    Merge pull request #18 from ideegeo/fix_issue_16
+
+    [WIP] make cache_set/get smarter and transparent for scalar values 
+
+  Change: 7cacfd00aba1804859b76430d309bdf519544da2
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-28 21:55:56 +0000
+
+    match base64 RFC list of chars (https://www.ietf.org/rfc/rfc4648.txt) 
+
+  Change: f83f8db8587bd92d6fa5faf0f2b4fcc8ba77a3da
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-28 18:55:11 +0000
+
+    hacky fix for expire timestamp test 
+
+  Change: 87ca8e2657a71893d250484ff5efcbde96b4932d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-28 18:52:42 +0000
+
+    removed debug dump 
 
   Change: 5805e5b8a8bded7a89b88eafca14da25f29a8f5a
   Author: Tobias Kirschstein <lev@ideegeo.com>
   Date : 2015-06-03 16:07:13 +0000
 
     v1.90 
+
+  Change: 37649527317daed8be17192e71db85bf1ef8db56
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-06-02 22:58:15 +0000
+
+    make cache_set/get smarter and transparent for scalar values 
 
 -----------------------------------------
 version 1.90 at 2015-06-03 04:05:19 +0000
@@ -308,67 +346,6 @@ version 1.84 at 2014-08-05 23:00:51 +0000
 
     utf8 encode anything before trying to make JSON out of it 
 
------------------------------------------
-version 1.83 at 2014-06-17 05:11:38 +0000
------------------------------------------
-
-  Change: 3c382ded39993936d3cf78e06c036489a413e9c3
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-17 17:11:08 +0000
-
-    renamed config section to lowercase plugin name for consistency 
-
-  Change: 819216a09f7aa7c8ea01e94b444cde4b56b361c9
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 15:53:25 +0000
-
-    fixed config daemons -> bunnies 
-
-  Change: 70140e5964916aa9b661d9eb476fc1f9a2f9b3f7
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 15:08:27 +0000
-
-    use lower-case plugin names as config file sections, support
-    start/stop/restart of individual bunnies 
-
-  Change: 8eb7a2d194acd8c6c42f6a44948a75ec28f2d295
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 14:57:06 +0000
-
-    fixed worker path parsing, the view now returns only the path
-    directly 
-
-  Change: fcd9301a537be26b136669fab9319b65d6842218
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 14:48:37 +0000
-
-    removed platform parameter 
-
-  Change: 67bdfb8d96ba4ad4403a0cd413c5bcc01bacdb3a
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 14:44:42 +0000
-
-    react on stop command instead of restart, which is more ovious 
-
-  Change: 5c0ddb47bc07cafa739a3177cb4c1d7d6f10cf00
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 14:44:16 +0000
-
-    replaced low level rabbitMQ library with newer Net::AMQP::RabbitMQ to
-    use AMQP protocol 0-9-1 
-
-  Change: 5f57cb6b07e302bd4a7559d584e8bc188d8633a4
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-16 14:40:59 +0000
-
-    removed old misleading code 
-
-  Change: 5f8dcf6318c3f9301d5c170e457fb9d3ce88ae45
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2014-06-02 16:33:17 +0000
-
-    UTF8 encode syslog message 
-
 =================================================
-Plus 85 releases after 2014-06-03 00:00:00 +0000.
+Plus 86 releases after 2014-06-28 00:00:00 +0000.
 =================================================

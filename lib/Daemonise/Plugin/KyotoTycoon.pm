@@ -103,32 +103,32 @@ after 'configure' => sub {
 sub cache_get {
     my ($self, $key) = @_;
 
-    my ($value, $expire);
+    my ($value, $expire) = $self->tycoon->get($key);
 
-    if (wantarray) {
-        ($value, $expire) = $self->tycoon->get($key);
-        return unless defined $value;
-        return (thaw(decode_base64($value)), $expire);
-    }
-    else {
-        $value = $self->tycoon->get($key);
-        return unless defined $value;
-        return thaw(decode_base64($value));
-    }
+    return unless defined $value;
 
-    return;
+    my $data = $value;
+
+    # thaw and decode if it looks like a BASE64 encoding
+    $data = thaw(decode_base64($value))
+        if $value =~ m~^[a-zA-Z0-9+/\n]+={0,2}\n$~s;
+
+    return ($data, $expire) if wantarray;
+    return $data;
 }
 
 
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
-    return unless ref $data;
+    # if $data is a scalar we can just store it as is
+    my $scalar = $data;
 
-    $self->tycoon->set(
-        $key,
-        encode_base64(nfreeze($data)),
-        ($expire || $self->cache_default_expire));
+    # otherwise freeze and encode
+    $scalar = encode_base64(nfreeze($data)) if ref $data;
+
+    $expire //= $self->cache_default_expire;
+    $self->tycoon->set($key, $scalar, $expire);
 
     return 1;
 }
