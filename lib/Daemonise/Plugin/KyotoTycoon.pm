@@ -168,7 +168,8 @@ sub cache_get {
     my $data = $value;
 
     # thaw and decode if it looks like a BASE64 encoding
-    $data = thaw(decode_base64($value)) if $value =~ m/^[a-zA-Z0-9\n]+=?=$/s;
+    $data = thaw(decode_base64($value))
+        if $value =~ m~^[a-zA-Z0-9+/\n]+={0,2}\n$~s;
 
     return ($data, $expire) if wantarray;
     return $data;
