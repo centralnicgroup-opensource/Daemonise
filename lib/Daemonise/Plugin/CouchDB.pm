@@ -77,6 +77,17 @@ has 'couch_pass' => (
     isa => 'Str',
 );
 
+=head2 couch_debug
+
+=cut
+
+has 'couch_debug' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
 has 'couchdb' => (
     is       => 'rw',
     isa      => 'Store::CouchDB',
@@ -95,7 +106,9 @@ after 'configure' => sub {
     $self->log("configuring CouchDB plugin") if $self->debug;
 
     if (ref($self->config->{couchdb}) eq 'HASH') {
-        foreach my $conf_key ('host', 'port', 'user', 'pass', 'db', 'view') {
+        foreach
+            my $conf_key ('host', 'port', 'user', 'pass', 'db', 'view', 'debug')
+        {
             my $attr = "couch_" . $conf_key;
             $self->$attr($self->config->{couchdb}->{$conf_key})
                 if defined $self->config->{couchdb}->{$conf_key};
@@ -105,7 +118,7 @@ after 'configure' => sub {
     my $sc = Store::CouchDB->new(
         host  => $self->couch_host,
         port  => $self->couch_port,
-        debug => $self->debug ? 1 : 0,
+        debug => $self->couch_debug,
     );
     $sc->db($self->couch_db) if ($self->couch_db);
     if ($self->couch_user && $self->couch_pass) {
