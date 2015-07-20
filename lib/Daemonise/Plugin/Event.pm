@@ -174,6 +174,17 @@ sub create_event {
                 status  => 'none',
             };
         }
+        when (/^[a-z0-9]+_[a-z0-9]+_[a-z0-9]+_[a-z0-9]+$/) {
+            my ($backend, $object, $action, $status) = split(/_/, $type);
+            $event = {
+                %$data,
+                %$event,
+                backend => $backend,
+                object  => $object,
+                action  => $action,
+                status  => $status,
+            };
+        }
         default {
             $self->log("unsupported event type: $type");
             return;
@@ -275,7 +286,7 @@ Daemonise::Plugin::Event - Daemonise Event plugin
 
 =head1 VERSION
 
-version 1.92
+version 1.93
 
 =head1 SYNOPSIS
 
