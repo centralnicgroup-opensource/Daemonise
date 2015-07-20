@@ -216,6 +216,17 @@ sub create_event {
                 status  => 'none',
             };
         }
+        when (/^[a-z0-9]+_[a-z0-9]+_[a-z0-9]+_[a-z0-9]+$/) {
+            my ($backend, $object, $action, $status) = split(/_/, $type);
+            $event = {
+                %$data,
+                %$event,
+                backend => $backend,
+                object  => $object,
+                action  => $action,
+                status  => $status,
+            };
+        }
         default {
             $self->log("unsupported event type: $type");
             return;
