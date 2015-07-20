@@ -3,8 +3,15 @@ Changes from 2014-07-20 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.93 at 2015-07-20 01:29:24 +0000
+version 1.93 at 2015-07-20 01:31:53 +0000
 -----------------------------------------
+
+  Change: c35f92b04946f1f7ac02567cde0413fe250c3c3d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-20 13:31:12 +0000
+
+    better, direct event name parsing. mapping should really not be done
+    here 
 
   Change: 7b01864a90a6952f055c72b11c65821a50191593
   Author: Tobias Kirschstein <lev@ideegeo.com>
