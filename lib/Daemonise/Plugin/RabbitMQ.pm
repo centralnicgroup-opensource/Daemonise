@@ -315,7 +315,7 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
-    $self->log("sending message body: " . $self->dump($hash))
+    $self->log("sending message to '$queue' with body: " . $self->dump($hash))
         if $self->debug;
 
     my $json = $js->encode($hash);
@@ -324,7 +324,7 @@ sub queue {
         $queue, $json, $options, $props);
 
     if ($err) {
-        $self->log("sending message failed: $err");
+        $self->log("sending message to '$queue' failed: $err");
         return;
     }
 
