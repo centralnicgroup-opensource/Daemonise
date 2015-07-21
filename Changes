@@ -3,8 +3,14 @@ Changes from 2014-07-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.94 at 2015-07-21 01:02:13 +0000
+version 1.94 at 2015-07-21 01:23:29 +0000
 -----------------------------------------
+
+  Change: f75cba7c87ddbdccd4c0618a967cc5cfd17eb75e
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 13:23:19 +0000
+
+    start_job() support for priority 
 
   Change: 0f1683d345f52cc7409b7d11617c3478f9a9b4de
   Author: Tobias Kirschstein <lev@ideegeo.com>
