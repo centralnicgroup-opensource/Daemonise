@@ -444,7 +444,7 @@ call lock_job in 'unlock' mode and set boolean attribute
 
 =cut
 
-sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); } ## no critic
+sub unlock_job { return $_[0]->lock_job($_[1], 'unlock'); }    ## no critic
 
 =head2 dont_log_worker
 
@@ -452,7 +452,7 @@ disable worker logging in msg->meta->log array
 
 =cut
 
-sub dont_log_worker { $_[0]->log_worker_enabled(0); return; } ## no critic
+sub dont_log_worker { $_[0]->log_worker_enabled(0); return; }  ## no critic
 
 =head2 get_job
 
@@ -548,7 +548,7 @@ sub create_job {
 =cut
 
 sub start_job {
-    my ($self, $workflow, $options) = @_;
+    my ($self, $workflow, $options, $priority) = @_;
 
     unless ($workflow) {
         carp 'workflow not defined';
@@ -556,6 +556,9 @@ sub start_job {
     }
 
     $options = {} unless $options;
+
+    # the receiving worker of this job data that is the workflow bunny
+    my $queue = 'workflow';
 
     my $frame = {
         meta => {
@@ -568,13 +571,19 @@ sub start_job {
         },
     };
 
+    # add priority, default normal
+    if (defined $priority and $priority =~ m/^(high|low)$/) {
+        $frame->{meta}->{priority} = $priority;
+        $queue .= $priority;
+    }
+
     # tell the new job who created it
     $frame->{meta}->{created_by} = $self->job->{message}->{meta}->{id}
         if exists $self->job->{message}->{meta}->{id};
 
     $self->log("starting '$workflow' workflow with:\n" . $self->dump($frame))
         if $self->debug;
-    $self->queue('workflow', $frame);
+    $self->queue($queue, $frame);
 
     return;
 }
