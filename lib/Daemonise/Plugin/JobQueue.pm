@@ -574,7 +574,7 @@ sub start_job {
     # add priority, default normal
     if (defined $priority and $priority =~ m/^(high|low)$/) {
         $frame->{meta}->{priority} = $priority;
-        $queue .= $priority;
+        $queue .= '.' . $priority;
     }
 
     # tell the new job who created it

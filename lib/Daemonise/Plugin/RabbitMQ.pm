@@ -272,7 +272,7 @@ sub queue {
 
     # HACK: priorities should be implemented using rabbitMQ properties in the
     #       future, however for now we just rename the queue and hope...
-    $queue .= $hash->{meta}->{priority}
+    $queue .= '.' . $hash->{meta}->{priority}
         if ref $hash eq 'HASH'
         and exists $hash->{meta}
         and exists $hash->{meta}->{priority}
