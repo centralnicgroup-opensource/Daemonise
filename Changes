@@ -3,8 +3,14 @@ Changes from 2014-07-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.94 at 2015-07-21 05:33:23 +0000
+version 1.94 at 2015-07-21 06:52:51 +0000
 -----------------------------------------
+
+  Change: e4f5d7e3e055a0d30978e2019e493ac587e1ba99
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 18:52:29 +0000
+
+    silence warning about undef string comparison 
 
   Change: a0f92ef8aba7590dd9e08e7f1b24baedbeedb8cf
   Author: Tobias Kirschstein <lev@ideegeo.com>
