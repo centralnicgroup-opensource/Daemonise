@@ -3,8 +3,14 @@ Changes from 2014-07-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.94 at 2015-07-21 01:01:02 +0000
+version 1.94 at 2015-07-21 01:02:13 +0000
 -----------------------------------------
+
+  Change: 0f1683d345f52cc7409b7d11617c3478f9a9b4de
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 13:01:29 +0000
+
+    version bump 
 
   Change: ff681c7193518f7eee39ddb689c01f6108e43e9f
   Author: Tobias Kirschstein <lev@ideegeo.com>
