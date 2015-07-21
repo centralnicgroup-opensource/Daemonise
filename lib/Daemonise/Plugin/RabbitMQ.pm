@@ -297,16 +297,15 @@ sub queue {
 
     # If the queue we're sending to is Daemonise's reply_queue, then this is
     # probably a response for an RPC message. Include the correlation_id
-    if (    defined $self->correlation_id
-        and defined $self->reply_queue
+    if (defined $self->reply_queue
         and $queue eq $self->reply_queue)
     {
-        $props->{correlation_id} = $self->correlation_id;
+        $props->{correlation_id} = $self->correlation_id
+            if defined $self->correlation_id;
     }
-
-    # HACK: priorities should be implemented using rabbitMQ properties in the
-    #       future, however for now we just rename the queue and hope...
-    if ($queue ne $self->reply_queue) {
+    else {
+        # HACK: priorities should be implemented using rabbitMQ properties in the
+        #       future, however for now we just rename the queue and hope...
         $queue .= '.' . $hash->{meta}->{priority}
             if ref $hash eq 'HASH'
             and exists $hash->{meta}
