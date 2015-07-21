@@ -1,9 +1,20 @@
 ==================================================
-Changes from 2014-07-20 00:00:00 +0000 to present.
+Changes from 2014-07-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.93 at 2015-07-20 01:31:53 +0000
+version 1.94 at 2015-07-21 01:01:02 +0000
+-----------------------------------------
+
+  Change: ff681c7193518f7eee39ddb689c01f6108e43e9f
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 13:00:52 +0000
+
+    hack to transparently send messages to a low prio queue name based on
+    a hash key 
+
+-----------------------------------------
+version 1.93 at 2015-07-20 01:31:12 +0000
 -----------------------------------------
 
   Change: c35f92b04946f1f7ac02567cde0413fe250c3c3d
@@ -381,5 +392,5 @@ version 1.84 at 2014-08-05 23:00:51 +0000
     utf8 encode anything before trying to make JSON out of it 
 
 =================================================
-Plus 86 releases after 2014-07-20 00:00:00 +0000.
+Plus 86 releases after 2014-07-21 00:00:00 +0000.
 =================================================
