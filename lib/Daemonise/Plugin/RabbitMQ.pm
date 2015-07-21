@@ -179,7 +179,7 @@ sub queue {
 
     # HACK: priorities should be implemented using rabbitMQ properties in the
     #       future, however for now we just rename the queue and hope...
-    $queue .= $hash->{meta}->{priority}
+    $queue .= '.' . $hash->{meta}->{priority}
         if ref $hash eq 'HASH'
         and exists $hash->{meta}
         and exists $hash->{meta}->{priority}
@@ -222,7 +222,7 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
-    $self->log("sending message body: " . $self->dump($hash))
+    $self->log("sending message to '$queue' with body: " . $self->dump($hash))
         if $self->debug;
 
     my $json = $js->encode($hash);
@@ -231,7 +231,7 @@ sub queue {
         $queue, $json, $options, $props);
 
     if ($err) {
-        $self->log("sending message failed: $err");
+        $self->log("sending message to '$queue' failed: $err");
         return;
     }
 

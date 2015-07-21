@@ -3,8 +3,20 @@ Changes from 2014-07-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.94 at 2015-07-21 01:23:29 +0000
+version 1.94 at 2015-07-21 02:09:07 +0000
 -----------------------------------------
+
+  Change: 6fffb880aba0660c38019442e43ea869ce114419
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 14:08:47 +0000
+
+    fixed missing dot for prio queues 
+
+  Change: 44bc8153b2e8a9e14ecee97a4c1acf82903a47a2
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 13:59:50 +0000
+
+    include queue name in debug log to show relation 
 
   Change: f75cba7c87ddbdccd4c0618a967cc5cfd17eb75e
   Author: Tobias Kirschstein <lev@ideegeo.com>
