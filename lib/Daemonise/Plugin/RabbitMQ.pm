@@ -177,14 +177,6 @@ sub queue {
         return;
     }
 
-    # HACK: priorities should be implemented using rabbitMQ properties in the
-    #       future, however for now we just rename the queue and hope...
-    $queue .= '.' . $hash->{meta}->{priority}
-        if ref $hash eq 'HASH'
-        and exists $hash->{meta}
-        and exists $hash->{meta}->{priority}
-        and $hash->{meta}->{priority} =~ m/^(high|low)$/;
-
     my $tag;
     my $reply_channel = $self->rabbit_channel + 1;
     if ($rpc) {
@@ -217,6 +209,16 @@ sub queue {
         and $queue eq $self->reply_queue)
     {
         $props->{correlation_id} = $self->correlation_id;
+    }
+
+    # HACK: priorities should be implemented using rabbitMQ properties in the
+    #       future, however for now we just rename the queue and hope...
+    if ($queue ne $self->reply_queue) {
+        $queue .= '.' . $hash->{meta}->{priority}
+            if ref $hash eq 'HASH'
+            and exists $hash->{meta}
+            and exists $hash->{meta}->{priority}
+            and $hash->{meta}->{priority} =~ m/^(high|low)$/;
     }
 
     my $options;

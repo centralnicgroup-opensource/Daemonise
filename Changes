@@ -3,8 +3,14 @@ Changes from 2014-07-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.94 at 2015-07-21 04:42:42 +0000
+version 1.94 at 2015-07-21 05:33:23 +0000
 -----------------------------------------
+
+  Change: a0f92ef8aba7590dd9e08e7f1b24baedbeedb8cf
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-21 17:32:23 +0000
+
+    only append priority to queue if it's not an RPC response 
 
   Change: 6fffb880aba0660c38019442e43ea869ce114419
   Author: Tobias Kirschstein <lev@ideegeo.com>
