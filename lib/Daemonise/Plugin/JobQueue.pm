@@ -413,9 +413,6 @@ sub start_job {
 
     $options = {} unless $options;
 
-    # the receiving worker of this job data that is the workflow bunny
-    my $queue = 'workflow';
-
     my $frame = {
         meta => {
             lang => 'en',
@@ -428,10 +425,8 @@ sub start_job {
     };
 
     # add priority, default normal
-    if (defined $priority and $priority =~ m/^(high|low)$/) {
-        $frame->{meta}->{priority} = $priority;
-        $queue .= '.' . $priority;
-    }
+    $frame->{meta}->{priority} = $priority
+        if defined $priority and $priority =~ m/^(high|low)$/;
 
     # tell the new job who created it
     $frame->{meta}->{created_by} = $self->job->{message}->{meta}->{id}
@@ -439,7 +434,7 @@ sub start_job {
 
     $self->log("starting '$workflow' workflow with:\n" . $self->dump($frame))
         if $self->debug;
-    $self->queue($queue, $frame);
+    $self->queue('workflow', $frame);
 
     return;
 }
@@ -699,7 +694,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.95
+version 1.94
 
 =head1 SYNOPSIS
 
