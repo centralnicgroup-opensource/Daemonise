@@ -223,7 +223,11 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
-    $self->log("sending message to '$queue' with body: " . $self->dump($hash))
+    $self->log("sending message to '$queue' via channel "
+            . $self->rabbit_channel
+            . " using "
+            . ($exchange ? $exchange : 'amq.direct') . ": "
+            . $self->dump($hash))
         if $self->debug;
 
     my $json = $js->encode($hash);
@@ -235,12 +239,6 @@ sub queue {
         $self->log("sending message to '$queue' failed: $err");
         return;
     }
-
-    $self->log("sent message to '$queue' via channel "
-            . $self->rabbit_channel
-            . " using "
-            . ($exchange ? $exchange : 'amq.direct'))
-        if $self->debug;
 
     if ($rpc) {
         my $msg = $self->dequeue($tag);
@@ -412,7 +410,7 @@ Daemonise::Plugin::RabbitMQ - Daemonise RabbitMQ plugin
 
 =head1 VERSION
 
-version 1.94
+version 1.95
 
 =head1 SYNOPSIS
 

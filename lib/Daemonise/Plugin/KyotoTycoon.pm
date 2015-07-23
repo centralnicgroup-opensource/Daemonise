@@ -263,7 +263,7 @@ Daemonise::Plugin::KyotoTycoon - Daemonise KyotoTycoon plugin
 
 =head1 VERSION
 
-version 1.94
+version 1.95
 
 =head1 SYNOPSIS
 
