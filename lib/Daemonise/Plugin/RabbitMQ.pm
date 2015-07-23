@@ -162,7 +162,7 @@ sub dont_reply {
 
 
 sub queue {
-    my ($self, $queue, $hash, $reply_queue, $exchange) = @_;
+    my ($self, $queue, $hash, $reply_to, $exchange) = @_;
 
     my $rpc;
     $rpc = 1 if defined wantarray;
@@ -177,6 +177,12 @@ sub queue {
         return;
     }
 
+    # we want the receiver to reply to same priority queue
+    $reply_to .= '.' . $hash->{meta}->{priority}
+        if defined $reply_to
+        and exists $hash->{meta}->{priority}
+        and $hash->{meta}->{priority} =~ m/^(high|low)$/;
+
     my $tag;
     my $reply_channel = $self->rabbit_channel + 1;
     if ($rpc) {
@@ -190,17 +196,17 @@ sub queue {
         };
         $self->log("opened channel $reply_channel for reply") if $self->debug;
 
-        $reply_queue =
+        $reply_to =
             $self->mq->queue_declare($reply_channel, '',
             { durable => 0, auto_delete => 1, exclusive => 1 });
-        $self->log("declared reply queue $reply_queue") if $self->debug;
+        $self->log("declared reply queue $reply_to") if $self->debug;
 
-        $tag = $self->mq->consume($reply_channel, $reply_queue);
+        $tag = $self->mq->consume($reply_channel, $reply_to);
         $self->log("got consumer tag: " . $tag) if $self->debug;
     }
 
     my $props = { content_type => 'application/json' };
-    $props->{reply_to} = $reply_queue if defined $reply_queue;
+    $props->{reply_to} = $reply_to if defined $reply_to;
 
     # If the queue we're sending to is Daemonise's reply_queue, then this is
     # probably a response for an RPC message. Include the correlation_id

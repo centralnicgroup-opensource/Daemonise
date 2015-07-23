@@ -3,8 +3,28 @@ Changes from 2014-07-23 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.94 at 2015-07-23 12:10:37 +0000
+version 1.94 at 2015-07-23 12:48:51 +0000
 -----------------------------------------
+
+  Change: a79972e67702336bb25bd731c3fe37fffa2d7e39
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-24 00:47:23 +0000
+
+    transparently change reply_to queue name according to priority
+    property as well 
+
+  Change: 1968f5a5301ff3e957e2b6fe168b8c05d55f4347
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-24 00:29:22 +0000
+
+    one debug line for sending message is enough 
+
+  Change: bb91b620d3c11d46057ee3793422ff42c19dfb7a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2015-07-24 00:29:00 +0000
+
+    simply setting the meta property for priority is enough, queue() will
+    take care or renaming the destination 
 
   Change: e4f5d7e3e055a0d30978e2019e493ac587e1ba99
   Author: Tobias Kirschstein <lev@ideegeo.com>
