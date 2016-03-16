@@ -322,14 +322,14 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
     }
 
     require Data::Printer;
-    Data::Printer->import(%options) unless __PACKAGE__->can('p');
+    Data::Printer->import(%options) unless __PACKAGE__->can('np');
 
     my $dump;
     if (ref $obj) {
-        $dump = p($obj, %options);
+        $dump = np($obj, %options);
     }
     else {
-        $dump = p(\$obj, %options);
+        $dump = np(\$obj, %options);
     }
 
     return $dump;
