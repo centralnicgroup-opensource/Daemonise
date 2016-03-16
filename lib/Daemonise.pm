@@ -7,7 +7,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.94'; # VERSION
+our $VERSION = '1.95'; # VERSION
 
 use Sys::Syslog qw(:standard :macros);
 use Config::Any;
@@ -224,14 +224,14 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
     }
 
     require Data::Printer;
-    Data::Printer->import(%options) unless __PACKAGE__->can('p');
+    Data::Printer->import(%options) unless __PACKAGE__->can('np');
 
     my $dump;
     if (ref $obj) {
-        $dump = p($obj, %options);
+        $dump = np($obj, %options);
     }
     else {
-        $dump = p(\$obj, %options);
+        $dump = np(\$obj, %options);
     }
 
     return $dump;
@@ -252,7 +252,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.94
+version 1.95
 
 =head1 SYNOPSIS
 

@@ -51,4 +51,4 @@ resources:
   bugtracker: https://github.com/ideegeo/Daemonise/issues
   homepage: https://github.com/ideegeo/Daemonise/wiki
   repository: git://github.com/ideegeo/Daemonise.git
-version: '1.94'
+version: '1.95'
