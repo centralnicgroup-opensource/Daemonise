@@ -3,8 +3,20 @@ Changes from 2015-03-17 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.95 at 2016-03-16 04:03:05 +0000
+version 1.95 at 2016-03-16 04:05:26 +0000
 -----------------------------------------
+
+  Change: b1a81a621d1e561ec0bb3e99e37823872663f8aa
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2016-03-16 17:04:58 +0000
+
+    version bump 
+
+  Change: a1ef3812d6e01ec117952788769124051cb0260c
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2016-03-16 17:04:39 +0000
+
+    as of Data::Printer 0.36 we need to use np() to get a dump returned 
 
   Change: 491b93f69aa30752a2fd3b7dcca70b777184f1d3
   Author: Tobias Kirschstein <lev@ideegeo.com>
