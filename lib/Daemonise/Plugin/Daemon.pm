@@ -300,7 +300,7 @@ sub check_pid_file {
         # this follows BSD syntax ps (BSD's and linux)
         # this will fail on Unix98 syntax ps (Solaris, etc)
     }
-    elsif (`ps p $$ | grep -v 'PID'` =~ /^\s*$$\s+.*$/) {
+    elsif (`ps p $$ | grep $$` =~ /^\s*$$\s+.*$/) {
 
         # can I play ps on myself ?
         $exists = `ps p $pid | grep -v 'PID'`;
