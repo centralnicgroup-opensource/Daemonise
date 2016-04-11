@@ -303,7 +303,7 @@ sub check_pid_file {
     elsif (`ps p $$ | grep $$` =~ /^\s*$$\s+.*$/) {
 
         # can I play ps on myself ?
-        $exists = `ps p $pid | grep -v 'PID'`;
+        $exists = `ps p $pid | grep $pid`;
 
     }
 
