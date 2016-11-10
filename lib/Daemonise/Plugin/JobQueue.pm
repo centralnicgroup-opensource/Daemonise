@@ -405,7 +405,7 @@ if locking fails, throws error and returns undef, otherwise returns true.
 sub lock_job {
     my ($self, $msg, $mode) = @_;
 
-    # default on locking
+    # default to locking
     $mode = (defined $mode and $mode eq 'unlock') ? 'unlock' : 'lock';
 
     if (    ref $msg eq 'HASH'
