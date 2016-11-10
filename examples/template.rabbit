@@ -36,7 +36,11 @@ $d->load_plugin('Paralleliser');
 $d->load_plugin('True::Truth');
 $d->load_plugin('KyotoTycoon');    # or $d->load_plugin('Redis');
 
-$d->is_worker(1);
+# do not bind to any rabbitMQ queue
+$d->is_worker(0);
+
+# do not bind to additional admin queues
+$d->admin_queue(0);
 
 # hooks come only with JobQueue plugin
 $d->hooks(
