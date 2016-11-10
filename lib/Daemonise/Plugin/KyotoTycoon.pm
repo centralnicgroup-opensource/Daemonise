@@ -213,9 +213,9 @@ sub cache_del {
 =cut
 
 sub lock {    ## no critic (ProhibitBuiltinHomonyms)
-    my ($self, $thing, $lock_value) = @_;
+    my ($self, $key, $lock_value) = @_;
 
-    unless (ref \$thing eq 'SCALAR') {
+    unless (ref \$key eq 'SCALAR') {
         $self->log("locking failed: first argument is not of type SCALAR");
         return;
     }
@@ -227,10 +227,10 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
         }
     }
 
-    my $lock = $thing || $self->name;
+    my $lock = 'lock:' . ($key || $self->name);
 
-    # fallback to PID for the lock value
-    $lock_value //= $$;
+    # fallback to host:PID for the lock value
+    $lock_value //= $self->hostname . ':' . $$;
 
     if (my $value = $self->tycoon->get($lock)) {
         if ($value eq $lock_value) {
@@ -257,9 +257,9 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
 =cut
 
 sub unlock {
-    my ($self, $thing, $lock_value) = @_;
+    my ($self, $key, $lock_value) = @_;
 
-    unless (ref \$thing eq 'SCALAR') {
+    unless (ref \$key eq 'SCALAR') {
         $self->log("locking failed: first argument is not of type SCALAR");
         return;
     }
@@ -271,7 +271,7 @@ sub unlock {
         }
     }
 
-    my $lock = $thing || $self->name;
+    my $lock = 'lock:' . ($key || $self->name);
 
     # fallback to PID for the lock value
     $lock_value //= $$;
