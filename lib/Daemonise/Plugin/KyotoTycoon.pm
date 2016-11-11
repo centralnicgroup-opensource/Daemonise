@@ -8,6 +8,7 @@ use Cache::KyotoTycoon;
 use Try::Tiny;
 use MIME::Base64 qw(encode_base64 decode_base64);
 use Storable qw/nfreeze thaw/;
+use Data::MessagePack;
 
 BEGIN {
     with("Daemonise::Plugin::HipChat");
@@ -108,6 +109,18 @@ has 'tycoon' => (
     required => 1,
 );
 
+=head2 mp
+
+MessagePack object
+
+=cut
+
+has 'mp' => (
+    is       => 'rw',
+    isa      => 'Data::MessagePack',
+    required => 1,
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -138,10 +151,16 @@ after 'configure' => sub {
             db      => $self->tycoon_db,
         ));
 
+    $self->mp(
+        Data::MessagePack->new(
+            prefer_integer => 1,
+            utf8           => 1,
+        ));
+
     # don't try to lock() again when reconfiguring
     return if $reconfig;
 
-    # lock cron for 24hours
+    # lock cron for 24 hours
     if ($self->is_cron) {
         my $expire = $self->cache_default_expire;
         $self->cache_default_expire(24 * 60 * 60);
@@ -165,11 +184,23 @@ sub cache_get {
 
     return unless defined $value;
 
-    my $data = $value;
+    my $data = try {
+        # first try decode using MessagePack
+        $self->mp->unpack($value);
+    }
+    catch {
+        $self->log("unpacking using MessagePack failed: $_") if $self->debug;
 
-    # thaw and decode if it looks like a BASE64 encoding
-    $data = thaw(decode_base64($value))
-        if $value =~ m~^[a-zA-Z0-9+/\n]+={0,2}\n$~s;
+        # then decode and thaw if it looks like a BASE64 encoding
+        if ($value =~ m~^[a-zA-Z0-9+/\n]+={0,2}\n$~s) {
+            return thaw(decode_base64($value));
+        }
+
+        # finally assume it's plain text
+        else {
+            return $value;
+        }
+    };
 
     return ($data, $expire) if wantarray;
     return $data;
@@ -184,11 +215,8 @@ freeze, base64 encode and store complex data in KyotoTycoon
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
-    # if $data is a scalar we can just store it as is
-    my $scalar = $data;
-
-    # otherwise freeze and encode
-    $scalar = encode_base64(nfreeze($data)) if ref $data;
+    # always use MessagePack because it's faster and more compact
+    my $scalar = $self->mp->pack($data);
 
     $expire //= $self->cache_default_expire;
     $self->tycoon->set($key, $scalar, $expire);
