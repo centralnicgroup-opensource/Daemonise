@@ -5,6 +5,10 @@ use Mouse::Role;
 # ABSTRACT: Daemonise Redis plugin
 
 use Redis;
+use Try::Tiny;
+use MIME::Base64 qw(encode_base64 decode_base64);
+use Storable qw/nfreeze thaw/;
+use Data::MessagePack;
 
 BEGIN {
     with("Daemonise::Plugin::HipChat");
@@ -106,6 +110,18 @@ has 'redis' => (
     required => 1,
 );
 
+=head2 mp
+
+MessagePack object
+
+=cut
+
+has 'mp' => (
+    is       => 'rw',
+    isa      => 'Data::MessagePack',
+    required => 1,
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -141,11 +157,20 @@ after 'configure' => sub {
             debug     => $self->debug,
         ));
 
-    # lock cron for 24hours
+    $self->mp(
+        Data::MessagePack->new(
+            prefer_integer => 1,
+            utf8           => 1,
+        ));
+
+    # don't try to lock() again when reconfiguring
+    return if $reconfig;
+
+    # lock cron for 24 hours
     if ($self->is_cron) {
         my $expire = $self->cache_default_expire;
         $self->cache_default_expire(24 * 60 * 60);
-        die unless $self->lock;
+        die 'locking failed' unless $self->lock;
         $self->cache_default_expire($expire);
     }
 
@@ -164,7 +189,27 @@ sub cache_get {
     my $value = $self->redis->get($key);
 
     return unless defined $value;
-    return thaw(decode_base64($value));
+
+    my $data = try {
+
+        # first try decode using MessagePack
+        $self->mp->unpack($value);
+    }
+    catch {
+        $self->log("unpacking using MessagePack failed: $_") if $self->debug;
+
+        # then decode and thaw if it looks like a BASE64 encoding
+        if ($value =~ m~^[a-zA-Z0-9+/\n]+={0,2}\n$~s) {
+            return thaw(decode_base64($value));
+        }
+
+        # finally assume it's plain text
+        else {
+            return $value;
+        }
+    };
+
+    return $data;
 }
 
 =head2 cache_set
@@ -176,7 +221,10 @@ freeze, base64 encode and store complex data in Redis
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
-    $self->redis->set($key => encode_base64(nfreeze($data)));
+    # always use MessagePack because it's faster and more compact
+    my $scalar = $self->mp->pack($data);
+
+    $self->redis->set($key => $scalar);
     $self->redis->expire($key, ($expire || $self->cache_default_expire));
 
     return 1;
