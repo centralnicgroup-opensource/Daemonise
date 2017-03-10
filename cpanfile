@@ -3,6 +3,7 @@ requires "Cache::KyotoTycoon" => "0";
 requires "Carp" => "0";
 requires "Config::Any" => "0";
 requires "Data::Dumper" => "0";
+requires "Data::MessagePack" => "0";
 requires "Data::Printer" => "0";
 requires "DateTime" => "0";
 requires "Digest::MD5" => "0";

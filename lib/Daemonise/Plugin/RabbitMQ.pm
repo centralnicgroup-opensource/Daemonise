@@ -242,7 +242,7 @@ sub queue {
             $queue, $json, $options, $props);
     }
     catch {
-        warn "sending message to '$queue' failed on first try! >>" . $@ . "<<";
+        $self->log("sending message to '$queue' failed on first try! >>" . $@ . "<<");
         $self->_setup_rabbit_connection;
         $self->mq->publish($self->rabbit_channel,
             $queue, $json, $options, $props);

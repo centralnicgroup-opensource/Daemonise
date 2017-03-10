@@ -3,8 +3,34 @@ Changes from 2016-03-10 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.96 at 2017-03-10 03:43:36 +0000
+version 1.96 at 2017-03-10 05:23:09 +0000
 -----------------------------------------
+
+  Change: bcf6a2329a8be4db69a09fd731a7ee271855376d
+  Author: Tobias Kirschstein <nupfel@users.noreply.github.com>
+  Date : 2017-03-10 18:22:24 +0000
+
+    Merge pull request #23 from ideegeo/msgpack_cache
+
+    use msgpack to serialize all caching, fixes #19 
+
+  Change: 9c924b19d6dc335bd668400017a1070edffffa7d
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-03-10 17:48:36 +0000
+
+    udpate to latest Net::AMQP::RabbitMQ 2.3 
+
+  Change: ba67c5aa887e697072946e49d7c6a3c665675bd1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-03-10 17:47:59 +0000
+
+    reconnect to rabbitmq server when publish or recv fail 
+
+  Change: 20d07a935746492fc1772c444fd02b08b3e7b9fc
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2016-11-11 16:04:39 +0000
+
+    switched to msgpack for serialization with backwards compatability 
 
   Change: d87f8be50a0df3fb3d07fa827a4b9acab3c70d9b
   Author: Tobias Kirschstein <lev@ideegeo.com>
