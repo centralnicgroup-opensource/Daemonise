@@ -33,7 +33,7 @@ my %WriteMakefileArgs = (
     "MIME::Base64" => 0,
     "Mouse" => 0,
     "Mouse::Role" => 0,
-    "Net::AMQP::RabbitMQ" => "0.300000",
+    "Net::AMQP::RabbitMQ" => "2.300000",
     "Net::Graphite" => 0,
     "POSIX" => 0,
     "Parallel::ForkManager" => 0,
@@ -54,7 +54,7 @@ my %WriteMakefileArgs = (
     "Test::Deep" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "1.95",
+  "VERSION" => "1.96",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -78,7 +78,7 @@ my %FallbackPrereqs = (
   "MIME::Base64" => 0,
   "Mouse" => 0,
   "Mouse::Role" => 0,
-  "Net::AMQP::RabbitMQ" => "0.300000",
+  "Net::AMQP::RabbitMQ" => "2.300000",
   "Net::Graphite" => 0,
   "POSIX" => 0,
   "Parallel::ForkManager" => 0,

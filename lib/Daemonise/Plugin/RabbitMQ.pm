@@ -6,7 +6,7 @@ use experimental 'smartmatch';
 
 # ABSTRACT: Daemonise RabbitMQ plugin
 
-use Net::AMQP::RabbitMQ 0.300000;
+use Net::AMQP::RabbitMQ 2.300000;
 use Carp;
 use JSON;
 use Try::Tiny;
@@ -92,9 +92,7 @@ has 'rabbit_consumer_tag' => (
 
 
 has 'last_delivery_tag' => (
-    is => 'rw',
-
-    # Net::AMQP::RabbitMQ 0.100000 introduced Math::Uint64 delivery_tags
+    is  => 'rw',
     isa => 'Math::UInt64',
 );
 
@@ -190,7 +188,7 @@ sub queue {
             $self->mq->channel_open($reply_channel);
         }
         catch {
-            warn "Could not open channel 1st time! >>" . $@ . "<<";
+            warn "Could not open channel on first try! >>" . $@ . "<<";
             $self->_setup_rabbit_connection;
             $self->mq->channel_open($reply_channel);
         };
@@ -238,13 +236,17 @@ sub queue {
 
     my $json = $js->encode($hash);
     utf8::encode($json);
-    my $err = $self->mq->publish($self->rabbit_channel,
-        $queue, $json, $options, $props);
 
-    if ($err) {
-        $self->log("sending message to '$queue' failed: $err");
-        return;
+    try {
+        $self->mq->publish($self->rabbit_channel,
+            $queue, $json, $options, $props);
     }
+    catch {
+        warn "sending message to '$queue' failed on first try! >>" . $@ . "<<";
+        $self->_setup_rabbit_connection;
+        $self->mq->publish($self->rabbit_channel,
+            $queue, $json, $options, $props);
+    };
 
     if ($rpc) {
         my $msg = $self->dequeue($tag);
@@ -268,7 +270,15 @@ sub dequeue {
     my $frame;
     my $msg;
     while (1) {
-        $frame = $self->mq->recv();
+        try {
+            $frame = $self->mq->recv();
+        }
+        catch {
+            warn "receiving message failed on first try! >>" . $@ . "<<";
+            $self->_setup_rabbit_connection;
+            $frame = $self->mq->recv();
+        };
+
         if (defined $tag) {
             unless (($frame->{consumer_tag} eq $tag)
                 or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
@@ -416,7 +426,7 @@ Daemonise::Plugin::RabbitMQ - Daemonise RabbitMQ plugin
 
 =head1 VERSION
 
-version 1.95
+version 1.96
 
 =head1 SYNOPSIS
 

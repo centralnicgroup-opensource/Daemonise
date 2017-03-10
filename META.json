@@ -4,13 +4,13 @@
       "Lenz Gschwendtner <norbu09@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.037, CPAN::Meta::Converter version 2.142060",
+   "generated_by" : "Dist::Zilla version 5.037, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "Daemonise",
    "prereqs" : {
@@ -43,7 +43,7 @@
             "MIME::Base64" : "0",
             "Mouse" : "0",
             "Mouse::Role" : "0",
-            "Net::AMQP::RabbitMQ" : "0.300000",
+            "Net::AMQP::RabbitMQ" : "2.300000",
             "Net::Graphite" : "0",
             "POSIX" : "0",
             "Parallel::ForkManager" : "0",
@@ -81,6 +81,6 @@
          "web" : "https://github.com/ideegeo/Daemonise"
       }
    },
-   "version" : "1.95"
+   "version" : "1.96"
 }
 

@@ -280,7 +280,7 @@ sub _finish_processing {
 sub lock_job {
     my ($self, $msg, $mode) = @_;
 
-    # default on locking
+    # default to locking
     $mode = (defined $mode and $mode eq 'unlock') ? 'unlock' : 'lock';
 
     if (    ref $msg eq 'HASH'
@@ -694,7 +694,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.95
+version 1.96
 
 =head1 SYNOPSIS
 

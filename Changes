@@ -1,9 +1,26 @@
 ==================================================
-Changes from 2015-03-17 00:00:00 +0000 to present.
+Changes from 2016-03-10 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.95 at 2016-03-16 04:07:49 +0000
+version 1.96 at 2017-03-10 03:43:05 +0000
+-----------------------------------------
+
+  Change: d87f8be50a0df3fb3d07fa827a4b9acab3c70d9b
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2016-11-11 02:06:11 +0000
+
+    prefix cache key with 'locks:', include hostname for extra info in
+    default locking key 
+
+  Change: db83aae079adc63950274e78f515d0c4997877fd
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2016-11-11 02:03:57 +0000
+
+    updated template for documentation 
+
+-----------------------------------------
+version 1.95 at 2016-03-16 04:04:58 +0000
 -----------------------------------------
 
   Change: b1a81a621d1e561ec0bb3e99e37823872663f8aa
@@ -24,196 +41,6 @@ version 1.95 at 2016-03-16 04:07:49 +0000
 
     removed auto-generated files 
 
------------------------------------------
-version 1.94 at 2015-07-23 12:47:23 +0000
------------------------------------------
-
-  Change: a79972e67702336bb25bd731c3fe37fffa2d7e39
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-24 00:47:23 +0000
-
-    transparently change reply_to queue name according to priority
-    property as well 
-
-  Change: 1968f5a5301ff3e957e2b6fe168b8c05d55f4347
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-24 00:29:22 +0000
-
-    one debug line for sending message is enough 
-
-  Change: bb91b620d3c11d46057ee3793422ff42c19dfb7a
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-24 00:29:00 +0000
-
-    simply setting the meta property for priority is enough, queue() will
-    take care or renaming the destination 
-
-  Change: e4f5d7e3e055a0d30978e2019e493ac587e1ba99
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 18:52:29 +0000
-
-    silence warning about undef string comparison 
-
-  Change: a0f92ef8aba7590dd9e08e7f1b24baedbeedb8cf
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 17:32:23 +0000
-
-    only append priority to queue if it's not an RPC response 
-
-  Change: 6fffb880aba0660c38019442e43ea869ce114419
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 14:08:47 +0000
-
-    fixed missing dot for prio queues 
-
-  Change: 44bc8153b2e8a9e14ecee97a4c1acf82903a47a2
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 13:59:50 +0000
-
-    include queue name in debug log to show relation 
-
-  Change: f75cba7c87ddbdccd4c0618a967cc5cfd17eb75e
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 13:23:19 +0000
-
-    start_job() support for priority 
-
-  Change: 0f1683d345f52cc7409b7d11617c3478f9a9b4de
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 13:01:29 +0000
-
-    version bump 
-
-  Change: ff681c7193518f7eee39ddb689c01f6108e43e9f
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-21 13:00:52 +0000
-
-    hack to transparently send messages to a low prio queue name based on
-    a hash key 
-
------------------------------------------
-version 1.93 at 2015-07-20 01:31:12 +0000
------------------------------------------
-
-  Change: c35f92b04946f1f7ac02567cde0413fe250c3c3d
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-20 13:31:12 +0000
-
-    better, direct event name parsing. mapping should really not be done
-    here 
-
-  Change: 7b01864a90a6952f055c72b11c65821a50191593
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-13 04:49:04 +0000
-
-    v1.92 
-
------------------------------------------
-version 1.92 at 2015-07-12 16:48:00 +0000
------------------------------------------
-
-  Change: d10c370a3d1cb1b21f6eefbc50df67c61146c7a7
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-07-13 04:48:00 +0000
-
-    added separate debug boolean to pass onto Store::CouchDB with default
-    off 
-
------------------------------------------
-version 1.91 at 2015-06-28 10:04:00 +0000
------------------------------------------
-
-  Change: 0af7222d745c37f90d027e4ac3b5f90b5a57db36
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-28 22:04:00 +0000
-
-    version bump 
-
-  Change: 4db9c272f451f02952fa3f95d15ae7d2af7dbc85
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-28 22:03:19 +0000
-
-    perltidy 
-
-  Change: 515679ca227c19583d696c3e02ea54e5dd6de4b0
-  Author: Tobias Kirschstein <nupfel@users.noreply.github.com>
-  Date : 2015-06-28 21:59:30 +0000
-
-    Merge pull request #18 from ideegeo/fix_issue_16
-
-    [WIP] make cache_set/get smarter and transparent for scalar values 
-
-  Change: 7cacfd00aba1804859b76430d309bdf519544da2
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-28 21:55:56 +0000
-
-    match base64 RFC list of chars (https://www.ietf.org/rfc/rfc4648.txt) 
-
-  Change: f83f8db8587bd92d6fa5faf0f2b4fcc8ba77a3da
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-28 18:55:11 +0000
-
-    hacky fix for expire timestamp test 
-
-  Change: 87ca8e2657a71893d250484ff5efcbde96b4932d
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-28 18:52:42 +0000
-
-    removed debug dump 
-
-  Change: 5805e5b8a8bded7a89b88eafca14da25f29a8f5a
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-03 16:07:13 +0000
-
-    v1.90 
-
-  Change: 37649527317daed8be17192e71db85bf1ef8db56
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-02 22:58:15 +0000
-
-    make cache_set/get smarter and transparent for scalar values 
-
------------------------------------------
-version 1.90 at 2015-06-03 04:05:19 +0000
------------------------------------------
-
-  Change: 1cad576690602a465436f4113d449bef6fd276b3
-  Author: Tobias Kirschstein <nupfel@users.noreply.github.com>
-  Date : 2015-06-03 16:05:19 +0000
-
-    Merge pull request #17 from ideegeo/fix_backend_call_event_structure
-
-    renamed 'data' to 'options' in backend_call() event type 
-
-  Change: c63a70d734fe65f5b8b58436f5d2e86f200a973c
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-02 22:59:52 +0000
-
-    cleaned up JobQueue testing preamble 
-
-  Change: dc321c27999e5789f4c0d6d84a55c8798583f70a
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-06-02 22:50:43 +0000
-
-    renamed 'data' to 'options' in backend_call() event type 
-
------------------------------------------
-version 1.89 at 2015-03-23 12:13:07 +0000
------------------------------------------
-
-  Change: 805b90d630a217a91884d5b35784a488e74aef88
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-03-24 01:13:07 +0000
-
-    version 1.89 
-
-  Change: 50813b969a6d22644068f691d166b802ca86c697
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2015-03-24 01:11:22 +0000
-
-    require decent Net::AMQP::RabbitMQ version. changed delivery_tag to
-    Math::UInt64 as per dependency 
-
 =================================================
-Plus 91 releases after 2015-03-17 00:00:00 +0000.
+Plus 97 releases after 2016-03-10 00:00:00 +0000.
 =================================================
