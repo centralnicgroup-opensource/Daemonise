@@ -6,7 +6,7 @@ use experimental 'smartmatch';
 
 # ABSTRACT: Daemonise RabbitMQ plugin
 
-use Net::AMQP::RabbitMQ 0.300000;
+use Net::AMQP::RabbitMQ 2.300000;
 use Carp;
 use JSON;
 use Try::Tiny;
@@ -162,9 +162,7 @@ has 'rabbit_consumer_tag' => (
 =cut
 
 has 'last_delivery_tag' => (
-    is => 'rw',
-
-    # Net::AMQP::RabbitMQ 0.100000 introduced Math::Uint64 delivery_tags
+    is  => 'rw',
     isa => 'Math::UInt64',
 );
 
