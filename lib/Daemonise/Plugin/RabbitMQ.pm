@@ -283,7 +283,7 @@ sub queue {
             $self->mq->channel_open($reply_channel);
         }
         catch {
-            warn "Could not open channel 1st time! >>" . $@ . "<<";
+            warn "Could not open channel on first try! >>" . $@ . "<<";
             $self->_setup_rabbit_connection;
             $self->mq->channel_open($reply_channel);
         };
@@ -331,13 +331,17 @@ sub queue {
 
     my $json = $js->encode($hash);
     utf8::encode($json);
-    my $err = $self->mq->publish($self->rabbit_channel,
-        $queue, $json, $options, $props);
 
-    if ($err) {
-        $self->log("sending message to '$queue' failed: $err");
-        return;
+    try {
+        $self->mq->publish($self->rabbit_channel,
+            $queue, $json, $options, $props);
     }
+    catch {
+        $self->log("sending message to '$queue' failed on first try! >>" . $@ . "<<");
+        $self->_setup_rabbit_connection;
+        $self->mq->publish($self->rabbit_channel,
+            $queue, $json, $options, $props);
+    };
 
     if ($rpc) {
         my $msg = $self->dequeue($tag);
@@ -364,7 +368,15 @@ sub dequeue {
     my $frame;
     my $msg;
     while (1) {
-        $frame = $self->mq->recv();
+        try {
+            $frame = $self->mq->recv();
+        }
+        catch {
+            warn "receiving message failed on first try! >>" . $@ . "<<";
+            $self->_setup_rabbit_connection;
+            $frame = $self->mq->recv();
+        };
+
         if (defined $tag) {
             unless (($frame->{consumer_tag} eq $tag)
                 or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
