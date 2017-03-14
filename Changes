@@ -3,8 +3,14 @@ Changes from 2016-03-14 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.96 at 2017-03-14 02:12:39 +0000
+version 1.96 at 2017-03-14 04:09:53 +0000
 -----------------------------------------
+
+  Change: c12dbf4360cf926523aafbe1eb580ef94ac3c692
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-03-14 16:51:56 +0000
+
+    leave plain scalars as is when caching data 
 
   Change: bcf6a2329a8be4db69a09fd731a7ee271855376d
   Author: Tobias Kirschstein <nupfel@users.noreply.github.com>

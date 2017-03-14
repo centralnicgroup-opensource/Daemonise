@@ -152,8 +152,11 @@ sub cache_get {
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
+    my $scalar = $data;
+
     # always use MessagePack because it's faster and more compact
-    my $scalar = $self->mp->pack($data);
+    # but leave plain scalars as is
+    $scalar = $self->mp->pack($data) if ref $data;
 
     $self->redis->set($key => $scalar);
     $self->redis->expire($key, ($expire || $self->cache_default_expire));
