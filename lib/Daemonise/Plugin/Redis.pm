@@ -195,19 +195,19 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     if (my $value = $self->redis->get($lock)) {
         if ($value eq $lock_value) {
             $self->redis->expire($lock, $self->cache_default_expire);
-            $self->log("lock=$lock locking time extended for $value")
+            $self->log("$lock locking time extended for $value")
                 if $self->debug;
             return 1;
         }
         else {
-            $self->notify("lock=$lock cannot acquire lock hold by $value");
+            $self->notify("$lock cannot acquire lock hold by $value");
             return;
         }
     }
     else {
         $self->redis->set($lock => $lock_value);
         $self->redis->expire($lock, $self->cache_default_expire);
-        $self->log("lock=$lock lock acquired") if $self->debug;
+        $self->log("$lock lock acquired") if $self->debug;
         return 1;
     }
 }
@@ -236,16 +236,16 @@ sub unlock {
     if (my $value = $self->redis->get($lock)) {
         if ($value eq $lock_value) {
             $self->redis->del($lock);
-            $self->log("lock=$lock lock released") if $self->debug;
+            $self->log("$lock lock released") if $self->debug;
             return 1;
         }
         else {
-            $self->log("lock=$lock lock hold by $value, permission denied");
+            $self->log("$lock lock hold by $value, permission denied");
             return;
         }
     }
     else {
-        $self->log("lock=$lock lock was already released") if $self->debug;
+        $self->log("$lock lock was already released") if $self->debug;
         return 1;
     }
 }

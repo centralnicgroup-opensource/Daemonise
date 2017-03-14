@@ -3,8 +3,14 @@ Changes from 2016-03-14 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.96 at 2017-03-14 04:45:17 +0000
+version 1.96 at 2017-03-14 05:06:33 +0000
 -----------------------------------------
+
+  Change: 0c10fcbc349e6f48207d73b446dfdad11915495c
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-03-14 18:06:03 +0000
+
+    removed redundant lock= string from logging 
 
   Change: 70c97b10efcd00f2abb046dcbc1807d318dbe60a
   Author: Tobias Kirschstein <lev@ideegeo.com>
