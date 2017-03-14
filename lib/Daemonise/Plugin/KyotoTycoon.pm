@@ -305,7 +305,7 @@ sub unlock {
     my $lock = 'lock:' . ($key || $self->name);
 
     # fallback to PID for the lock value
-    $lock_value //= $$;
+    $lock_value //= $self->hostname . ':' . $$;
 
     if (my $value = $self->tycoon->get($lock)) {
         if ($value eq $lock_value) {
