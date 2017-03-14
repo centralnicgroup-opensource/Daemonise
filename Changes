@@ -3,8 +3,14 @@ Changes from 2016-03-14 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.96 at 2017-03-14 04:17:23 +0000
+version 1.96 at 2017-03-14 04:41:36 +0000
 -----------------------------------------
+
+  Change: 70c97b10efcd00f2abb046dcbc1807d318dbe60a
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-03-14 17:41:22 +0000
+
+    fixed lock value default for unlocking 
 
   Change: c12dbf4360cf926523aafbe1eb580ef94ac3c692
   Author: Tobias Kirschstein <lev@ideegeo.com>
