@@ -215,8 +215,11 @@ freeze, base64 encode and store complex data in KyotoTycoon
 sub cache_set {
     my ($self, $key, $data, $expire) = @_;
 
+    my $scalar = $data;
+
     # always use MessagePack because it's faster and more compact
-    my $scalar = $self->mp->pack($data);
+    # but leave plain scalars as is
+    $scalar = $self->mp->pack($data) if ref $data;
 
     $expire //= $self->cache_default_expire;
     $self->tycoon->set($key, $scalar, $expire);
