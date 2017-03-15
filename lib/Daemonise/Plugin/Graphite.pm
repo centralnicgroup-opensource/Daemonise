@@ -121,7 +121,7 @@ sub graph {
         and ref \$metric eq 'SCALAR'
         and defined $metric)
     {
-        carp 'missing or wrong type of mandatory argument! '
+        carp 'missing or wrong type of a mandatory argument! '
             . 'usage: $d->graph("$service", "$state", $metric, "$desc")';
         return;
     }
