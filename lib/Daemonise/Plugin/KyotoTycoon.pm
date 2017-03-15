@@ -185,6 +185,7 @@ sub cache_get {
     return unless defined $value;
 
     my $data = try {
+
         # first try decode using MessagePack
         $self->mp->unpack($value);
     }
@@ -219,7 +220,18 @@ sub cache_set {
 
     # always use MessagePack because it's faster and more compact
     # but leave plain scalars as is
-    $scalar = $self->mp->pack($data) if ref $data;
+    if (ref $data) {
+        try {
+            $scalar = $self->mp->pack($data);
+        }
+        catch {
+            # TODO: convert/compile/do whatever necessary to not have perl
+            # objects in the $data hash.
+            # Data::MessagePack does not allow perl objects, but we appear
+            # to have Types::Serialiser in JSON structures
+            $scalar = encode_base64(nfreeze($data));
+        }
+    }
 
     $expire //= $self->cache_default_expire;
     $self->tycoon->set($key, $scalar, $expire);
