@@ -274,7 +274,9 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # encode wide characters as UTF-8
     utf8::encode($msg);
 
+    my $has_config;
     if (ref($self->config->{syslog}) eq 'HASH') {
+        $has_config = 1;
         foreach
             my $conf_key ('host', 'port')
         {
@@ -283,7 +285,8 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
                 if defined $self->config->{syslog}->{$conf_key};
         }
     }
-    setlogsock({ type => "tcp", host => $self->syslog_host, port => $self->syslog_port });
+    setlogsock({ type => "tcp", host => $self->syslog_host, port => $self->syslog_port })
+        if $has_config;
     openlog('Daemonise', 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
