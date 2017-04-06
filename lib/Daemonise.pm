@@ -9,7 +9,7 @@ use lib "$Bin/../lib";
 
 # VERSION
 
-use Sys::Syslog qw(:standard :macros);
+use Sys::Syslog qw(setlogsock :standard :macros);
 use Config::Any;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
