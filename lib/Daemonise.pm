@@ -144,6 +144,21 @@ has 'cache_plugin' => (
     default => sub { 'KyotoTycoon' },
 );
 
+has 'syslog_host' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '127.0.0.1' },
+);
+
+has 'syslog_port' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '514' },
+);
+
+
 after 'new' => sub {
     my ($class, %args) = @_;
 
@@ -259,6 +274,16 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # encode wide characters as UTF-8
     utf8::encode($msg);
 
+    if (ref($self->config->{syslog}) eq 'HASH') {
+        foreach
+            my $conf_key ('host', 'port')
+        {
+            my $attr = 'syslog_' . $conf_key;
+            $self->$attr($self->config->{syslog}->{$conf_key})
+                if defined $self->config->{syslog}->{$conf_key};
+        }
+    }
+    setlogsock({ type => "tcp", host => $self->syslog_host, port => $self->syslog_port });
     openlog('Daemonise', 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
