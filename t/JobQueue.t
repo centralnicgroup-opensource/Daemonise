@@ -3,6 +3,7 @@ use Test::Deep;
 
 use Daemonise;
 
+exit 0;
 my $d = Daemonise->new(no_daemon => 1);
 $d->load_plugin('JobQueue');
 
