@@ -427,18 +427,18 @@ sub dequeue {
                     }
                 }
             }
-            # store delivery tag to ack later
-            $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
-            $self->reply_queue($frame->{props}->{reply_to})
-                if exists $frame->{props}->{reply_to};
-            $self->correlation_id($frame->{props}->{correlation_id})
-                if exists $frame->{props}->{correlation_id};
         } else {
             $self->log("sending heartbeat to RabbitMQ") if $self->debug;
             $self->mq->heartbeat;
         }
     }
 
+    # store delivery tag to ack later
+    $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
+    $self->reply_queue($frame->{props}->{reply_to})
+    if exists $frame->{props}->{reply_to};
+    $self->correlation_id($frame->{props}->{correlation_id})
+    if exists $frame->{props}->{correlation_id};
 
     return $msg;
 }
