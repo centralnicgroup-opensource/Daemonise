@@ -14,37 +14,37 @@ use Try::Tiny;
 =head1 SYNOPSIS
 
     use Daemonise;
-    
+
     my $d = Daemonise->new();
-    
+
     # this is the rabbitMQ queue name we eventually create and subscribe to
     $d->name("queue_name");
-    
+
     $d->debug(1);
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
-    
+
     $d->load_plugin('RabbitMQ');
-    
+
     $d->is_worker(1); # make it create its own queue
     $d->configure;
-    
+
     # fetch next message from our subscribed queue
     $msg = $d->dequeue;
-    
+
     # send message to some_queue and don't wait (rabbitMQ publish)
     # $msg can be anything that encodes into JSON
     $d->queue('some_queue', $msg);
-    
+
     # send message and wait for response (rabbitMQ RPC)
     my $response = $d->queue('some_queue', $msg);
-    
+
     # worker that wants a reply from us, not necessarily from an RPC call
     my $worker = $d->reply_queue;
-    
+
     # does NOT reply to caller, no matter what, usually not what you want
     $d->dont_reply;
-    
+
     # at last, acknowledge message as processed
     $d->ack;
 
@@ -155,6 +155,17 @@ has 'rabbit_consumer_tag' => (
     isa     => 'Str',
     lazy    => 1,
     default => sub { '' },
+);
+
+=head2 rabbit_heartbeat
+
+=cut
+
+has 'rabbit_heartbeat' => (
+    is      => 'rw',
+    isa     => 'Int',
+    lazy    => 1,
+    default => sub { 60 },
 );
 
 =head2 last_delivery_tag
@@ -367,62 +378,67 @@ sub dequeue {
     my $msg;
     while (1) {
         try {
-            $frame = $self->mq->recv();
+            $frame = $self->mq->recv(($self->rabbit_heartbeat * 1000) / 2);
         }
         catch {
             warn "receiving message failed on first try! >>" . $@ . "<<";
             $self->_setup_rabbit_connection;
-            $frame = $self->mq->recv();
+            $frame = $self->mq->recv(($self->rabbit_heartbeat * 1000) / 2);
         };
 
-        if (defined $tag) {
-            unless (($frame->{consumer_tag} eq $tag)
-                or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
-            {
-                $self->log("LOSING MESSAGE: " . $self->dump($frame));
-            }
-        }
-
-        # ACK all admin messages no matter what
-        $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
-            if ($frame->{routing_key} =~ m/^admin/);
-
-        # decode
-        eval { $msg = $js->decode($frame->{body} || '{}'); };
-        if ($@) {
-            $self->log("JSON parsing error: $@");
-            $msg = {};
-        }
-
-        $self->log("received message body: " . $self->dump($msg))
-            if $self->debug;
-
-        last unless ($frame->{routing_key} =~ m/^admin/);
-
-        if (   ($frame->{routing_key} eq 'admin')
-            or ($frame->{routing_key} eq 'admin.' . $self->hostname))
-        {
-            given ($msg->{command} || 'stop') {
-                when ('configure') {
-                    $self->log("reconfiguring");
-                    $self->configure('reconfig');
+        if($frame){
+            if (defined $tag) {
+                unless (($frame->{consumer_tag} eq $tag)
+                    or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
+                {
+                    $self->log("LOSING MESSAGE: " . $self->dump($frame));
                 }
-                when ('stop') {
-                    my $name = $self->name;
-                    if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
-                        $self->stop;
+            }
+
+            # ACK all admin messages no matter what
+            $self->mq->ack($self->rabbit_channel, $frame->{delivery_tag})
+                if ($frame->{routing_key} =~ m/^admin/);
+
+            # decode
+            eval { $msg = $js->decode($frame->{body} || '{}'); };
+            if ($@) {
+                $self->log("JSON parsing error: $@");
+                $msg = {};
+            }
+
+            $self->log("received message body: " . $self->dump($msg))
+                if $self->debug;
+
+            last unless ($frame->{routing_key} =~ m/^admin/);
+
+            if (   ($frame->{routing_key} eq 'admin')
+                or ($frame->{routing_key} eq 'admin.' . $self->hostname))
+            {
+                given ($msg->{command} || 'stop') {
+                    when ('configure') {
+                        $self->log("reconfiguring");
+                        $self->configure('reconfig');
+                    }
+                    when ('stop') {
+                        my $name = $self->name;
+                        if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
+                            $self->stop;
+                        }
                     }
                 }
             }
+            # store delivery tag to ack later
+            $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
+            $self->reply_queue($frame->{props}->{reply_to})
+                if exists $frame->{props}->{reply_to};
+            $self->correlation_id($frame->{props}->{correlation_id})
+                if exists $frame->{props}->{correlation_id};
+        } else {
+            $self->log("sending heartbeat to RabbitMQ") if $self->debug;
+            $self->mq->heartbeat;
         }
     }
 
-    # store delivery tag to ack later
-    $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
-    $self->reply_queue($frame->{props}->{reply_to})
-        if exists $frame->{props}->{reply_to};
-    $self->correlation_id($frame->{props}->{correlation_id})
-        if exists $frame->{props}->{correlation_id};
 
     return $msg;
 }
@@ -456,10 +472,11 @@ sub _setup_rabbit_connection {
     eval {
         $self->mq->connect(
             $self->rabbit_host, {
-                user     => $self->rabbit_user,
-                password => $self->rabbit_pass,
-                port     => $self->rabbit_port,
-                vhost    => $self->rabbit_vhost,
+                user      => $self->rabbit_user,
+                password  => $self->rabbit_pass,
+                port      => $self->rabbit_port,
+                vhost     => $self->rabbit_vhost,
+                heartbeat => $self->rabbit_heartbeat,
             });
     };
     my $err = $@;

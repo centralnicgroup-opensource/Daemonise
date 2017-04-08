@@ -382,6 +382,8 @@ sub daemonise {
         open(STDIN, '<', '/dev/null')
             or die "Can't open STDIN from /dev/null: [$!]";
 
+        # FIXME this needs to use our standard $self->log so we have
+        # support for external log hosts!
         # check for Tie::Syslog for later
         my $tie_syslog;
         eval { require Tie::Syslog; } and do { $tie_syslog = 1 unless $@ };
