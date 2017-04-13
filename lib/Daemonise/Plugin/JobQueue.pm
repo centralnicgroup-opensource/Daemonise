@@ -83,17 +83,6 @@ has 'job' => (
     default => sub { {} },
 );
 
-=head2 items_key
-
-=cut
-
-has 'items_key' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { 'domains' },
-);
-
 =head2 item_key
 
 =cut
@@ -126,6 +115,16 @@ has 'job_locked' => (
     default => sub { 0 },
 );
 
+=head2 jobqueue_sync_delay
+
+=cut
+
+has 'jobqueue_sync_delay' => (
+    is      => 'rw',
+    isa     => 'Int',
+    default => sub { 1 },
+);
+
 # internal attribute to store all command hooks
 has '_hooks' => (
     is  => 'rw',
@@ -143,10 +142,15 @@ after 'configure' => sub {
 
     $self->log("configuring JobQueue plugin") if $self->debug;
 
-    $self->jobqueue_db($self->config->{jobqueue}->{db})
-        if (exists $self->config->{jobqueue}
-        and exists $self->config->{jobqueue}->{db}
-        and $self->config->{jobqueue}->{db});
+    if (ref($self->config->{jobqueue}) eq 'HASH') {
+        foreach
+            my $conf_key ('db', 'sync_delay')
+        {
+            my $attr = "jobqueue_" . $conf_key;
+            $self->$attr($self->config->{jobqueue}->{$conf_key})
+                if defined $self->config->{jobqueue}->{$conf_key};
+        }
+    }
 
     return;
 };
@@ -424,6 +428,14 @@ sub lock_job {
                 return 1;
             }
             else {
+                # we need to take into account that KT may be slow
+                # replicating so we need a way to re-try here once after
+                # a set timeout.
+                sleep($self->jobqueue_sync_delay);
+                if($self->$mode($key, $value)){
+                    $self->job_locked(1);
+                    return 1;
+                }
                 $msg->{error} = "job locked by different worker process";
                 $self->job_locked(0);
                 return;
