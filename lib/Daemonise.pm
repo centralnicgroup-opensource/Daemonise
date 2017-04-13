@@ -283,7 +283,6 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 
     my $has_config;
     if (ref($self->config->{syslog}) eq 'HASH') {
-        print STDERR "Logging to remote host\n";
         $has_config = 1;
         foreach
             my $conf_key ('host', 'port')
