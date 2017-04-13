@@ -18,16 +18,16 @@ BEGIN {
 =head1 SYNOPSIS
 
     use Daemonise;
-    
+
     my $d = Daemonise->new();
     $d->debug(1);
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
-    
+
     $d->load_plugin('Event');
-    
+
     $d->configure;
-    
+
     # this will create an event, store it in the event_db and trigger it if
     # necessary. requires a daemon to be running that can process such events.
     my $when = 24 || 1360934857 || undef;
@@ -36,7 +36,7 @@ BEGIN {
         raw    => 'some%20raw%20response',
     };
     my $event_id = $d->create_event('pre_defined_type', "job_id", $when, $options);
-    
+
     # stop an event
     $d->stop_event($event_id);
 
@@ -254,10 +254,12 @@ sub create_event {
         }
 
         # graph new event
-        my $service = join('.',
-            $event->{backend}, $event->{object},
-            $event->{action},  $event->{status});
-        $self->graph("event.$service", 'new', 1);
+        if ($self->can('graph')) {
+            my $service = join('.',
+                $event->{backend}, $event->{object},
+                $event->{action},  $event->{status});
+            $self->graph("event.$service", 'new', 1)
+        }
 
         return $id;
     }
