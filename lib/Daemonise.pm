@@ -17,28 +17,28 @@ use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
     use Daemonise;
     use File::Basename;
-    
+
     my $d = Daemonise->new();
     $d->name(basename($0));
-    
+
     # log/print more debug info
     $d->debug(1);
-    
+
     # stay in foreground, don't actually fork when calling $d->start
     $d->foreground(1) if $d->debug;
-    
+
     # config file style can be whatever Config::Any supports
     $d->config_file('/path/to/some.conf');
-    
+
     # where to store/look for PID file
     $d->pid_file("/var/run/${name}.pid");
-    
+
     # configure everything so far
     $d->configure;
-    
+
     # fork and redirect STDERR/STDOUT to syslog per default
     $d->start;
-    
+
     # load some plugins (refer to plugin documentation for provided methods)
     $d->load_plugin('RabbitMQ');
     $d->load_plugin('CouchDB');
@@ -50,10 +50,10 @@ use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
     $d->load_plugin('PagerDuty');
     $d->load_plugin('KyotoTycoon');
     $d->load_plugin('Graphite');
-    
+
     # reconfigure after loading plugins if necessary
     $d->configure;
-    
+
     # do stuff
 
 
@@ -156,6 +156,13 @@ has 'syslog_port' => (
     isa     => 'Str',
     lazy    => 1,
     default => sub { '514' },
+);
+
+has 'syslog_type' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'tcp' },
 );
 
 
@@ -276,6 +283,7 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 
     my $has_config;
     if (ref($self->config->{syslog}) eq 'HASH') {
+        print STDERR "Logging to remote host\n";
         $has_config = 1;
         foreach
             my $conf_key ('host', 'port')
@@ -285,9 +293,9 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
                 if defined $self->config->{syslog}->{$conf_key};
         }
     }
-    setlogsock({ type => "tcp", host => $self->syslog_host, port => $self->syslog_port })
+    setlogsock({ type => $self->syslog_type, host => $self->syslog_host, port => $self->syslog_port })
         if $has_config;
-    openlog('Daemonise', 'pid,ndelay', LOG_USER);
+    openlog($self->name, 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
     return;
