@@ -78,7 +78,7 @@ Daemonise::Plugin::TrueTruth - Daemonise plugin that wraps True::Truth reusing t
 
 =head1 VERSION
 
-version 1.97
+version 1.96
 
 =head1 SYNOPSIS
 
