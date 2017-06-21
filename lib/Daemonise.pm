@@ -7,9 +7,9 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '1.96'; # VERSION
+our $VERSION = '1.97'; # VERSION
 
-use Sys::Syslog qw(:standard :macros);
+use Sys::Syslog qw(setlogsock :standard :macros);
 use Config::Any;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
@@ -73,6 +73,28 @@ has 'cache_plugin' => (
     lazy    => 1,
     default => sub { 'KyotoTycoon' },
 );
+
+has 'syslog_host' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '127.0.0.1' },
+);
+
+has 'syslog_port' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '514' },
+);
+
+has 'syslog_type' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'tcp' },
+);
+
 
 after 'new' => sub {
     my ($class, %args) = @_;
@@ -175,7 +197,20 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     # encode wide characters as UTF-8
     utf8::encode($msg);
 
-    openlog('Daemonise', 'pid,ndelay', LOG_USER);
+    my $has_config;
+    if (ref($self->config->{syslog}) eq 'HASH') {
+        $has_config = 1;
+        foreach
+            my $conf_key ('host', 'port')
+        {
+            my $attr = 'syslog_' . $conf_key;
+            $self->$attr($self->config->{syslog}->{$conf_key})
+                if defined $self->config->{syslog}->{$conf_key};
+        }
+    }
+    setlogsock({ type => $self->syslog_type, host => $self->syslog_host, port => $self->syslog_port })
+        if $has_config;
+    openlog($self->name, 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 
     return;
@@ -252,34 +287,34 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 1.96
+version 1.97
 
 =head1 SYNOPSIS
 
     use Daemonise;
     use File::Basename;
-    
+
     my $d = Daemonise->new();
     $d->name(basename($0));
-    
+
     # log/print more debug info
     $d->debug(1);
-    
+
     # stay in foreground, don't actually fork when calling $d->start
     $d->foreground(1) if $d->debug;
-    
+
     # config file style can be whatever Config::Any supports
     $d->config_file('/path/to/some.conf');
-    
+
     # where to store/look for PID file
     $d->pid_file("/var/run/${name}.pid");
-    
+
     # configure everything so far
     $d->configure;
-    
+
     # fork and redirect STDERR/STDOUT to syslog per default
     $d->start;
-    
+
     # load some plugins (refer to plugin documentation for provided methods)
     $d->load_plugin('RabbitMQ');
     $d->load_plugin('CouchDB');
@@ -291,10 +326,10 @@ version 1.96
     $d->load_plugin('PagerDuty');
     $d->load_plugin('KyotoTycoon');
     $d->load_plugin('Graphite');
-    
+
     # reconfigure after loading plugins if necessary
     $d->configure;
-    
+
     # do stuff
 
 =head1 ATTRIBUTES

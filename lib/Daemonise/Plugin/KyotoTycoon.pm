@@ -47,6 +47,14 @@ has 'tycoon_timeout' => (
 );
 
 
+has 'cache_sync_delay' => (
+    is      => 'rw',
+    isa     => 'Int',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
+
 has 'cache_default_expire' => (
     is      => 'rw',
     isa     => 'Int',
@@ -200,14 +208,14 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     $lock_value //= $self->hostname . ':' . $$;
 
     if (my $value = $self->tycoon->get($lock)) {
-        if ($value eq $lock_value) {
-            $self->tycoon->replace($lock, $lock_value,
-                $self->cache_default_expire);
-            $self->log("$lock locking time extended for $value")
-                if $self->debug;
+        if($self->_extend_lock($value, $lock_value, $lock)){
             return 1;
         }
         else {
+            sleep($self->cache_sync_delay);
+            if($self->_extend_lock($value, $lock_value, $lock)){
+                return 1;
+            }
             $self->notify("$lock cannot acquire lock hold by $value");
             return;
         }
@@ -217,6 +225,21 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
         $self->log("$lock lock acquired") if $self->debug;
         return 1;
     }
+}
+
+
+
+sub _extend_lock {
+    my ($self, $value, $lock_value, $lock) = @_;
+
+    if ($value eq $lock_value) {
+        $self->tycoon->replace($lock, $lock_value,
+            $self->cache_default_expire);
+        $self->log("$lock locking time extended for $value")
+            if $self->debug;
+        return 1;
+    }
+    return;
 }
 
 
@@ -301,7 +324,7 @@ Daemonise::Plugin::KyotoTycoon - Daemonise KyotoTycoon plugin
 
 =head1 VERSION
 
-version 1.96
+version 1.97
 
 =head1 SYNOPSIS
 
@@ -340,6 +363,8 @@ This plugin conflicts with other plugins that provide caching, like the Redis pl
 
 =head2 tycoon_connect_timeout
 
+=head2 cache_sync_delay
+
 =head2 cache_default_expire
 
 =head2 tycoon
@@ -365,6 +390,12 @@ freeze, base64 encode and store complex data in KyotoTycoon
 delete KyotoTycoon key
 
 =head2 lock
+
+=head2 _extend_lock
+
+extends the lock set by the same process
+
+This function returns 1 on success
 
 =head2 unlock
 

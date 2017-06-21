@@ -34,14 +34,6 @@ has 'job' => (
 );
 
 
-has 'items_key' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { 'domains' },
-);
-
-
 has 'item_key' => (
     is      => 'rw',
     isa     => 'Str',
@@ -64,6 +56,13 @@ has 'job_locked' => (
     default => sub { 0 },
 );
 
+
+has 'jobqueue_sync_delay' => (
+    is      => 'rw',
+    isa     => 'Int',
+    default => sub { 1 },
+);
+
 # internal attribute to store all command hooks
 has '_hooks' => (
     is  => 'rw',
@@ -76,10 +75,15 @@ after 'configure' => sub {
 
     $self->log("configuring JobQueue plugin") if $self->debug;
 
-    $self->jobqueue_db($self->config->{jobqueue}->{db})
-        if (exists $self->config->{jobqueue}
-        and exists $self->config->{jobqueue}->{db}
-        and $self->config->{jobqueue}->{db});
+    if (ref($self->config->{jobqueue}) eq 'HASH') {
+        foreach
+            my $conf_key ('db', 'sync_delay')
+        {
+            my $attr = "jobqueue_" . $conf_key;
+            $self->$attr($self->config->{jobqueue}->{$conf_key})
+                if defined $self->config->{jobqueue}->{$conf_key};
+        }
+    }
 
     return;
 };
@@ -299,6 +303,14 @@ sub lock_job {
                 return 1;
             }
             else {
+                # we need to take into account that KT may be slow
+                # replicating so we need a way to re-try here once after
+                # a set timeout.
+                sleep($self->jobqueue_sync_delay);
+                if($self->$mode($key, $value)){
+                    $self->job_locked(1);
+                    return 1;
+                }
                 $msg->{error} = "job locked by different worker process";
                 $self->job_locked(0);
                 return;
@@ -694,7 +706,7 @@ Daemonise::Plugin::JobQueue - Daemonise JobQueue plugin
 
 =head1 VERSION
 
-version 1.96
+version 1.97
 
 =head1 SYNOPSIS
 
@@ -743,13 +755,13 @@ version 1.96
 
 =head2 job
 
-=head2 items_key
-
 =head2 item_key
 
 =head2 log_worker_enabled
 
 =head2 job_locked
+
+=head2 jobqueue_sync_delay
 
 =head1 SUBROUTINES/METHODS provided
 

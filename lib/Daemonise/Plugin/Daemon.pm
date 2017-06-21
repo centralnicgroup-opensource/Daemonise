@@ -91,6 +91,28 @@ has 'interval' => (
     default => sub { 5 },
 );
 
+has 'syslog_host' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '127.0.0.1' },
+);
+
+has 'syslog_port' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '514' },
+);
+
+has 'syslog_type' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'tcp' },
+);
+
+
 
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
@@ -299,7 +321,7 @@ sub daemonise {
         my $tie_syslog;
         eval { require Tie::Syslog; } and do { $tie_syslog = 1 unless $@ };
 
-        if ($self->logfile) {
+        if ($self->has_logfile) {
             my $logfile = $self->logfile;
             open(STDOUT, '>', $logfile)
                 or die "Can't redirect STDOUT to $logfile: [$!]";
@@ -307,16 +329,31 @@ sub daemonise {
                 or die "Can't redirect STDERR to STDOUT: [$!]";
         }
         elsif ($tie_syslog) {
-            my $name = $self->name;
-            $Tie::Syslog::ident = 'Daemonise';
+
+            my $has_config;
+            if (ref($self->config->{syslog}) eq 'HASH') {
+                $has_config = 1;
+                foreach
+                    my $conf_key ('host', 'port', 'type')
+                {
+                    my $attr = 'syslog_' . $conf_key;
+                    $self->$attr($self->config->{syslog}->{$conf_key})
+                        if defined $self->config->{syslog}->{$conf_key};
+                }
+            }
+
+            # FIXME Tie::Syslog does not support the "setlogsock" option
+            # so we can't set another syslog server. This is a problem
+            # on FreeBSD atm
+            $Tie::Syslog::ident  = $self->name;
             tie *STDOUT, 'Tie::Syslog', {
                 facility => 'LOG_USER',
                 priority => 'LOG_INFO',
-                };
+            };
             tie *STDERR, 'Tie::Syslog', {
                 facility => 'LOG_USER',
                 priority => 'LOG_ERR',
-                };
+            };
 
             # inject our own PRINT function into Tie::Syslog so we can remove
             # newlines when not in debug mode so syslog feeds splunk with nice
@@ -338,6 +375,8 @@ sub daemonise {
                     # Sys::Syslog does not like wide characters and dies
                     utf8::encode($msg);
 
+                    Sys::Syslog::setlogsock({ type => $self->syslog_type, host => $self->syslog_host, port => $self->syslog_port })
+                        if $has_config;
                     eval {
                         Sys::Syslog::syslog($s->facility . '|' . $s->priority,
                             $msg);
@@ -513,22 +552,22 @@ Daemonise::Plugin::Daemon - Daemonise plugin handling PID file, forking, syslog
 
 =head1 VERSION
 
-version 1.96
+version 1.97
 
 =head1 SYNOPSIS
 
     use Daemonise;
-    
+
     my $d = Daemonise->new();
     $d->debug(1);
     $d->foreground(1) if $d->debug;
     $d->config_file('/path/to/some.conf');
-    
+
     $d->configure;
-    
+
     # fork and run in background (unless foreground is true)
     $d->start(\&main);
-    
+
     sub main {
         # check if daemon is running already
         $d->status;

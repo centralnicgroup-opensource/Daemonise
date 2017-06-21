@@ -1,9 +1,129 @@
 ==================================================
-Changes from 2016-03-15 00:00:00 +0000 to present.
+Changes from 2016-06-21 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.96 at 2017-03-15 09:47:55 +0000
+version 1.97 at 2017-06-21 13:08:41 +0000
+-----------------------------------------
+
+  Change: 67495127758b70a3076399e0427b372bbb7fb8cd
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 17:03:41 +0000
+
+    v2.02 
+
+  Change: 95c6d97042ad04560d502ffa9f2c9d1d3735f16e
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 17:02:17 +0000
+
+    introduce a sync_delay for replication deplays 
+
+  Change: c7f739f0c6b115fef2142f15812e08f270028cfd
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 16:12:35 +0000
+
+    remove debug statement 
+
+  Change: 8598d524a98fa67aa69bab2f6c6f1269136e2ba5
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 15:37:49 +0000
+
+    v2.01 
+
+  Change: d4082ab83914dba2934006ba8dab27702641f31b
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 15:37:09 +0000
+
+    make keepalive a configurable option 
+
+  Change: 64cc7474ea7a78bdbd58fd611e7549d2f328a088
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 15:18:14 +0000
+
+    add a delay before re-trying to lock a job to give KT time to catch
+    up in the new replicated setup 
+
+  Change: b8053f743dd120579237960e697f197a1289f316
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 13:19:20 +0000
+
+    make Daemonise work nicely with remote syslog servers 
+
+  Change: cc30158700fa2233ebf9df7b41c0cc0ab0b552c6
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-13 13:09:56 +0000
+
+    only graph if we have a graphing backend 
+
+  Change: 871edbf79127012fedc5bb8487791d72cee04522
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 13:08:08 +0000
+
+    v2.00 
+
+  Change: b75669f25c44429af032aca6ab0acca8a55de846
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 13:07:36 +0000
+
+    fixed message ack 
+
+  Change: 319a8b6eec33211f8d88096a45656dd495b80ad2
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 12:36:54 +0000
+
+    v1.99 
+
+  Change: e83c12d89dc53c4bf74a831d4a083bc2e66e3c32
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 12:36:12 +0000
+
+    add heartbeat to the RabbitMQ client to get around HAProxy
+    limitations 
+
+  Change: 9f72ab409f5ca8bbff629107023ca68d705b8a95
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 00:41:55 +0000
+
+    v1.98 
+
+  Change: 1212799720c5b202414cd59a3f8e172087d9c414
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 00:39:19 +0000
+
+    v1.97 
+
+  Change: 0a4ac63c271f440840197d220f70c99110f2218e
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 00:36:21 +0000
+
+    fixd tests 
+
+  Change: 98bef6dde7e62aa976767d7b233c4cf8f8ac7700
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-08 00:28:37 +0000
+
+    disable tests for now 
+
+  Change: 4905c2ec6e4d9ede9485c387f81fa02b206f5ab2
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-07 10:35:22 +0000
+
+    fixed missing export 
+
+  Change: 3bf3d7350bb1a835bf3461a0b130d69a12b08b92
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-07 10:20:04 +0000
+
+    only set socket options if we have a config 
+
+  Change: 2e4e8cad405cf758ef4458c36f2a974aab8815c8
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2017-04-07 10:18:35 +0000
+
+    add a way to configure syslog host/port 
+
+-----------------------------------------
+version 1.96 at 2017-03-15 09:44:53 +0000
 -----------------------------------------
 
   Change: fd8ea7ba5f45ebac45f9e141bcebdf5f0b34ab31
@@ -70,28 +190,6 @@ version 1.96 at 2017-03-15 09:47:55 +0000
 
     updated template for documentation 
 
------------------------------------------
-version 1.95 at 2016-03-16 04:04:58 +0000
------------------------------------------
-
-  Change: b1a81a621d1e561ec0bb3e99e37823872663f8aa
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2016-03-16 17:04:58 +0000
-
-    version bump 
-
-  Change: a1ef3812d6e01ec117952788769124051cb0260c
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2016-03-16 17:04:39 +0000
-
-    as of Data::Printer 0.36 we need to use np() to get a dump returned 
-
-  Change: 491b93f69aa30752a2fd3b7dcca70b777184f1d3
-  Author: Tobias Kirschstein <lev@ideegeo.com>
-  Date : 2016-03-16 17:02:56 +0000
-
-    removed auto-generated files 
-
 =================================================
-Plus 97 releases after 2016-03-15 00:00:00 +0000.
+Plus 98 releases after 2016-06-21 00:00:00 +0000.
 =================================================
