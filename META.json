@@ -56,7 +56,6 @@
             "Store::CouchDB" : "0",
             "Sys::Syslog" : "0",
             "Tie::Syslog" : "0",
-            "True::Truth" : "1.1",
             "Try::Tiny" : "0",
             "WebService::PagerDuty" : "0",
             "experimental" : "0",

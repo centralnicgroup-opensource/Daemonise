@@ -3,8 +3,14 @@ Changes from 2016-10-11 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 2.02 at 2017-10-11 19:29:21 +0000
+version 2.02 at 2017-10-11 19:46:21 +0000
 -----------------------------------------
+
+  Change: 14478065210bd9cdbcbe3adf3db7370a43c82f7c
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-10-12 08:44:43 +0000
+
+    outdated and unused True::Truth plugin breaks release 
 
   Change: 67495127758b70a3076399e0427b372bbb7fb8cd
   Author: Lenz Gschwendtner <lenz@springtimesoft.com>
