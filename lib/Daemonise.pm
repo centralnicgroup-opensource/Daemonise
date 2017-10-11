@@ -370,6 +370,28 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
     return $dump;
 }
 
+=head1 DEPLOY PROCESS
+
+This module uses Dist::Zilla for the release process. To get it up and running
+do the following:
+
+    cpanm Dist::Zilla
+    git clone https://github.com/ideegeo/Daemonise
+    cd Daemonise
+    dzil authordeps --missing | cpanm
+    dzil listdeps --author --develop | cpanm
+
+At this point all required plugins for Dist::Zilla and modules to run tests
+should be installed. Daemonise uses PGP signed github releases, so make sure your
+git config user and email are setup correctly as well as a PGP key that matches
+your git(hub) account email. Try Config::Identity for a PGP encrypted file of
+your github account credentials in ~/.github for convenience.
+Finally run:
+
+    dzil release
+
+which will do all the work (build, test, sign, tag, update github, upload).
+
 =head1 BUGS
 
 Please report any bugs or feature requests on GitHub's issue tracker L<https://github.com/ideegeo/Daemonise/issues>.
