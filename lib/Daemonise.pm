@@ -7,7 +7,7 @@ use lib "$Bin/../lib";
 
 # ABSTRACT: Daemonise - a general daemoniser for anything...
 
-our $VERSION = '2.02'; # VERSION
+our $VERSION = '2.03'; # VERSION
 
 use Sys::Syslog qw(setlogsock :standard :macros);
 use Config::Any;
@@ -287,7 +287,7 @@ Daemonise - Daemonise - a general daemoniser for anything...
 
 =head1 VERSION
 
-version 2.02
+version 2.03
 
 =head1 SYNOPSIS
 
@@ -369,6 +369,28 @@ stub method to hook into by plugins
 =head2 round
 
 =head2 dump
+
+=head1 DEPLOY PROCESS
+
+This module uses Dist::Zilla for the release process. To get it up and running
+do the following:
+
+    cpanm Dist::Zilla
+    git clone https://github.com/ideegeo/Daemonise
+    cd Daemonise
+    dzil authordeps --missing | cpanm
+    dzil listdeps --author --develop | cpanm
+
+At this point all required plugins for Dist::Zilla and modules to run tests
+should be installed. Daemonise uses PGP signed github releases, so make sure your
+git config user and email are setup correctly as well as a PGP key that matches
+your git(hub) account email. Try Config::Identity for a PGP encrypted file of
+your github account credentials in ~/.github for convenience.
+Finally run:
+
+    dzil release
+
+which will do all the work (build, test, sign, tag, update github, upload).
 
 =head1 BUGS
 
