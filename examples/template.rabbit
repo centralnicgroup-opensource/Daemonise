@@ -33,7 +33,6 @@ $d->load_plugin('Event');
 $d->load_plugin('HipChat');
 $d->load_plugin('PagerDuty');
 $d->load_plugin('Paralleliser');
-$d->load_plugin('True::Truth');
 $d->load_plugin('KyotoTycoon');    # or $d->load_plugin('Redis');
 
 # do not bind to any rabbitMQ queue
