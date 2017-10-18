@@ -83,6 +83,17 @@ has 'job' => (
     default => sub { {} },
 );
 
+=head2 items_key
+
+=cut
+
+has 'items_key' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { 'domains' },
+);
+
 =head2 item_key
 
 =cut
@@ -143,9 +154,7 @@ after 'configure' => sub {
     $self->log("configuring JobQueue plugin") if $self->debug;
 
     if (ref($self->config->{jobqueue}) eq 'HASH') {
-        foreach
-            my $conf_key ('db', 'sync_delay')
-        {
+        foreach my $conf_key ('db', 'sync_delay') {
             my $attr = "jobqueue_" . $conf_key;
             $self->$attr($self->config->{jobqueue}->{$conf_key})
                 if defined $self->config->{jobqueue}->{$conf_key};
@@ -432,7 +441,7 @@ sub lock_job {
                 # replicating so we need a way to re-try here once after
                 # a set timeout.
                 sleep($self->jobqueue_sync_delay);
-                if($self->$mode($key, $value)){
+                if ($self->$mode($key, $value)) {
                     $self->job_locked(1);
                     return 1;
                 }
