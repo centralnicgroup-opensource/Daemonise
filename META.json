@@ -82,7 +82,7 @@
          "web" : "https://github.com/ideegeo/Daemonise"
       }
    },
-   "version" : "2.03",
+   "version" : "2.02",
    "x_serialization_backend" : "Cpanel::JSON::XS version 3.0233"
 }
 

@@ -1,10 +1,22 @@
 ==================================================
-Changes from 2016-10-11 00:00:00 +0000 to present.
+Changes from 2016-10-18 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 2.03 at 2017-10-11 23:05:44 +0000
+version 2.02 at 2017-10-18 12:43:34 +0000
 -----------------------------------------
+
+  Change: 646920341d8ebf20056e8a5897504a574072a687
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-10-19 01:41:44 +0000
+
+    perltidy 
+
+  Change: e3b01063601834a132ba387a5c270b2939d4a8e1
+  Author: Tobias Kirschstein <lev@ideegeo.com>
+  Date : 2017-10-19 01:36:46 +0000
+
+    fixed fatal items_key missing error 
 
   Change: d06aeec3b7538cba3b3effba0127f9f3c6bec46e
   Author: Tobias Kirschstein <lev@ideegeo.com>
@@ -17,10 +29,6 @@ version 2.03 at 2017-10-11 23:05:44 +0000
   Date : 2017-10-12 09:26:57 +0000
 
     fake release because we can't upload to PAUSE 
-
------------------------------------------
-version 2.02 at 2017-10-11 19:44:43 +0000
------------------------------------------
 
   Change: 14478065210bd9cdbcbe3adf3db7370a43c82f7c
   Author: Tobias Kirschstein <lev@ideegeo.com>
@@ -217,5 +225,5 @@ version 1.96 at 2017-03-15 09:44:53 +0000
     updated template for documentation 
 
 =================================================
-Plus 98 releases after 2016-10-11 00:00:00 +0000.
+Plus 98 releases after 2016-10-18 00:00:00 +0000.
 =================================================

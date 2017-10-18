@@ -51,5 +51,5 @@ resources:
   bugtracker: https://github.com/ideegeo/Daemonise/issues
   homepage: https://github.com/ideegeo/Daemonise/wiki
   repository: git://github.com/ideegeo/Daemonise.git
-version: '2.03'
+version: '2.02'
 x_serialization_backend: 'YAML::Tiny version 1.70'
