@@ -287,12 +287,12 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     $lock_value //= $self->hostname . ':' . $$;
 
     if (my $value = $self->tycoon->get($lock)) {
-        if($self->_extend_lock($value, $lock_value, $lock)){
+        if ($self->_extend_lock($value, $lock_value, $lock)) {
             return 1;
         }
         else {
             sleep($self->cache_sync_delay);
-            if($self->_extend_lock($value, $lock_value, $lock)){
+            if ($self->_extend_lock($value, $lock_value, $lock)) {
                 return 1;
             }
             $self->notify("$lock cannot acquire lock hold by $value");
@@ -306,7 +306,6 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
     }
 }
 
-
 =head2 _extend_lock
 
 extends the lock set by the same process
@@ -319,8 +318,7 @@ sub _extend_lock {
     my ($self, $value, $lock_value, $lock) = @_;
 
     if ($value eq $lock_value) {
-        $self->tycoon->replace($lock, $lock_value,
-            $self->cache_default_expire);
+        $self->tycoon->replace($lock, $lock_value, $self->cache_default_expire);
         $self->log("$lock locking time extended for $value")
             if $self->debug;
         return 1;
