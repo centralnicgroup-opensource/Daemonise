@@ -144,6 +144,10 @@ has 'cache_plugin' => (
     default => sub { 'KyotoTycoon' },
 );
 
+=head2 syslog_host
+
+=cut
+
 has 'syslog_host' => (
     is      => 'rw',
     isa     => 'Str',
@@ -151,12 +155,20 @@ has 'syslog_host' => (
     default => sub { '127.0.0.1' },
 );
 
+=head2 syslog_port
+
+=cut
+
 has 'syslog_port' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
     default => sub { '514' },
 );
+
+=head2 syslog_type
+
+=cut
 
 has 'syslog_type' => (
     is      => 'rw',
