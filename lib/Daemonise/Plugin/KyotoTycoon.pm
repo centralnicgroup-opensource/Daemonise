@@ -10,10 +10,6 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 use Storable qw/nfreeze thaw/;
 use Data::MessagePack;
 
-BEGIN {
-    with("Daemonise::Plugin::HipChat");
-}
-
 =head1 SYNOPSIS
 
 This plugin conflicts with other plugins that provide caching, like the Redis plugin.
@@ -295,7 +291,8 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
             if ($self->_extend_lock($value, $lock_value, $lock)) {
                 return 1;
             }
-            $self->notify("$lock cannot acquire lock hold by $value");
+            $self->notify("$lock cannot acquire lock hold by $value")
+                if $self->can('notify');
             return;
         }
     }

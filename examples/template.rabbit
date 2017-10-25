@@ -127,7 +127,7 @@ sub action {
     # severity can be debug, info, warning, critical, error, defaults to 'info'
     my $room     = 'office';
     my $severity = 'warning';
-    $d->notify($msg, $room, $severity);
+    $d->notify($msg, $room, $severity) if $d->can('notify');
 
     ## KyotoTycoon / Redis plugin calls ##
     #
@@ -155,7 +155,7 @@ sub action {
     my $state       = 'slow';
     my $metric      = 0.4;
     my $description = 'slow site right now';
-    $d->graph($service, $state, $metric, $description) if ($d->can('graph'));
+    $d->graph($service, $state, $metric, $description) if $d->can('graph');
 
     ## PagerDuty plugin calls ##
     #

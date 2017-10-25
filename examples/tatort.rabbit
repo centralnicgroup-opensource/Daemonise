@@ -152,7 +152,8 @@ sub event_exec {
     });
     unless ($def) {
         $event->{error} = "event_name=$name could not find case file";
-        $d->notify("ERROR: " . $event->{error} . ' event_id: ' . $event->{_id});
+        $d->notify("ERROR: " . $event->{error} . ' event_id: ' . $event->{_id})
+            if $d->can('notify');
         $d->couchdb->put_doc({ doc => $event });
         return;
     }
@@ -326,7 +327,8 @@ sub notification {
     given ($def->{transport}) {
         when ('hipchat') {
             $d->notify(join(' ', $event->{_id}, $name, $event->{message}),
-                $def->{room}, $def->{severity});
+                $def->{room}, $def->{severity})
+                if $d->can('notify');
 
             return 1;
         }

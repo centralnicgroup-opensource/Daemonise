@@ -10,10 +10,6 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 use Storable qw/nfreeze thaw/;
 use Data::MessagePack;
 
-BEGIN {
-    with("Daemonise::Plugin::HipChat");
-}
-
 =head1 SYNOPSIS
 
 This plugin conflicts with other plugins that provide caching, like the KyotoTycoon plugin.
@@ -288,7 +284,8 @@ sub lock {    ## no critic (ProhibitBuiltinHomonyms)
             return 1;
         }
         else {
-            $self->notify("$lock cannot acquire lock hold by $value");
+            $self->notify("$lock cannot acquire lock hold by $value")
+                if $self->can('notify');
             return;
         }
     }
