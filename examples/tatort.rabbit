@@ -105,8 +105,10 @@ sub event_add {
     $event->{_rev} = $rev;
 
     # graph new event
-    my $service = _event_name($event, '.');
-    $d->graph("event.$service", 'new', 1);
+    if ($d->can('graph')) {
+        my $service = _event_name($event, '.');
+        $d->graph("event.$service", 'new', 1);
+    }
 
     return $event;
 }
@@ -175,9 +177,10 @@ sub event_exec {
         $d->notify("event_id="
                 . $event->{_id}
                 . " event_name=$name ERROR: "
-                . $event->{error});
+                . $event->{error})
+            if $d->can('notify');
 
-        $d->graph("event.$service", 'failed', 1);
+        $d->graph("event.$service", 'failed', 1) if $d->can('graph');
     }
 
     # don't mark as processed if processing failed
@@ -188,7 +191,9 @@ sub event_exec {
     $d->couchdb->put_doc({ doc => $event });
 
     # graph event as processed successfully if there was no error
-    $d->graph("event.$service", 'done', 1) unless exists $event->{error};
+    if (not exists $event->{error} and $d->can('graph')) {
+        $d->graph("event.$service", 'done', 1);
+    }
 
     return;
 }

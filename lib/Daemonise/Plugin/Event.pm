@@ -10,7 +10,6 @@ use Scalar::Util qw(looks_like_number);
 use Carp;
 
 BEGIN {
-    with("Daemonise::Plugin::Riemann");
     with("Daemonise::Plugin::CouchDB");
     with("Daemonise::Plugin::RabbitMQ");
 }
@@ -258,7 +257,7 @@ sub create_event {
             my $service = join('.',
                 $event->{backend}, $event->{object},
                 $event->{action},  $event->{status});
-            $self->graph("event.$service", 'new', 1)
+            $self->graph("event.$service", 'new', 1);
         }
 
         return $id;
@@ -305,10 +304,12 @@ sub stop_event {
             $self->log("stopped event $id");
 
             # graph stopped event
-            my $service = join('.',
-                $event->{backend}, $event->{object},
-                $event->{action},  $event->{status});
-            $self->graph("event.$service", 'stopped', 1);
+            if ($self->can('graph')) {
+                my $service = join('.',
+                    $event->{backend}, $event->{object},
+                    $event->{action},  $event->{status});
+                $self->graph("event.$service", 'stopped', 1);
+            }
         }
 
         return 1;
