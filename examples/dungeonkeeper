@@ -1,125 +1,70 @@
 #!/usr/bin/env perl
 
-use 5.014;
+# PODNAME: dungeonkeeper
+
+# ABSTRACT: dungeonkeeper - hase backend supervisor
+
+# VERSION
+
+use Modern::Perl;
 use experimental 'smartmatch';
 use Daemonise;
 use Getopt::Long;
 use File::Find::Rule;
-use File::Basename;
 use JSON;
-
-# PODNAME: dungeonkeeper
+use Proc::ProcessTable;
 
 my $debug;
-my $conf = '/etc/daemonise/dungeonkeeper.conf';
+my $conf      = '/etc/daemonise/dungeonkeeper.conf';
+my $hase_conf = '/etc/daemonise/hase.conf';
 my $foreground;
-my $queue = basename($0);
-my $pid   = '/var/run/' . $queue . '.pid';
 
 GetOptions(
-    "debug|d"      => \$debug,
-    "config|c=s"   => \$conf,
-    "foreground|f" => \$foreground,
+    "debug|d"         => \$debug,
+    "config|c=s"      => \$conf,
+    "rabbit_conf|r=s" => \$hase_conf,
+    "foreground|f"    => \$foreground,
 ) or die;
 
 my $command = shift @ARGV;
-die "$0 (start|stop|restart|status) [daemon1 daemon2 ...]" unless $command;
+die "$0 (start|onestart|stop|restart|status) [daemon1 daemon2 ...]"
+    unless $command;
 
 my $d = Daemonise->new();
-$d->name($queue . '.' . $d->hostname);
 $d->debug(1)      if $debug;
 $d->debug(1)      if ($d->hostname =~ m/devel/);
 $d->foreground(1) if $foreground;
-$d->pid_file($pid);
+$d->pid_file('/var/run/' . $d->name . '.pid');
 $d->config_file($conf);
 $d->configure;
+$d->load_plugin('Riemann');
 $d->load_plugin('RabbitMQ');
 $d->admin_queue(0);
 
 given ($command) {
-    when ("start")   { start(@ARGV); }
-    when ("stop")    { stop(@ARGV); }
-    when ("restart") { restart(@ARGV); }
-    when ("status")  { status(@ARGV); }
-    default          { die "unknown command: $command"; }
+    when ("start")    { start(@ARGV); }
+    when ("onestart") { start(@ARGV); }
+    when ("stop")     { stop(@ARGV); }
+    when ("restart")  { restart(@ARGV); }
+    when ("status")   { status(@ARGV); }
+    default           { die "unknown command: $command"; }
 }
 
 sub main {
-    my $frame;
-    eval {
-        # TODO: bind to some topic queue for all hase dungeonkeepers
-        # $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.topic', $queue);
-
-        $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
-    };
-    my $err = $@;
-    if ($err) {
-        $d->log("rabbitMQ error: $err");
-    }
-
-    if ($frame) {
-        $d->log('received message: ' . $d->dump($frame)) if $d->debug;
-
-        eval { $d->mq->ack($d->rabbit_channel, $frame->{delivery_tag}); };
-
-        my $msg =
-            JSON->new->utf8->allow_blessed->convert_blessed->allow_nonref
-            ->decode($frame->{body} || '{}');
-
-        if ($frame->{routing_key} =~ m/^$queue/) {
-            given ($msg->{command}) {
-                when ('configure') { _reconfigure($msg); }
-                when ('deploy')    { _deploy($msg); }
-                when ('stop')      { _stop($msg); }
-            }
-        }
-    }
-
-    my $amount = rabbits();
-
-    foreach my $rabbit (keys %{ $d->config->{bunnies} }) {
-        my $num = $amount->{$rabbit} || 0;
-        if ($num < $d->config->{bunnies}->{$rabbit}) {
-            $d->log(  "bunny $rabbit needed ($num:"
-                    . $d->config->{bunnies}->{$rabbit}
-                    . ")");
-            $num++;
-            my $pid_file =
-                $d->pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
-
-            # find a non existent pidfile
-            while (-f $pid_file) {
-                $num++;
-                $pid_file =
-                    $d->pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
-            }
-
-            # fork the new rabbit
-            system("cd " . $d->bin_dir . " && bin/$rabbit.rabbit -p $pid_file");
-        }
-    }
-
+    _handle_admin_message();
+    _monitor_rabbits();
     sleep($d->interval || 2);
 }
 
 sub rabbits {
     my $amount = {};
-    my $files  = File::Find::Rule->new->file->name('*.pid')->start($d->pid_dir);
 
-    while (defined(my $pid_file = $files->match)) {
+    my $t = new Proc::ProcessTable;
+    foreach my $p (@{ $t->table }) {
+        next unless $p->cmndline =~ m/^.*perl bin\/(.*).rabbit .*$/gi;
 
-        # extract rabbit name from PID file
-        my $pid_dir = $d->pid_dir;
-        $pid_file =~ m{$pid_dir/(.*)\.rabbit\.\d+\.pid$};
-        my $rabbit = $1;
-
-        $amount->{$rabbit} = 0 unless (exists $amount->{$rabbit});
-
-        # check if daemon is running and increase counter
-        my $daemon = Daemonise->new();
-        $daemon->pid_file($pid_file);
-        my $status = $daemon->status;
-        $amount->{$rabbit} += 1 if ($status);
+        # print "$1: " . $p->pid . "\n";
+        $amount->{$1} += 1;
     }
 
     return $amount;
@@ -259,6 +204,86 @@ sub _stop {
 
     restart();
     $d->stop;
+
+    return;
+}
+
+sub _get_admin_message {
+    my $frame;
+
+    $d->configure unless $d->mq->is_connected;
+
+    eval {
+        # TODO: bind to some topic queue for all hase dungeonkeepers
+        # $d->mq->queue_bind($d->rabbit_channel, $d->name, 'amq.topic', $queue);
+
+        $frame = $d->mq->get($d->rabbit_channel, $d->name, { no_ack => 0 });
+    };
+    my $error = $@;
+
+    if ($error) {
+        $d->log("rabbitMQ error: $error");
+        return;
+    }
+
+    return $frame;
+}
+
+sub _handle_admin_message {
+    my $frame = _get_admin_message();
+
+    if ($frame) {
+        $d->log('received message: ' . $d->dump($frame)) if $d->debug;
+
+        eval { $d->mq->ack($d->rabbit_channel, $frame->{delivery_tag}); };
+
+        my $msg =
+            JSON->new->utf8->allow_blessed->convert_blessed->allow_nonref
+            ->decode($frame->{body} || '{}');
+
+        my $queue = $d->name;
+        if ($frame->{routing_key} =~ m/^$queue/) {
+            given ($msg->{command}) {
+                when ('configure') { _reconfigure($msg); }
+                when ('deploy')    { _deploy($msg); }
+                when ('stop')      { _stop($msg); }
+            }
+        }
+    }
+
+    return;
+}
+
+sub _monitor_rabbits {
+    my $amount = rabbits();
+    $d->configure;
+
+    foreach my $rabbit (keys %{ $d->config->{bunnies} }) {
+        my $num = $amount->{$rabbit} || 0;
+        if ($num < $d->config->{bunnies}->{$rabbit}) {
+            $d->log(  "bunny $rabbit needed ($num:"
+                    . $d->config->{bunnies}->{$rabbit}
+                    . ")");
+            $num++;
+            my $pid_file =
+                $d->pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+
+            # find a non existent pidfile
+            while (-f $pid_file) {
+                $num++;
+                $pid_file =
+                    $d->pid_dir . '/' . $rabbit . '.rabbit.' . $num . '.pid';
+            }
+
+            # graph start of new rabbit
+            $d->graph('hase.' . $rabbit, 'starting', 1) if $d->can('graph');
+
+            # fork the new rabbit
+            system(   "cd "
+                    . $d->bin_dir
+                    . " && bin/$rabbit.rabbit -p $pid_file -c $hase_conf");
+        }
+    }
 
     return;
 }
