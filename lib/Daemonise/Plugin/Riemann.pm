@@ -56,11 +56,11 @@ has 'riemann_port' => (
 
 =cut
 
-has 'riemann_udp' => (
+has 'riemann_proto' => (
     is      => 'rw',
-    isa     => 'Bool',
+    isa     => 'Str',
     lazy    => 1,
-    default => sub { 0 },
+    default => sub { 'tcp' },
 );
 
 =head2 riemann
@@ -81,23 +81,27 @@ has 'riemann' => (
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
+    if ($reconfig and exists $self->riemann->{transport}->{socket}) {
+        $self->log("closing riemann socket") if $self->debug;
+        $self->riemann->transport->clear_socket;
+    }
+
     $self->log("configuring Riemann plugin") if $self->debug;
 
-    my $r;
-    eval {
-        $r = Riemann::Client->new(
-            host    => $self->riemann_host,
-            port    => $self->riemann_port,
-            use_udp => $self->riemann_udp,
-        );
-    };
-    if ($@) {
-        $self->log("connect to riemann failed: $@");
-        return;
+    if (ref($self->config->{riemann}) eq 'HASH') {
+        foreach my $conf_key ('host', 'port', 'proto') {
+            my $attr = "riemann_" . $conf_key;
+            $self->$attr($self->config->{riemann}->{$conf_key})
+                if defined $self->config->{riemann}->{$conf_key};
+        }
     }
-    else {
-        $self->riemann($r);
-    }
+
+    $self->riemann(
+        Riemann::Client->new(
+            host  => $self->riemann_host,
+            port  => $self->riemann_port,
+            proto => $self->riemann_proto,
+        ));
 
     return;
 };
@@ -116,8 +120,8 @@ sub graph {
         and ref \$metric eq 'SCALAR'
         and defined $metric)
     {
-        carp 'missing or wrong type of mandatory argument! '
-            . 'usage: $d->graph("$service", "$state", $metric)';
+        carp 'missing or wrong type of a mandatory argument! '
+            . 'usage: $d->graph("$service", "$state", $metric, "$desc")';
         return;
     }
 
@@ -127,12 +131,12 @@ sub graph {
     }
 
     if ($desc and ref(\$desc) ne 'SCALAR') {
-        carp "description must be of SCALAR type";
+        carp "description must be of SCALAR type, ignoring";
         undef $desc;
     }
 
     if ($self->debug) {
-        $self->log("[riemann] $service: $metric ($state)");
+        $self->log("[riemann] $service.$state: $metric");
         return;
     }
 
@@ -140,10 +144,11 @@ sub graph {
 
     eval {
         $self->riemann->send({
-            service     => $service,
-            state       => $state,
-            metric      => $metric,
-            description => $desc || "metric for $service",
+            host    => $self->hostname,
+            service => $service,
+            state   => $state,
+            metric  => $metric,
+            defined $desc ? (description => $desc) : (),
         });
     };
     carp "sending metric failed: $@" if $@;

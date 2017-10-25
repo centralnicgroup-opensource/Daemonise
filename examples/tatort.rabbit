@@ -31,7 +31,7 @@ $d->configure;
 $d->load_plugin('CouchDB');
 $d->load_plugin('JobQueue');
 $d->load_plugin('HipChat');
-$d->load_plugin('Graphite');
+$d->load_plugin('Riemann');
 $d->is_worker(1);
 $d->dont_log_worker;
 $d->couch_db($d->config->{events}->{db});

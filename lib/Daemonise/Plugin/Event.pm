@@ -10,7 +10,7 @@ use Scalar::Util qw(looks_like_number);
 use Carp;
 
 BEGIN {
-    with("Daemonise::Plugin::Graphite");
+    with("Daemonise::Plugin::Riemann");
     with("Daemonise::Plugin::CouchDB");
     with("Daemonise::Plugin::RabbitMQ");
 }

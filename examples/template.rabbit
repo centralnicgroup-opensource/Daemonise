@@ -146,7 +146,7 @@ sub action {
     $d->lock(undef || "some key", undef || "some value");
     $d->unlock(undef || "some key", undef || "some value");
 
-    ## Graphite plugin calls ##
+    ## Graphite/Riemann plugin calls ##
     #
     # graph something
     # service, state and metric are mandatory and have to be strings
