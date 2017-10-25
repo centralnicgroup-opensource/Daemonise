@@ -263,6 +263,9 @@ around 'start' => sub {
     # start connections in the configure stage
     $self->configure;
 
+    # graph that startup was ok and that we are running now
+    $self->graph('hase.' . $self->name, 'running', 1) if $self->can('graph');
+
     if ($self->loops) {
         while (1) {
             { $code->(); }

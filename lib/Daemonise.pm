@@ -322,6 +322,7 @@ sub stop {
     my ($self) = @_;
 
     $self->log("good bye cruel world!");
+    $self->graph('hase.', $self->name, 'stopped', 1) if $self->can('graph');
 
     exit;
 }
