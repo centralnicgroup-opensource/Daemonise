@@ -373,7 +373,7 @@ sub daemonise {
 
     if ($self->foreground) {
         $self->running($$);
-        $self->log('staying in forground');
+        $self->log('staying in foreground');
         return;
     }
 
