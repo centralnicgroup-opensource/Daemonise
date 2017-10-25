@@ -71,6 +71,12 @@ version 2.04
 
 =head2 cache_plugin
 
+=head2 syslog_host
+
+=head2 syslog_port
+
+=head2 syslog_type
+
 =head1 SUBROUTINES/METHODS
 
 =head2 load_plugin
