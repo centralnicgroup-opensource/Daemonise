@@ -165,7 +165,6 @@ has 'syslog_type' => (
     default => sub { 'tcp' },
 );
 
-
 after 'new' => sub {
     my ($class, %args) = @_;
 
@@ -284,16 +283,17 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     my $has_config;
     if (ref($self->config->{syslog}) eq 'HASH') {
         $has_config = 1;
-        foreach
-            my $conf_key ('host', 'port')
-        {
+        foreach my $conf_key ('host', 'port') {
             my $attr = 'syslog_' . $conf_key;
             $self->$attr($self->config->{syslog}->{$conf_key})
                 if defined $self->config->{syslog}->{$conf_key};
         }
     }
-    setlogsock({ type => $self->syslog_type, host => $self->syslog_host, port => $self->syslog_port })
-        if $has_config;
+    setlogsock({
+            type => $self->syslog_type,
+            host => $self->syslog_host,
+            port => $self->syslog_port
+        }) if $has_config;
     openlog($self->name, 'pid,ndelay', LOG_USER);
     syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
 

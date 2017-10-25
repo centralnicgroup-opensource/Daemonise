@@ -172,7 +172,6 @@ has 'syslog_type' => (
     default => sub { 'tcp' },
 );
 
-
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -287,8 +286,8 @@ module for just changing boolean values
 
 =cut
 
-sub dont_loop { $_[0]->loops(0); return; } ## no critic
-sub loop      { $_[0]->loops(1); return; } ## no critic
+sub dont_loop { $_[0]->loops(0); return; }    ## no critic
+sub loop      { $_[0]->loops(1); return; }    ## no critic
 
 =head2 check_pid_file
 
@@ -423,9 +422,7 @@ sub daemonise {
             my $has_config;
             if (ref($self->config->{syslog}) eq 'HASH') {
                 $has_config = 1;
-                foreach
-                    my $conf_key ('host', 'port', 'type')
-                {
+                foreach my $conf_key ('host', 'port', 'type') {
                     my $attr = 'syslog_' . $conf_key;
                     $self->$attr($self->config->{syslog}->{$conf_key})
                         if defined $self->config->{syslog}->{$conf_key};
@@ -435,15 +432,15 @@ sub daemonise {
             # FIXME Tie::Syslog does not support the "setlogsock" option
             # so we can't set another syslog server. This is a problem
             # on FreeBSD atm
-            $Tie::Syslog::ident  = $self->name;
+            $Tie::Syslog::ident = $self->name;
             tie *STDOUT, 'Tie::Syslog', {
                 facility => 'LOG_USER',
                 priority => 'LOG_INFO',
-            };
+                };
             tie *STDERR, 'Tie::Syslog', {
                 facility => 'LOG_USER',
                 priority => 'LOG_ERR',
-            };
+                };
 
             # inject our own PRINT function into Tie::Syslog so we can remove
             # newlines when not in debug mode so syslog feeds splunk with nice
@@ -465,8 +462,11 @@ sub daemonise {
                     # Sys::Syslog does not like wide characters and dies
                     utf8::encode($msg);
 
-                    Sys::Syslog::setlogsock({ type => $self->syslog_type, host => $self->syslog_host, port => $self->syslog_port })
-                        if $has_config;
+                    Sys::Syslog::setlogsock({
+                            type => $self->syslog_type,
+                            host => $self->syslog_host,
+                            port => $self->syslog_port
+                        }) if $has_config;
                     eval {
                         Sys::Syslog::syslog($s->facility . '|' . $s->priority,
                             $msg);

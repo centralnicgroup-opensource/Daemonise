@@ -176,7 +176,11 @@ has 'rabbit_recv_timeout' => (
     is      => 'rw',
     isa     => 'Int',
     lazy    => 1,
-    default => sub { ($_[0]->rabbit_heartbeat == 0 ? 0 : ($_[0]->rabbit_heartbeat * 1000) / 2) },
+    default => sub {
+        ($_[0]->rabbit_heartbeat == 0
+            ? 0
+            : ($_[0]->rabbit_heartbeat * 1000) / 2);
+    },
 );
 
 =head2 last_delivery_tag
@@ -357,7 +361,8 @@ sub queue {
             $queue, $json, $options, $props);
     }
     catch {
-        $self->log("sending message to '$queue' failed on first try! >>" . $@ . "<<");
+        $self->log(
+            "sending message to '$queue' failed on first try! >>" . $@ . "<<");
         $self->_setup_rabbit_connection;
         $self->mq->publish($self->rabbit_channel,
             $queue, $json, $options, $props);
@@ -397,7 +402,7 @@ sub dequeue {
             $frame = $self->mq->recv($self->rabbit_recv_timeout);
         };
 
-        if($frame){
+        if ($frame) {
             if (defined $tag) {
                 unless (($frame->{consumer_tag} eq $tag)
                     or ($frame->{consumer_tag} eq $self->rabbit_consumer_tag))
@@ -432,13 +437,16 @@ sub dequeue {
                     }
                     when ('stop') {
                         my $name = $self->name;
-                        if (grep { $_ eq $name } @{ $msg->{daemons} || [$name] }) {
+                        if (grep { $_ eq $name }
+                            @{ $msg->{daemons} || [$name] })
+                        {
                             $self->stop;
                         }
                     }
                 }
             }
-        } else {
+        }
+        else {
             $self->log("sending heartbeat to RabbitMQ") if $self->debug;
             $self->mq->heartbeat;
         }
@@ -447,9 +455,9 @@ sub dequeue {
     # store delivery tag to ack later
     $self->last_delivery_tag($frame->{delivery_tag}) unless $tag;
     $self->reply_queue($frame->{props}->{reply_to})
-    if exists $frame->{props}->{reply_to};
+        if exists $frame->{props}->{reply_to};
     $self->correlation_id($frame->{props}->{correlation_id})
-    if exists $frame->{props}->{correlation_id};
+        if exists $frame->{props}->{correlation_id};
 
     return $msg;
 }
@@ -472,15 +480,20 @@ sub _setup_rabbit_connection {
 
     if (ref($self->config->{rabbitmq}) eq 'HASH') {
         foreach
-            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange', 'heartbeat')
+            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange',
+            'heartbeat')
         {
             my $attr = "rabbit_" . $conf_key;
             $self->$attr($self->config->{rabbitmq}->{$conf_key})
                 if defined $self->config->{rabbitmq}->{$conf_key};
         }
     }
-    if($self->rabbit_heartbeat){
-        $self->rabbit_recv_timeout(($self->rabbit_heartbeat == 0 ? 0 : ($self->rabbit_heartbeat * 1000) / 2));
+    if ($self->rabbit_heartbeat) {
+        $self->rabbit_recv_timeout((
+            $self->rabbit_heartbeat == 0
+            ? 0
+            : ($self->rabbit_heartbeat * 1000) / 2
+        ));
     }
 
     eval {
