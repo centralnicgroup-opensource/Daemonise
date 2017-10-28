@@ -467,15 +467,15 @@ sub daemonise {
                             host => $self->syslog_host,
                             port => $self->syslog_port
                         }) if $has_config;
+                    Sys::Syslog::openlog($self->name, 'pid,ndelay', LOG_USER);
                     eval {
                         Sys::Syslog::syslog($s->facility . '|' . $s->priority,
-                            $msg);
+                            'queue=%s %s', $self->name, $msg);
                     };
                     if ($@) {
-                        Sys::Syslog::syslog(
-                            $s->facility . '|' . $s->priority,
-                            "PRINT failed with errors: $@"
-                        );
+                        Sys::Syslog::syslog($s->facility . '|' . $s->priority,
+                            'queue=%s %s', $self->name,
+                            "PRINT failed with errors: $@");
                     }
 
                     return;
