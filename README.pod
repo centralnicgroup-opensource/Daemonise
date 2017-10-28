@@ -71,13 +71,11 @@ version 2.05
 
 =head2 cache_plugin
 
-=head2 syslog_host
-
-=head2 syslog_port
-
-=head2 syslog_type
+=head2 print_log
 
 =head1 SUBROUTINES/METHODS
+
+=head2 new
 
 =head2 load_plugin
 
@@ -96,6 +94,11 @@ stub method to hook into by plugins
 =head2 round
 
 =head2 dump
+
+=head2 stdout_redirect
+
+method hook for redirecting STDOUT/STDERR in plugins
+most recent loaded plugin takes precedence using C<around> modifier only
 
 =head1 DEPLOY PROCESS
 
