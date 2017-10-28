@@ -81,7 +81,7 @@ has 'syslog_log' => (
 after 'configure' => sub {
     my ($self, $reconfig) = @_;
 
-    $self->log("configuring Daemon plugin") if $self->debug;
+    $self->log("configuring Syslog plugin") if $self->debug;
 
     my $syslog_config;
     if (ref($self->config->{syslog}) eq 'HASH') {
