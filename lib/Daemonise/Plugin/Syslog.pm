@@ -93,12 +93,13 @@ after 'configure' => sub {
         }
     }
 
+    closelog();
     setlogsock({
             type => $self->syslog_type,
             host => $self->syslog_host,
             port => $self->syslog_port
         }) if $syslog_config;
-    openlog($self->name, 'pid,ndelay', LOG_USER);
+    openlog($self->name, 'pid,nonul', LOG_USER);
 
     return;
 };
@@ -112,8 +113,9 @@ after 'log' => sub {
 
     return unless $self->syslog_log;
 
-    # escape newlines when not running in debug mode for log parser convenience
+    # collapse space and newlines to create single lines for syslog
     $msg =~ s/\h*\v+\h*/ /gs;
+    chomp($msg);
 
     # encode wide characters as UTF-8
     utf8::encode($msg);
@@ -172,6 +174,7 @@ around 'stdout_redirect' => sub {
 
             # remove vertical (and potentially surrounding horizontal) spaces
             $msg =~ s/\h*\v+\h*/ /gs;
+            chomp($msg);
 
             # Sys::Syslog does not like wide characters and dies
             utf8::encode($msg);
