@@ -123,18 +123,6 @@ after 'log' => sub {
     return;
 };
 
-=head2 close_syslog
-
-=cut
-
-sub close_syslog {
-    my ($self) = @_;
-
-    closelog();
-
-    return;
-}
-
 =head2 stdout_redirect
 
 =cut

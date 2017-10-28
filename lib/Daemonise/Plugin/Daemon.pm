@@ -361,10 +361,6 @@ sub daemonise {
     # turn off logging to STDOUT when running in background
     $self->print_log(0);
 
-    # close syslog connection before forking because reopening it in the child
-    # will cause an empty log message
-    $self->close_syslog if $self->can('close_syslog');
-
     my $pid = $self->async;
 
     ### parent process should do the pid file and exit
