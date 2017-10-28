@@ -271,7 +271,8 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     return unless $self->print_log;
 
     chomp($msg);
-    say($self->name . ": $msg");
+    my $now = strftime "%F %T", localtime;
+    say("${now} " . $self->hostname . ' ' . $self->name . "[$$]: $msg");
 
     return;
 }
