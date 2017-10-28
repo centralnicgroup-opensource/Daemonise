@@ -2,7 +2,7 @@ package Daemonise::Plugin::Daemon;
 
 use Mouse::Role;
 
-# ABSTRACT: Daemonise plugin handling PID file, forking, syslog
+# ABSTRACT: Daemonise plugin handling PID file and forking
 
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
@@ -151,27 +151,6 @@ has 'interval' => (
     default => sub { 5 },
 );
 
-has 'syslog_host' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { '127.0.0.1' },
-);
-
-has 'syslog_port' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { '514' },
-);
-
-has 'syslog_type' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { 'tcp' },
-);
-
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -206,24 +185,19 @@ after 'configure' => sub {
 
 =cut
 
-around 'log' => sub {
-    my ($orig, $self, $msg) = @_;
+after 'log' => sub {
+    my ($self, $msg) = @_;
 
-    chomp($msg);
+    return unless ($self->has_logfile);
 
-    if ($self->foreground) {
-        print $self->name . ": $msg\n";
-    }
-    elsif ($self->has_logfile) {
-        open(my $log_file, '>>', $self->logfile)
-            or confess "Could not open File (" . $self->logfile . "): $@";
-        my $now = strftime "%F %T", localtime;
-        print $log_file "${now}: " . $self->name . "[$$]: $msg\n";
-        close $log_file;
-    }
-    else {
-        $self->$orig($msg);
-    }
+    open(my $log_file, '>>', $self->logfile)
+        or confess "Could not open File (" . $self->logfile . "): $@";
+    my $now = strftime "%F %T", localtime;
+    print $log_file "${now} "
+        . $self->hostname . ' '
+        . $self->name
+        . "[$$]: $msg\n";
+    close $log_file;
 
     return;
 };
@@ -384,6 +358,13 @@ sub daemonise {
     $self->gid($self->_get_gid);
     $self->gid((split /\s+/, $self->gid)[0]);
 
+    # turn off logging to STDOUT when running in background
+    $self->print_log(0);
+
+    # close syslog connection before forking because reopening it in the child
+    # will cause an empty log message
+    $self->close_syslog if $self->can('close_syslog');
+
     my $pid = $self->async;
 
     ### parent process should do the pid file and exit
@@ -406,109 +387,50 @@ sub daemonise {
         open(STDIN, '<', '/dev/null')
             or die "Can't open STDIN from /dev/null: [$!]";
 
-        # check for Tie::Syslog for later
-        my $tie_syslog;
-        eval { require Tie::Syslog; } and do { $tie_syslog = 1 unless $@ };
-
-        if ($self->has_logfile) {
-            my $logfile = $self->logfile;
-            open(STDOUT, '>', $logfile)
-                or die "Can't redirect STDOUT to $logfile: [$!]";
-            open(STDERR, '>', '&STDOUT')
-                or die "Can't redirect STDERR to STDOUT: [$!]";
-        }
-        elsif ($tie_syslog) {
-
-            my $has_config;
-            if (ref($self->config->{syslog}) eq 'HASH') {
-                $has_config = 1;
-                foreach my $conf_key ('host', 'port', 'type') {
-                    my $attr = 'syslog_' . $conf_key;
-                    $self->$attr($self->config->{syslog}->{$conf_key})
-                        if defined $self->config->{syslog}->{$conf_key};
-                }
-            }
-
-            # FIXME Tie::Syslog does not support the "setlogsock" option
-            # so we can't set another syslog server. This is a problem
-            # on FreeBSD atm
-            $Tie::Syslog::ident = $self->name;
-            tie *STDOUT, 'Tie::Syslog', {
-                facility => 'LOG_USER',
-                priority => 'LOG_INFO',
-                };
-            tie *STDERR, 'Tie::Syslog', {
-                facility => 'LOG_USER',
-                priority => 'LOG_ERR',
-                };
-
-            # inject our own PRINT function into Tie::Syslog so we can remove
-            # newlines when not in debug mode so syslog feeds splunk with nice
-            # single lines not losing the context
-            unless ($self->debug) {
-                require Sys::Syslog;
-                undef &Tie::Syslog::PRINT;    # silence redefine warnings
-                *Tie::Syslog::PRINT = sub {
-                    my ($s, @msg) = @_;
-
-                    warn "Cannot PRINT to a closed filehandle!"
-                        unless $s->{'is_open'};
-
-                    my $msg = join('', @msg);
-
-                    # remove vertical (and potentially surrounding horizontal) spaces
-                    $msg =~ s/\h*\v+\h*/ /gs;
-
-                    # Sys::Syslog does not like wide characters and dies
-                    utf8::encode($msg);
-
-                    Sys::Syslog::setlogsock({
-                            type => $self->syslog_type,
-                            host => $self->syslog_host,
-                            port => $self->syslog_port
-                        }) if $has_config;
-                    Sys::Syslog::openlog($self->name, 'pid,ndelay', LOG_USER);
-                    eval {
-                        Sys::Syslog::syslog($s->facility . '|' . $s->priority,
-                            'queue=%s %s', $self->name, $msg);
-                    };
-                    if ($@) {
-                        Sys::Syslog::syslog($s->facility . '|' . $s->priority,
-                            'queue=%s %s', $self->name,
-                            "PRINT failed with errors: $@");
-                    }
-
-                    return;
-                };
-            }
-
-        }
-        else {
-            open(STDOUT, '>', '/dev/null')
-                or die "Can't redirect STDOUT to /dev/null: [$!]";
-            open(STDERR, '>', '&STDOUT')
-                or die "Can't redirect STDERR to STDOUT: [$!]";
-        }
+        $self->stdout_redirect;
 
         ### Change to root dir to avoid locking a mounted file system
-        ### does this mean to be chroot ?
         chdir '/' or die "Can't chdir to \"/\": [$!]";
 
         ### Turn process into session leader, and ensure no controlling terminal
         POSIX::setsid();
-
-        $self->log("daemon started");
 
         ### install signal handlers to make sure we shut down gracefully
         $SIG{QUIT} = sub { $self->stop };    ## no critic
         $SIG{TERM} = sub { $self->stop };    ## no critic
         $SIG{INT}  = sub { $self->stop };    ## no critic
 
+        $self->log("daemon started");
+
         return 1;
     }
 
     return;
 }
+
+=head2 stdout_redirect
+
+=cut
+
+around 'stdout_redirect' => sub {
+    my ($orig, $self) = @_;
+
+    if ($self->has_logfile) {
+        my $logfile = $self->logfile;
+        open(STDOUT, '>>', $logfile)
+            or die "Can't redirect STDOUT to $logfile: [$!]";
+        open(STDERR, '>>', '&STDOUT')
+            or die "Can't redirect STDERR to STDOUT: [$!]";
+    }
+    else {
+        open(STDOUT, '>', '/dev/null')
+            or die "Can't redirect STDOUT to /dev/null: [$!]";
+        open(STDERR, '>', '&STDOUT')
+            or die "Can't redirect STDERR to STDOUT: [$!]";
+    }
+
+    return;
+};
 
 =head2 status
 
@@ -538,7 +460,7 @@ sub _get_uid {
         $uid = getpwnam($self->user);
     }
 
-    die "No such user \"" . $self->user . "\"\n" unless defined $uid;
+    die 'No such user "' . $self->user . '"' unless defined $uid;
 
     return $uid;
 }
@@ -553,12 +475,12 @@ sub _get_gid {
         }
         else {
             my $id = getgrnam($group);
-            die "No such group \"$group\"\n" unless defined $id;
+            die "No such group \"$group\"" unless defined $id;
             push @gid, $id;
         }
     }
 
-    die "No group found in arguments.\n" unless @gid;
+    die "No group found in arguments." unless @gid;
 
     return join(" ", $gid[0], @gid);
 }

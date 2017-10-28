@@ -1,5 +1,6 @@
 package Daemonise;
 
+use Modern::Perl;
 use Mouse;
 use File::Basename;
 use FindBin qw($Bin);
@@ -9,7 +10,6 @@ use lib "$Bin/../lib";
 
 # VERSION
 
-use Sys::Syslog qw(setlogsock :standard :macros);
 use Config::Any;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
@@ -144,38 +144,22 @@ has 'cache_plugin' => (
     default => sub { 'KyotoTycoon' },
 );
 
-=head2 syslog_host
+=head2 print_log
 
 =cut
 
-has 'syslog_host' => (
+has 'print_log' => (
     is      => 'rw',
-    isa     => 'Str',
+    isa     => 'Bool',
     lazy    => 1,
-    default => sub { '127.0.0.1' },
+    default => sub { 1 },
 );
 
-=head2 syslog_port
+=head1 SUBROUTINES/METHODS
+
+=head2 new
 
 =cut
-
-has 'syslog_port' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { '514' },
-);
-
-=head2 syslog_type
-
-=cut
-
-has 'syslog_type' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { 'tcp' },
-);
 
 after 'new' => sub {
     my ($class, %args) = @_;
@@ -183,6 +167,8 @@ after 'new' => sub {
     # backwards compatibility
     with('Daemonise::Plugin::Daemon')
         unless ($args{no_daemon} or $args{is_cron});
+    with('Daemonise::Plugin::Syslog')
+        unless ($args{no_syslog});
 
     # load cache plugin required for cron locking
     if ($args{is_cron}) {
@@ -197,8 +183,6 @@ after 'new' => sub {
 
     return;
 };
-
-=head1 SUBROUTINES/METHODS
 
 =head2 load_plugin
 
@@ -284,30 +268,10 @@ sub async {
 sub log {    ## no critic (ProhibitBuiltinHomonyms)
     my ($self, $msg) = @_;
 
+    return unless $self->print_log;
+
     chomp($msg);
-
-    # escape newlines when not running in debug mode for log parser convenience
-    $msg =~ s/\s*\n\s*/ /gs unless $self->debug;
-
-    # encode wide characters as UTF-8
-    utf8::encode($msg);
-
-    my $has_config;
-    if (ref($self->config->{syslog}) eq 'HASH') {
-        $has_config = 1;
-        foreach my $conf_key ('host', 'port') {
-            my $attr = 'syslog_' . $conf_key;
-            $self->$attr($self->config->{syslog}->{$conf_key})
-                if defined $self->config->{syslog}->{$conf_key};
-        }
-    }
-    setlogsock({
-            type => $self->syslog_type,
-            host => $self->syslog_host,
-            port => $self->syslog_port
-        }) if $has_config;
-    openlog($self->name, 'pid,ndelay', LOG_USER);
-    syslog(LOG_NOTICE, 'queue=%s %s', $self->name, $msg);
+    say($self->name . ": $msg");
 
     return;
 }
@@ -382,6 +346,15 @@ sub dump {    ## no critic (ProhibitBuiltinHomonyms)
 
     return $dump;
 }
+
+=head2 stdout_redirect
+
+method hook for redirecting STDOUT/STDERR in plugins
+most recent loaded plugin takes precedence using C<around> modifier only
+
+=cut
+
+sub stdout_redirect { }
 
 =head1 DEPLOY PROCESS
 
