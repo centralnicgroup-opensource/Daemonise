@@ -100,6 +100,8 @@ stub method to hook into by plugins
 method hook for redirecting STDOUT/STDERR in plugins
 most recent loaded plugin takes precedence using C<around> modifier only
 
+=head2 build_hostname
+
 =head1 DEPLOY PROCESS
 
 This module uses Dist::Zilla for the release process. To get it up and running

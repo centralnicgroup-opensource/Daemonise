@@ -77,7 +77,7 @@ has 'hostname' => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { my $h = `hostname -s`; chomp $h; $h },
+    builder => 'build_hostname',
 );
 
 =head2 config_file
@@ -356,6 +356,26 @@ most recent loaded plugin takes precedence using C<around> modifier only
 =cut
 
 sub stdout_redirect { }
+
+=head2 build_hostname
+
+=cut
+
+sub build_hostname {
+    my ($self) = @_;
+
+    my $hostname = `hostname -s`;
+    chomp $hostname;
+
+    # support freebsd jails with custom rc.conf variable
+    if ($^O eq 'freebsd' and -x '/usr/sbin/sysrc') {
+        my $h = `/usr/sbin/sysrc -n jail_host`;
+        $hostname = "$hostname\@$h" unless $h =~ m/unknown variable/;
+        chomp $hostname;
+    }
+
+    return $hostname;
+}
 
 =head1 DEPLOY PROCESS
 
