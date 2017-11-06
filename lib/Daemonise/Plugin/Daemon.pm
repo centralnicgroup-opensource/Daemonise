@@ -185,8 +185,10 @@ after 'configure' => sub {
 
 =cut
 
-after 'log' => sub {
-    my ($self, $msg) = @_;
+around 'log' => sub {
+    my ($orig, $self, $msg) = @_;
+
+    $self->$orig($msg);
 
     return unless ($self->has_logfile);
 
