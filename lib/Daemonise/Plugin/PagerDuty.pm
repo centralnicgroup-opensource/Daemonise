@@ -137,11 +137,11 @@ sub alert {
             if exists $self->job->{message}->{meta}->{workflow};
     }
 
-    my $service = join('.', $self->name, $self->hostname, $incident);
+    my $service = join('.', $self->name, $incident);
 
     # graph that we had an incident if we can
     if ($self->can('graph')) {
-        $self->graph("incidents.$service", 'nok', 1, $description);
+        $self->graph("incidents.$service", 'error', 1, $description);
     }
 
     # and notify hipchat if we can
@@ -152,7 +152,7 @@ sub alert {
     $self->pagerduty->event(
         service_key  => $self->pagerduty_service_key,
         incident_key => $incident,
-        description  => "$service: $description",
+        description  => $self->hostname . " $service: $description",
         details      => {%$details},
         )->trigger
         unless $self->debug;
