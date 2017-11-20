@@ -157,32 +157,6 @@ has 'rabbit_consumer_tag' => (
     default => sub { '' },
 );
 
-=head2 rabbit_heartbeat
-
-=cut
-
-has 'rabbit_heartbeat' => (
-    is      => 'rw',
-    isa     => 'Int',
-    lazy    => 1,
-    default => sub { 0 },
-);
-
-=head2 rabbit_recv_timeout
-
-=cut
-
-has 'rabbit_recv_timeout' => (
-    is      => 'rw',
-    isa     => 'Int',
-    lazy    => 1,
-    default => sub {
-        ($_[0]->rabbit_heartbeat == 0
-            ? 0
-            : ($_[0]->rabbit_heartbeat * 1000) / 2);
-    },
-);
-
 =head2 last_delivery_tag
 
 =cut
@@ -394,12 +368,12 @@ sub dequeue {
     my $msg;
     while (1) {
         try {
-            $frame = $self->mq->recv($self->rabbit_recv_timeout);
+            $frame = $self->mq->recv();
         }
         catch {
             warn "receiving message failed on first try! >>" . $@ . "<<";
             $self->_setup_rabbit_connection;
-            $frame = $self->mq->recv($self->rabbit_recv_timeout);
+            $frame = $self->mq->recv();
         };
 
         if ($frame) {
@@ -446,10 +420,6 @@ sub dequeue {
                 }
             }
         }
-        else {
-            $self->log("sending heartbeat to RabbitMQ") if $self->debug;
-            $self->mq->heartbeat;
-        }
     }
 
     # store delivery tag to ack later
@@ -480,30 +450,21 @@ sub _setup_rabbit_connection {
 
     if (ref($self->config->{rabbitmq}) eq 'HASH') {
         foreach
-            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange',
-            'heartbeat')
+            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange')
         {
             my $attr = "rabbit_" . $conf_key;
             $self->$attr($self->config->{rabbitmq}->{$conf_key})
                 if defined $self->config->{rabbitmq}->{$conf_key};
         }
     }
-    if ($self->rabbit_heartbeat) {
-        $self->rabbit_recv_timeout((
-            $self->rabbit_heartbeat == 0
-            ? 0
-            : ($self->rabbit_heartbeat * 1000) / 2
-        ));
-    }
 
     eval {
         $self->mq->connect(
             $self->rabbit_host, {
-                user      => $self->rabbit_user,
-                password  => $self->rabbit_pass,
-                port      => $self->rabbit_port,
-                vhost     => $self->rabbit_vhost,
-                heartbeat => $self->rabbit_heartbeat,
+                user     => $self->rabbit_user,
+                password => $self->rabbit_pass,
+                port     => $self->rabbit_port,
+                vhost    => $self->rabbit_vhost,
             });
     };
     my $err = $@;
