@@ -111,7 +111,7 @@ after 'configure' => sub {
 =cut
 
 sub graph {
-    my ($self, $service, $state, $metric, $desc) = @_;
+    my ($self, $service, $state, $metric, $desc, $tags) = @_;
 
     unless (ref \$service eq 'SCALAR'
         and defined $service
@@ -148,7 +148,8 @@ sub graph {
             service => $service,
             state   => $state,
             metric  => $metric,
-            defined $desc ? (description => $desc) : (),
+            defined $desc        ? (description => $desc) : (),
+            ref $tags eq 'ARRAY' ? (tags        => $tags) : (),
         });
     };
     carp "sending metric failed: $@" if $@;
