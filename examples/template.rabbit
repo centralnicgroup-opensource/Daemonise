@@ -155,7 +155,9 @@ sub action {
     my $state       = 'slow';
     my $metric      = 0.4;
     my $description = 'slow site right now';
-    $d->graph($service, $state, $metric, $description) if $d->can('graph');
+    my $tags        = [ "custom", "tags" ]; # only with Riemann plugin
+    $d->graph($service, $state, $metric, $description, $tags)
+        if $d->can('graph');
 
     ## PagerDuty plugin calls ##
     #
