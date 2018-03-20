@@ -168,6 +168,9 @@ after 'configure' => sub {
         $self->cache_default_expire(24 * 60 * 60);
         die 'locking failed' unless $self->lock;
         $self->cache_default_expire($expire);
+
+        $self->graph('cron.' . $self->name, 'started', 1)
+            if $self->can('graph');
     }
 
     return;
@@ -355,6 +358,9 @@ sub DESTROY {
         ));
 
     $self->unlock;
+
+    $self->graph('cron.' . $self->name, 'stopped', 1)
+        if $self->can('graph');
 
     return;
 }

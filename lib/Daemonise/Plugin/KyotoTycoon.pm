@@ -173,6 +173,9 @@ after 'configure' => sub {
         $self->cache_default_expire(24 * 60 * 60);
         die 'locking failed' unless $self->lock;
         $self->cache_default_expire($expire);
+
+        $self->graph('cron.' . $self->name, 'started', 1)
+            if $self->can('graph');
     }
 
     return;
@@ -382,7 +385,7 @@ sub DESTROY {
     return unless ref $self;
     return unless $self->{is_cron};
 
-    # the Cache::KyotoTycoon object was already destroyed to we need to create
+    # the Cache::KyotoTycoon object was already destroyed, so we need to create
     # a new one with the existing config
     $self->tycoon(
         Cache::KyotoTycoon->new(
@@ -393,6 +396,9 @@ sub DESTROY {
         ));
 
     $self->unlock;
+
+    $self->graph('cron.' . $self->name, 'stopped', 1)
+        if $self->can('graph');
 
     return;
 }
