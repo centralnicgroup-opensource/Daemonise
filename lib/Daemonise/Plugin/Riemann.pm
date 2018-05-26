@@ -143,6 +143,13 @@ sub graph {
     # $self->async and return;
 
     eval {
+        $self->riemann(
+            Riemann::Client->new(
+                host  => $self->riemann_host,
+                port  => $self->riemann_port,
+                proto => $self->riemann_proto,
+            )) unless defined $self->riemann;
+
         $self->riemann->send({
             host    => $self->hostname,
             service => $service,
