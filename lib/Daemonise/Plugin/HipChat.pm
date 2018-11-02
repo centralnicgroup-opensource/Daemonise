@@ -90,7 +90,7 @@ has 'hipchat_to_slack' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { '1' },
+    default => sub { '0' },
 );
 
 =head1 SUBROUTINES/METHODS provided
