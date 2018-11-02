@@ -113,6 +113,8 @@ after 'configure' => sub {
             if defined $self->config->{api}->{hipchat}->{token}->{default};
         $self->hipchat_room($self->config->{api}->{hipchat}->{room})
             if defined $self->config->{api}->{hipchat}->{room};
+        $self->hipchat_to_slack($self->config->{api}->{hipchat}->{to_slack})
+            if defined $self->config->{api}->{hipchat}->{to_slack};
     }
 
     if ($self->hipchat_to_slack)
