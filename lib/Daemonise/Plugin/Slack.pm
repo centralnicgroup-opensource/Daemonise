@@ -1,7 +1,6 @@
 package Daemonise::Plugin::Slack;
 
 use Mouse::Role;
-use Data::Dumper;
 
 # ABSTRACT: Daemonise Slack plugin
 
@@ -80,7 +79,7 @@ has 'slack_room' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { '#log' },
+    default => sub { '#test' },
 );
 
 =head1 SUBROUTINES/METHODS provided
@@ -123,12 +122,14 @@ after 'configure' => sub {
     More details at https://www.slack.com/docs/api/method/rooms/message
 =cut
 
-sub notify {
+after 'notify' => sub {
     my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
 
     $self->log($msg);
 
 	$severity = 'info' unless $severity;
+    $room = $self->slack_room unless $room;
+    unless($room =~ /^#/) { $room = '#' . $room; }
     $msg = '[debug] ' . $msg if $self->debug;
 
     # fork and to the rest asynchronously
@@ -150,6 +151,6 @@ sub notify {
 
     # exit; # async
     return;
-}
+};
 
 1;

@@ -82,6 +82,17 @@ has 'hipchat_room' => (
     default => sub { 'log' },
 );
 
+=head2 hipchat_to_slack
+
+=cut
+
+has 'hipchat_to_slack' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { '1' },
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -104,6 +115,11 @@ after 'configure' => sub {
             if defined $self->config->{api}->{hipchat}->{room};
     }
 
+    if ($self->hipchat_to_slack)
+    {
+        $self->load_plugin('Slack');
+    }
+
     # truncate name to 15 characters as that's the limit for the "From" field...
     $self->hipchat_from(substr($self->name, 0, 15));
 
@@ -123,7 +139,7 @@ after 'configure' => sub {
     More details at https://www.hipchat.com/docs/api/method/rooms/message
 =cut
 
-sub notify {
+after 'notify' => sub {
     my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
 
     $self->log($msg);
@@ -151,6 +167,6 @@ sub notify {
 
     # exit; # async
     return;
-}
+};
 
 1;

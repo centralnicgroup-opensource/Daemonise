@@ -277,6 +277,19 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
     return;
 }
 
+=head2 notify
+
+This is a stub that is replaced by the HipChat and Slack plugin
+
+=cut
+
+sub notify {
+    my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
+
+    $self->log($msg);
+    return;
+}
+
 =head2 start
 
 stub method to hook into by plugins
