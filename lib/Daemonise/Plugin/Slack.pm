@@ -116,7 +116,7 @@ after 'configure' => sub {
 
     $msg is the message to send.
     $room is the room to send to.
-    $severity is the type of message (ignored in slack).
+    $severity is the type of message.
     $notify_users is whether the message will mark the room as having unread messages (ignored for now).
     $message_format indicates the format of the message. "html" or "text" (ignored for now).
 
@@ -128,13 +128,12 @@ sub notify {
 
     $self->log($msg);
 
+	$severity = 'info' unless $severity;
     $msg = '[debug] ' . $msg if $self->debug;
 
     # fork and to the rest asynchronously
     # $self->async and return;
 
-    # This could be a custom icon maybe
-    #my $colour = ($colour{ $severity || 'info' }) || 'green';
     my $ua = LWP::UserAgent->new(agent => $self->name);
     #Content-type: application/x-www-form-urlencoded
     my $res = $ua->post(
@@ -142,13 +141,12 @@ sub notify {
             token          => $self->slack_token,
             channel        => $room           || $self->slack_room,
             as_user        => $self->slack_from,
-            text           => $self->hostname . ': ' . $msg,
+            text           => $self->hostname . ': [' . $severity . ']' . $msg,
         });
 
     unless ($res->is_success) {
         $self->log($res->status_line . ': ' . $res->decoded_content);
     }
-	print STDERR "Result: " . Dumper($res);
 
     # exit; # async
     return;
