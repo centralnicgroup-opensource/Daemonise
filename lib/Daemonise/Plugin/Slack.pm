@@ -45,9 +45,7 @@ has 'slack_url' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => sub {
-        'https://slack.com/api/chat.postMessage';
-    },
+    default => sub { 'https://slack.com/api/chat.postMessage' },
 );
 
 =head2 slack_token
@@ -82,6 +80,15 @@ has 'slack_room' => (
     default => sub { '#test' },
 );
 
+=head2 slack
+
+=cut
+
+has 'slack' => (
+    is  => 'rw',
+    isa => 'LWP::UserAgent',
+);
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -96,8 +103,7 @@ after 'configure' => sub {
     if (    ref($self->config->{api}) eq 'HASH'
         and ref($self->config->{api}->{slack}) eq 'HASH')
     {
-        $self->slack_token(
-            $self->config->{api}->{slack}->{token})
+        $self->slack_token($self->config->{api}->{slack}->{token})
             if defined $self->config->{api}->{slack}->{token};
         $self->slack_room($self->config->{api}->{slack}->{room})
             if defined $self->config->{api}->{slack}->{room};
@@ -106,12 +112,14 @@ after 'configure' => sub {
     # truncate name to 15 characters as that's the limit for the "From" field...
     $self->slack_from(substr($self->name, 0, 15));
 
+    $self->slack(LWP::UserAgent->new(agent => $self->name));
+
     return;
 };
 
 =head2 notify
 
-    Arguments: 
+    Arguments:
 
     $msg is the message to send.
     $room is the room to send to.
@@ -120,29 +128,28 @@ after 'configure' => sub {
     $message_format indicates the format of the message. "html" or "text" (ignored for now).
 
     More details at https://www.slack.com/docs/api/method/rooms/message
+
 =cut
 
 after 'notify' => sub {
     my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
 
-    $self->log($msg);
+    $severity = 'info'            unless $severity;
+    $room     = $self->slack_room unless $room;
+    $room     = '#' . $room       unless ($room =~ /^#/);
 
-	$severity = 'info' unless $severity;
-    $room = $self->slack_room unless $room;
-    unless($room =~ /^#/) { $room = '#' . $room; }
     $msg = '[debug] ' . $msg if $self->debug;
 
     # fork and to the rest asynchronously
     # $self->async and return;
 
-    my $ua = LWP::UserAgent->new(agent => $self->name);
     #Content-type: application/x-www-form-urlencoded
-    my $res = $ua->post(
+    my $res = $self->slack->post(
         $self->slack_url, {
-            token          => $self->slack_token,
-            channel        => $room           || $self->slack_room,
-            as_user        => $self->slack_from,
-            text           => $self->hostname . ': [' . $severity . ']' . $msg,
+            token   => $self->slack_token,
+            channel => $room || $self->slack_room,
+            as_user => $self->slack_from,
+            text    => $self->hostname . ': [' . $severity . ']' . $msg,
         });
 
     unless ($res->is_success) {

@@ -279,7 +279,7 @@ sub log {    ## no critic (ProhibitBuiltinHomonyms)
 
 =head2 notify
 
-This is a stub that is replaced by the HipChat and Slack plugin
+This is a stub that can be extended by plugins like HipChat and Slack
 
 =cut
 
@@ -287,6 +287,7 @@ sub notify {
     my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
 
     $self->log($msg);
+
     return;
 }
 

@@ -82,15 +82,13 @@ has 'hipchat_room' => (
     default => sub { 'log' },
 );
 
-=head2 hipchat_to_slack
+=head2 hipchat
 
 =cut
 
-has 'hipchat_to_slack' => (
-    is      => 'rw',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub { '0' },
+has 'hipchat' => (
+    is  => 'rw',
+    isa => 'LWP::UserAgent',
 );
 
 =head1 SUBROUTINES/METHODS provided
@@ -113,17 +111,12 @@ after 'configure' => sub {
             if defined $self->config->{api}->{hipchat}->{token}->{default};
         $self->hipchat_room($self->config->{api}->{hipchat}->{room})
             if defined $self->config->{api}->{hipchat}->{room};
-        $self->hipchat_to_slack($self->config->{api}->{hipchat}->{to_slack})
-            if defined $self->config->{api}->{hipchat}->{to_slack};
-    }
-
-    if ($self->hipchat_to_slack)
-    {
-        $self->load_plugin('Slack');
     }
 
     # truncate name to 15 characters as that's the limit for the "From" field...
     $self->hipchat_from(substr($self->name, 0, 15));
+
+    $self->hipchat(LWP::UserAgent->new(agent => $self->name));
 
     return;
 };
@@ -144,16 +137,13 @@ after 'configure' => sub {
 after 'notify' => sub {
     my ($self, $msg, $room, $severity, $notify_users, $message_format) = @_;
 
-    $self->log($msg);
-
     $msg = '[debug] ' . $msg if $self->debug;
 
     # fork and to the rest asynchronously
     # $self->async and return;
 
     my $colour = ($colour{ $severity || 'info' }) || 'green';
-    my $ua = LWP::UserAgent->new(agent => $self->name);
-    my $res = $ua->post(
+    my $res = $self->hipchat->post(
         $self->hipchat_url . $self->hipchat_token, {
             room_id        => $room           || $self->hipchat_room,
             from           => $self->hipchat_from,

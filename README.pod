@@ -85,6 +85,10 @@ version 2.10
 
 =head2 log
 
+=head2 notify
+
+This is a stub that can be extended by plugins like HipChat and Slack
+
 =head2 start
 
 stub method to hook into by plugins
