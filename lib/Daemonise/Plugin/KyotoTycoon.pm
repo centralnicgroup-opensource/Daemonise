@@ -160,7 +160,7 @@ after 'configure' => sub {
 
     $self->mp(
         Data::MessagePack->new(
-            prefer_integer => 1,
+            prefer_integer => 0,
             utf8           => 1,
         ));
 
