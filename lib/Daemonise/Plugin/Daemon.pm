@@ -1,10 +1,10 @@
 package Daemonise::Plugin::Daemon;
 
+use BSD::Resource qw( getrusage setrlimit RLIMIT_VMEM );
 use Mouse::Role;
+use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
 # ABSTRACT: Daemonise plugin handling PID file and forking
-
-use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
 
 =head1 SYNOPSIS
 
@@ -151,6 +151,29 @@ has 'interval' => (
     default => sub { 5 },
 );
 
+=head2 exit_size
+
+The daemon will terminate after running a loop iteration if its process size exceeds this value in
+bytes.
+
+The size is checked at the end of the loop, so a process can temporarily use up to C<abort_size>
+bytes, so long as it shrinks back to under C<exit_size> before the check.
+
+=cut
+
+has exit_size => (is => 'rw', isa => 'Int', default => sub { 1024**3 });
+
+=head2 abort_size
+
+The daemon will terminate immediately if its process size exceeds this value in bytes.
+
+This is enforced by using e.g. L<setrlimit(2)> (the exact syscall depends on platform). The Perl
+process has no opportunity to perform cleanup.
+
+=cut
+
+has abort_size => (is => 'rw', isa => 'Int', default => sub { 1.5 * 1024**3 });
+
 =head1 SUBROUTINES/METHODS provided
 
 =head2 configure
@@ -162,24 +185,31 @@ after 'configure' => sub {
 
     $self->log("configuring Daemon plugin") if $self->debug;
 
-    unless (exists $self->config->{daemon}
-        and ref $self->config->{daemon} eq 'HASH')
-    {
+    my $config = $self->config->{daemon};
+    unless (defined $config && ref $config eq 'HASH') {
         warn "'daemon' plugin config section missing!";
         return;
     }
 
-    foreach my $key (keys %{ $self->config->{daemon} }) {
-        my $val = $self->config->{daemon}->{$key};
+    $self->_install_config($config);
 
-        # set properties if they exist but don't die if they don't
-        eval { $self->$key($val) };
-        warn "$key not defined as property! $@"
-            if ($@ && $self->debug);
-    }
-
-    return;
+    my $local_config = $config->{ $self->name };
+    $self->_install_config($local_config) if $local_config;
 };
+
+sub _install_config {
+    my ($self, $config) = @_;
+
+    while (my ($key, $value) = each %$config) {
+        next if defined $value && ref $value eq 'HASH';
+
+        if ($self->can($key)) {
+            $self->$key($value);
+        } else {
+            warn "$key not defined as property!" if $self->debug;
+        }
+    }
+}
 
 =head2 log
 
@@ -241,18 +271,41 @@ around 'start' => sub {
     # graph that startup was ok and that we are running now
     $self->graph('hase.' . $self->name, 'running', 1) if $self->can('graph');
 
-    if ($self->loops) {
-        while (1) {
-            { $code->(); }
-        }
-    }
-    else {
+    # Attempt to set a hard process memory limit, but just log if this fails. There are various
+    # possible reasons for failure, the most typical being that the limit was already lower than
+    # this value.
+    my $limited = setrlimit(RLIMIT_VMEM, $self->abort_size, $self->abort_size);
+    $self->log(sprintf 'Could not limit process size to %d; continuing regardless',
+        $self->abort_size)
+      unless $limited;
+
+    my $count  = 0;
+    my $repeat = $self->loops;
+
+    do {
+        $count += 1;
         $code->();
-        $self->stop;
-    }
+        my $size = process_size();
+        if ($size >= $self->exit_size) {
+            $self->log(
+                sprintf
+'Exiting after %d iteration(s): process size of %d bytes exceeds limit of %d bytes',
+                $count, $size, $self->exit_size);
+            $self->graph("hase" . $self->name, 'memory_limit_exit', 1) if $self->can('graph');
+            $repeat = 0;
+        }
+    } while ($repeat);
+    $self->stop;
 
     return;
 };
+
+sub process_size {
+    my $rusage = getrusage();
+
+    #return ($rusage->ixrss + $rusage->idrss + $rusage->isrss) * 1024;
+    return $rusage->maxrss * 1024;
+}
 
 =head2 dont_loop / loop
 
