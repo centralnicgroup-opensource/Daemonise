@@ -3,6 +3,7 @@ package Daemonise::Plugin::Daemon;
 use BSD::Resource qw( getrusage setrlimit RLIMIT_VMEM );
 use Mouse::Role;
 use POSIX qw(strftime SIGTERM SIG_BLOCK SIG_UNBLOCK);
+use Process::SizeLimit::Core;
 
 # ABSTRACT: Daemonise plugin handling PID file and forking
 
@@ -161,6 +162,8 @@ bytes, so long as it shrinks back to under C<exit_size> before the check.
 
 =cut
 
+# This is 'rw' only because configure() wants to update it, and should otherwise be considered
+# immutable.
 has exit_size => (is => 'rw', isa => 'Int', default => sub { 1024**3 });
 
 =head2 abort_size
@@ -172,7 +175,18 @@ process has no opportunity to perform cleanup.
 
 =cut
 
+# This is 'rw' only because configure() wants to update it, and should otherwise be considered
+# immutable.
 has abort_size => (is => 'rw', isa => 'Int', default => sub { 1.5 * 1024**3 });
+
+has _size_limit => (is => 'ro', isa => 'Process::SizeLimit::Core', required => 1, lazy_build => 1);
+
+sub _build__size_limit {
+    my $self = shift;
+
+    my $obj = bless {}, 'Process::SizeLimit::Core';
+    $obj;
+}
 
 =head1 SUBROUTINES/METHODS provided
 
@@ -285,7 +299,7 @@ around 'start' => sub {
     do {
         $count += 1;
         $code->();
-        my $size = process_size();
+        my $size = $self->_process_size();
         if ($size >= $self->exit_size) {
             $self->log(
                 sprintf
@@ -300,11 +314,11 @@ around 'start' => sub {
     return;
 };
 
-sub process_size {
-    my $rusage = getrusage();
+sub _process_size {
+    my $self = shift;
 
-    #return ($rusage->ixrss + $rusage->idrss + $rusage->isrss) * 1024;
-    return $rusage->maxrss * 1024;
+    my ($size, $share, $unshared) = $self->_size_limit->_check_size();
+    return $size * 1024;
 }
 
 =head2 dont_loop / loop
