@@ -155,7 +155,7 @@ has 'interval' => (
 =head2 exit_size
 
 The daemon will terminate after running a loop iteration if its process size exceeds this value in
-bytes.
+bytes. A value of zero will disable this functionality.
 
 The size is checked at the end of the loop, so a process can temporarily use up to C<abort_size>
 bytes, so long as it shrinks back to under C<exit_size> before the check.
@@ -168,7 +168,8 @@ has exit_size => (is => 'rw', isa => 'Int', default => sub { 1024**3 });
 
 =head2 abort_size
 
-The daemon will terminate immediately if its process size exceeds this value in bytes.
+The daemon will terminate immediately if its process size exceeds this value in bytes. A value of
+zero disables this functionality.
 
 This is enforced by using e.g. L<setrlimit(2)> (the exact syscall depends on platform). The Perl
 process has no opportunity to perform cleanup.
@@ -285,13 +286,16 @@ around 'start' => sub {
     # graph that startup was ok and that we are running now
     $self->graph('hase.' . $self->name, 'running', 1) if $self->can('graph');
 
-    # Attempt to set a hard process memory limit, but just log if this fails. There are various
-    # possible reasons for failure, the most typical being that the limit was already lower than
-    # this value.
-    my $limited = setrlimit(RLIMIT_VMEM, $self->abort_size, $self->abort_size);
-    $self->log(sprintf 'Could not limit process size to %d; continuing regardless',
-        $self->abort_size)
-      unless $limited;
+    if ($self->abort_size > 0) {
+
+        # Attempt to set a hard process memory limit, but just log if this fails. There are various
+        # possible reasons for failure, the most typical being that the limit was already lower than
+        # this value.
+        my $limited = setrlimit(RLIMIT_VMEM, $self->abort_size, $self->abort_size);
+        $self->log(sprintf 'Could not limit process size to %d; continuing regardless',
+            $self->abort_size)
+          unless $limited;
+    }
 
     my $count  = 0;
     my $repeat = $self->loops;
@@ -299,14 +303,16 @@ around 'start' => sub {
     do {
         $count += 1;
         $code->();
-        my $size = $self->_process_size();
-        if ($size >= $self->exit_size) {
-            $self->log(
-                sprintf
+        if ($self->exit_size > 0) {
+            my $size = $self->_process_size();
+            if ($size >= $self->exit_size) {
+                $self->log(
+                    sprintf
 'Exiting after %d iteration(s): process size of %d bytes exceeds limit of %d bytes',
-                $count, $size, $self->exit_size);
-            $self->graph("hase" . $self->name, 'memory_limit_exit', 1) if $self->can('graph');
-            $repeat = 0;
+                    $count, $size, $self->exit_size);
+                $self->graph("hase" . $self->name, 'memory_limit_exit', 1) if $self->can('graph');
+                $repeat = 0;
+            }
         }
     } while ($repeat);
     $self->stop;
