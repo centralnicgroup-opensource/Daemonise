@@ -7,7 +7,6 @@
 cpanfile
 cpanfile.snapshot
 Build
-Daemonise-*
 Makefile
 Makefile.old
 _build*
