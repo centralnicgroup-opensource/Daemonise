@@ -1,14 +1,12 @@
 *.swo
 *.swp
 *.un~
-*.tar.gz
 .lwpcookies
 .shipit
 .vimbk
 cpanfile
 cpanfile.snapshot
 Build
-Daemonise-*
 Makefile
 Makefile.old
 _build*
