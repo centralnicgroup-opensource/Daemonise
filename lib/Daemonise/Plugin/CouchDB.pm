@@ -88,6 +88,17 @@ has 'couch_debug' => (
     default => sub { 0 },
 );
 
+=head2 couch_ssl
+
+=cut
+
+has 'couch_ssl' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub { 0 },
+);
+
 has 'couchdb' => (
     is       => 'rw',
     isa      => 'Store::CouchDB',
@@ -107,7 +118,7 @@ after 'configure' => sub {
 
     if (ref($self->config->{couchdb}) eq 'HASH') {
         foreach
-            my $conf_key ('host', 'port', 'user', 'pass', 'db', 'view', 'debug')
+            my $conf_key ('host', 'port', 'user', 'pass', 'db', 'view', 'debug', 'ssl')
         {
             my $attr = "couch_" . $conf_key;
             $self->$attr($self->config->{couchdb}->{$conf_key})
@@ -119,6 +130,7 @@ after 'configure' => sub {
         host  => $self->couch_host,
         port  => $self->couch_port,
         debug => $self->couch_debug,
+        ssl   => $self->couch_ssl,
     );
     $sc->db($self->couch_db) if ($self->couch_db);
     if ($self->couch_user && $self->couch_pass) {
