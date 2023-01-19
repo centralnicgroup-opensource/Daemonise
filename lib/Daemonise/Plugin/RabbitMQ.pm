@@ -102,6 +102,17 @@ has 'rabbit_user' => (
     default => sub { 'guest' },
 );
 
+=head2 rabbit_ssl
+
+=cut
+
+has 'rabbit_ssl' => ( 
+    is      => 'rw', 
+	isa     => 'Bool', 
+	lazy    => 1, 
+	default => sub { 0 },
+);
+
 =head2 rabbit_pass
 
 =cut
@@ -320,7 +331,7 @@ sub queue {
     my $options;
     $options->{exchange} = $exchange if $exchange;
 
-    $self->log("sending message to '$queue' via channel "
+    $self->log("sending message to RabbitMQ queue '$queue' via RabbitMQ channel "
             . $self->rabbit_channel
             . " using "
             . ($exchange ? $exchange : 'amq.direct') . ": "
@@ -449,12 +460,10 @@ sub _setup_rabbit_connection {
     my $self = shift;
 
     if (ref($self->config->{rabbitmq}) eq 'HASH') {
-        foreach
-            my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange')
-        {
+        foreach my $conf_key ('user', 'pass', 'host', 'port', 'vhost', 'exchange', 'ssl') {
+            next unless ( defined $self->config->{rabbitmq}{$conf_key} );
             my $attr = "rabbit_" . $conf_key;
-            $self->$attr($self->config->{rabbitmq}->{$conf_key})
-                if defined $self->config->{rabbitmq}->{$conf_key};
+            $self->$attr( $self->config->{rabbitmq}{$conf_key} );
         }
     }
 
@@ -465,6 +474,7 @@ sub _setup_rabbit_connection {
                 password => $self->rabbit_pass,
                 port     => $self->rabbit_port,
                 vhost    => $self->rabbit_vhost,
+                ssl      => $self->rabbit_ssl,
             });
     };
     my $err = $@;
